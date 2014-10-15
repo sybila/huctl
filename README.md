@@ -26,7 +26,7 @@ Where variable_name is any nonempty lowercase string, float_value is a positive 
 
 Example of a well formed formula string:
 
-AF E ( { cA == 3.0 } U ( EX {cB >= 3.14} && !{ cA > 12.5 } ) )
+AF E ( { a == 3.0 } U ( EX { b >= 3.14} && !{ c > 12.5 } ) )
 
 
 Future plans:
