@@ -47,7 +47,6 @@ public class CTLParser {
     }
 
     private static Formula processContext(CTLGrammarParser.FormulaContext input) {
-        //TODO update for new parser after grammar recompiled
         if (input instanceof CTLGrammarParser.ExistsUntilContext) {
             CTLGrammarParser.ExistsUntilContext context = (CTLGrammarParser.ExistsUntilContext) input;
             return new FormulaImpl(BinaryOperator.EXISTS_UNTIL, processSubFormulas(context.formula()));
