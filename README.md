@@ -1,4 +1,4 @@
-Simple Java CTL parser supporting quantified float propositions.
+**Simple Java CTL Parser.**
 
 Parser provides basic interface for porcessing CTL formulae with float propositions. 
 Parser accepts a string containing a formula and returns a tree of Formula objects representing the specified formula.
@@ -6,7 +6,7 @@ So far, only supported operators are EU, EX, AF and !, && (All other CTL operato
 
 This project also contains Antlr grammar, that can be used to generate parsers for other programming languages (such as C++).
 
-Formula string syntax:
+**Formula string syntax:**
 
 (spaces are optional, parenthesis are mandatory)
 
@@ -17,7 +17,7 @@ Formula string syntax:
   - All-Future: AF Formula
   - Proposition: { proposition_string }
 
-Proposition string syntax:
+**Proposition string syntax:**
 
 variable_name operator float_value
 
@@ -28,9 +28,11 @@ Example of a well formed formula string:
 
 AF E ( { a == 3.0 } U ( EX { b >= 3.14} && !{ c > 12.5 } ) )
 
+**Usage:** 
+
 You can add this repository directly as a module in IntelliJ IDEA or you can include the jar file provided in the out directory.
 
-Future plans:
+**Future plans:**
 
   - Support negative floats
   - More CTL operators
