@@ -28,6 +28,7 @@ Example of a well formed formula string:
 
 AF E ( { a == 3.0 } U ( EX { b >= 3.14} && !{ c > 12.5 } ) )
 
+You can add this repository directly as a module in IntelliJ IDEA or you can include the jar file provided in the out directory.
 
 Future plans:
 
