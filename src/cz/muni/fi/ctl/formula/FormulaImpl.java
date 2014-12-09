@@ -2,12 +2,17 @@ package cz.muni.fi.ctl.formula;
 
 import cz.muni.fi.ctl.formula.operator.NullaryOperator;
 import cz.muni.fi.ctl.formula.operator.Operator;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FormulaImpl implements Formula {
 
+    @NotNull
     private Operator operator;
+    @NotNull
     private List<Formula> formulas = new ArrayList<>();
 
     /**
@@ -22,17 +27,12 @@ public class FormulaImpl implements Formula {
      * @param operator N-ary operator.
      * @param formulas List of N formulas (empty list for nullary operator).
      */
-    public FormulaImpl(Operator operator, List<Formula> formulas) {
-        initOperator(operator);
-        if (formulas == null) {
-            throw new NullPointerException("No formulas provided.");
-        }
+    public FormulaImpl(@NotNull Operator operator, @NotNull List<Formula> formulas) {
+        this.operator = operator;
         if (operator.getCardinality() != formulas.size()) {
             throw new IllegalArgumentException("Operator requires "+operator.getCardinality()+" subFormulas, "+formulas.size()+" formulas provided");
         }
-        for (Formula formula : formulas) {
-            this.formulas.add(formula);
-        }
+        this.formulas.addAll(formulas.stream().collect(Collectors.toList()));
     }
 
     /**
@@ -40,27 +40,17 @@ public class FormulaImpl implements Formula {
      * @param operator Unary operator.
      * @param formula Inner formula.
      */
-    public FormulaImpl(Operator operator, Formula formula) {
-        initOperator(operator);
-        if (formula == null) {
-            throw new NullPointerException("No formula provided.");
-        }
+    public FormulaImpl(@NotNull Operator operator, @NotNull Formula formula) {
+        this.operator = operator;
         if (operator.getCardinality() != 1) {
             throw new IllegalArgumentException("Operator cardinality not 1, but one formula provided. Cardinality: "+operator.getCardinality());
         }
         this.formulas.add(formula);
     }
 
-    private void initOperator(Operator operator) {
-        if (operator == null) {
-            throw new NullPointerException("Cannot create formula without operator");
-        }
-        this.operator = operator;
-    }
-
     @Override
     public int getSubFormulaCount() {
-        return operator.getCardinality();   //faster than size() call;
+        return operator.getCardinality();
     }
 
     @Override
@@ -68,19 +58,22 @@ public class FormulaImpl implements Formula {
         return formulas.get(index);
     }
 
+    @NotNull
     @Override
     public Collection<Formula> getSubFormulas() {
         return Collections.unmodifiableCollection(formulas);
     }
 
+    @NotNull
     @Override
     public Operator getOperator() {
         return operator;
     }
 
+    @NotNull
     @Override
     public String toString() {
-        return operator+": "+ Arrays.toString(formulas.toArray());
+        return operator + ": " + Arrays.toString(formulas.toArray());
     }
 
     @Override
@@ -88,7 +81,7 @@ public class FormulaImpl implements Formula {
         if (this == o) return true;
         if (!(o instanceof FormulaImpl)) return false;
 
-        FormulaImpl formula = (FormulaImpl) o;
+        @NotNull FormulaImpl formula = (FormulaImpl) o;
 
         return formulas.equals(formula.formulas) && operator.equals(formula.operator);
 

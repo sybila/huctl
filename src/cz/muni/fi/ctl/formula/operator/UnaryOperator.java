@@ -1,7 +1,7 @@
 package cz.muni.fi.ctl.formula.operator;
 
 public enum UnaryOperator implements Operator {
-    NEGATION, EXISTS_NEXT, ALL_FUTURE
+    NEGATION, EXISTS_NEXT
     ;
 
     @Override

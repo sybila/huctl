@@ -1,5 +1,7 @@
 package cz.muni.fi.ctl.formula.proposition;
 
+import org.jetbrains.annotations.NotNull;
+
 public class FloatProposition extends Proposition<Float> {
 
     private float value;
@@ -31,25 +33,41 @@ public class FloatProposition extends Proposition<Float> {
         }
     }
 
+    public int getNativeOperator() {
+        return operator.getNativeIndex();
+    }
+
+    public float getThreshold() {
+        return value;
+    }
+
     public String getVariable() {
         return variable;
     }
 
     public static enum Operator {
-        EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
+        EQ("==", -1), NEQ("!=", -1), GT(">", 0), GT_EQ(">=", 2), LT("<", 1), LT_EQ("<=", 3);
 
         private String val;
+        //represents an integer passed to an enum inside a native library
+        private int nativeIndex;
 
-        Operator(String val) {
+        Operator(String val, int nativeIndex) {
             this.val = val;
+            this.nativeIndex = nativeIndex;
         }
 
         @Override
         public String toString() {
             return val;
         }
+
+        public int getNativeIndex() {
+            return nativeIndex;
+        }
     }
 
+    @NotNull
     @Override
     public String toString() {
         return variable+" "+operator+" "+value;
@@ -60,7 +78,7 @@ public class FloatProposition extends Proposition<Float> {
         if (this == o) return true;
         if (!(o instanceof FloatProposition)) return false;
 
-        FloatProposition that = (FloatProposition) o;
+        @NotNull FloatProposition that = (FloatProposition) o;
 
         return Float.compare(that.value, value) == 0 && operator == that.operator && variable.equals(that.variable);
 

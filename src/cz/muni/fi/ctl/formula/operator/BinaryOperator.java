@@ -1,7 +1,7 @@
 package cz.muni.fi.ctl.formula.operator;
 
 public enum BinaryOperator implements Operator {
-    AND, EXISTS_UNTIL
+    AND, OR, EXISTS_UNTIL, ALL_UNTIL
     ;
 
     @Override

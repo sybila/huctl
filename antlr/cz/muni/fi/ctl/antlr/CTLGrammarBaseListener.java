@@ -30,26 +30,156 @@ public class CTLGrammarBaseListener implements CTLGrammarListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterNegation(@NotNull CTLGrammarParser.NegationContext ctx) { }
+	@Override public void enterComparison(@NotNull CTLGrammarParser.ComparisonContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void exitNegation(@NotNull CTLGrammarParser.NegationContext ctx) { }
+	@Override public void exitComparison(@NotNull CTLGrammarParser.ComparisonContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterAnd(@NotNull CTLGrammarParser.AndContext ctx) { }
+	@Override public void enterBinBool(@NotNull CTLGrammarParser.BinBoolContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void exitAnd(@NotNull CTLGrammarParser.AndContext ctx) { }
+	@Override public void exitBinBool(@NotNull CTLGrammarParser.BinBoolContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterBool(@NotNull CTLGrammarParser.BoolContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitBool(@NotNull CTLGrammarParser.BoolContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterBinTemp(@NotNull CTLGrammarParser.BinTempContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitBinTemp(@NotNull CTLGrammarParser.BinTempContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterUnTemp(@NotNull CTLGrammarParser.UnTempContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitUnTemp(@NotNull CTLGrammarParser.UnTempContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterQuantifier(@NotNull CTLGrammarParser.QuantifierContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitQuantifier(@NotNull CTLGrammarParser.QuantifierContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterUnary(@NotNull CTLGrammarParser.UnaryContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitUnary(@NotNull CTLGrammarParser.UnaryContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterPath(@NotNull CTLGrammarParser.PathContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitPath(@NotNull CTLGrammarParser.PathContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterOp_binary_bool(@NotNull CTLGrammarParser.Op_binary_boolContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitOp_binary_bool(@NotNull CTLGrammarParser.Op_binary_boolContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterOp_bool(@NotNull CTLGrammarParser.Op_boolContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitOp_bool(@NotNull CTLGrammarParser.Op_boolContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterOp_binary_temp(@NotNull CTLGrammarParser.Op_binary_tempContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitOp_binary_temp(@NotNull CTLGrammarParser.Op_binary_tempContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void enterOp_float(@NotNull CTLGrammarParser.Op_floatContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 * <p/>
+	 * The default implementation does nothing.
+	 */
+	@Override public void exitOp_float(@NotNull CTLGrammarParser.Op_floatContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -69,13 +199,13 @@ public class CTLGrammarBaseListener implements CTLGrammarListener {
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void enterExistsUntil(@NotNull CTLGrammarParser.ExistsUntilContext ctx) { }
+	@Override public void enterUnBool(@NotNull CTLGrammarParser.UnBoolContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 * <p/>
 	 * The default implementation does nothing.
 	 */
-	@Override public void exitExistsUntil(@NotNull CTLGrammarParser.ExistsUntilContext ctx) { }
+	@Override public void exitUnBool(@NotNull CTLGrammarParser.UnBoolContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -89,32 +219,6 @@ public class CTLGrammarBaseListener implements CTLGrammarListener {
 	 * The default implementation does nothing.
 	 */
 	@Override public void exitProposition(@NotNull CTLGrammarParser.PropositionContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterExistsFuture(@NotNull CTLGrammarParser.ExistsFutureContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitExistsFuture(@NotNull CTLGrammarParser.ExistsFutureContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void enterAllFuture(@NotNull CTLGrammarParser.AllFutureContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 * <p/>
-	 * The default implementation does nothing.
-	 */
-	@Override public void exitAllFuture(@NotNull CTLGrammarParser.AllFutureContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
