@@ -122,5 +122,5 @@ NEWLINE   : '\r' '\n' | '\n' | '\r';
         B_CLOSE : ')';
     /* Values */
         VAR_NAME : [a-zA-Z]+;
-        FLOAT_VAL : [0-9]+.[0-9]+;
+        FLOAT_VAL : [-]?[0-9]+.[0-9]+;
     WS : [ \t\n]+ -> skip ; // toss out whitespace
