@@ -4,9 +4,9 @@ import org.jetbrains.annotations.NotNull;
 
 public class FloatProposition extends Proposition<Float> {
 
-    private float value;
-    private String variable;
-    private Operator operator;
+    private final float value;
+    private final String variable;
+    private final Operator operator;
 
     public FloatProposition(float value, String variable, Operator operator) {
         this.value = value;
@@ -34,7 +34,7 @@ public class FloatProposition extends Proposition<Float> {
     }
 
     public int getNativeOperator() {
-        return operator.getNativeIndex();
+        return operator.getOperatorIndex();
     }
 
     public float getThreshold() {
@@ -48,9 +48,9 @@ public class FloatProposition extends Proposition<Float> {
     public static enum Operator {
         EQ("==", -1), NEQ("!=", -1), GT(">", 0), GT_EQ(">=", 2), LT("<", 1), LT_EQ("<=", 3);
 
-        private String val;
+        private final String val;
         //represents an integer passed to an enum inside a native library
-        private int nativeIndex;
+        private final int nativeIndex;
 
         Operator(String val, int nativeIndex) {
             this.val = val;
@@ -62,7 +62,7 @@ public class FloatProposition extends Proposition<Float> {
             return val;
         }
 
-        public int getNativeIndex() {
+        public int getOperatorIndex() {
             return nativeIndex;
         }
     }

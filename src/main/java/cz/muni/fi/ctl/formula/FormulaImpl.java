@@ -3,7 +3,6 @@ package cz.muni.fi.ctl.formula;
 import cz.muni.fi.ctl.formula.operator.NullaryOperator;
 import cz.muni.fi.ctl.formula.operator.Operator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -11,9 +10,9 @@ import java.util.stream.Collectors;
 public class FormulaImpl implements Formula {
 
     @NotNull
-    private Operator operator;
+    private final Operator operator;
     @NotNull
-    private List<Formula> formulas = new ArrayList<>();
+    private final List<Formula> formulas = new ArrayList<>();
 
     /**
      * Utility constructor for nullary formulas.
@@ -27,7 +26,7 @@ public class FormulaImpl implements Formula {
      * @param operator N-ary operator.
      * @param formulas List of N formulas (empty list for nullary operator).
      */
-    public FormulaImpl(@NotNull Operator operator, Formula... formulas) {
+    public FormulaImpl(@NotNull Operator operator, @NotNull Formula... formulas) {
         this.operator = operator;
         if (operator.getCardinality() != formulas.length) {
             throw new IllegalArgumentException("Operator requires "+operator.getCardinality()+" subFormulas, "+formulas.length+" formulas provided");

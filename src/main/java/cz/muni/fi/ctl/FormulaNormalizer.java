@@ -7,6 +7,7 @@ import cz.muni.fi.ctl.formula.operator.Operator;
 import cz.muni.fi.ctl.formula.operator.UnaryOperator;
 import cz.muni.fi.ctl.formula.proposition.Proposition;
 import cz.muni.fi.ctl.formula.proposition.Tautology;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * <p>This class should transform formulas to normalized format processable by model checker.</p>
@@ -14,10 +15,11 @@ import cz.muni.fi.ctl.formula.proposition.Tautology;
  */
 public class FormulaNormalizer {
 
-    public Formula normalize(Formula formula) {
+    @NotNull
+    public Formula normalize(@NotNull Formula formula) {
         //leave propositions unchanged
         if (formula instanceof Proposition) return formula;
-        Operator operator = formula.getOperator();
+        @NotNull Operator operator = formula.getOperator();
         if (operator instanceof UnaryOperator) {
             switch ((UnaryOperator) operator) {
                 case ALL_NEXT:
