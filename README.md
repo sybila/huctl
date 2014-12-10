@@ -18,3 +18,13 @@ Simple Java CTL Parser.
 - all standard float comparison operators are supported: <,>,<=,>=,==,!=
 - boolean literals are accepted as proposition names: True, False
 - variable and proposition names cannot contain digits
+
+###Building and using
+
+Whole repository is a gradle project, so you can include it into an existing gradle workspace.
+
+To build this project, you'll need antlr4 installed.
+
+Alternatively, you can build whole project into a jar file (located in build/lib).
+- use 'gradle fullJar' to create jar with all required dependencies
+- use 'gradle jar' to create jar without dependencies (antlr needs to be included at runtime)
