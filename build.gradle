@@ -47,3 +47,13 @@ dependencies {
     compile 'com.intellij:annotations:5.1'
 }
 
+//create a single Jar with all dependencies
+task fullJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'CTL Parser',
+                'Implementation-Version': version
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
