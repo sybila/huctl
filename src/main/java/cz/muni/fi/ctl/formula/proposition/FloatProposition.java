@@ -2,20 +2,20 @@ package cz.muni.fi.ctl.formula.proposition;
 
 import org.jetbrains.annotations.NotNull;
 
-public class FloatProposition extends Proposition<Float> {
+public class FloatProposition extends Proposition<Double> {
 
-    private final float value;
+    private final double value;
     private final String variable;
     private final Operator operator;
 
-    public FloatProposition(float value, String variable, Operator operator) {
+    public FloatProposition(double value, String variable, Operator operator) {
         this.value = value;
         this.operator = operator;
         this.variable = variable;
     }
 
     @Override
-    public boolean evaluate(Float value) {
+    public boolean evaluate(Double value) {
         switch (operator) {
             case LT:
                 return value < this.value;
@@ -37,7 +37,7 @@ public class FloatProposition extends Proposition<Float> {
         return operator.getOperatorIndex();
     }
 
-    public float getThreshold() {
+    public double getThreshold() {
         return value;
     }
 
@@ -80,15 +80,15 @@ public class FloatProposition extends Proposition<Float> {
 
         @NotNull FloatProposition that = (FloatProposition) o;
 
-        return Float.compare(that.value, value) == 0 && operator == that.operator && variable.equals(that.variable);
+        return Double.compare(that.value, value) == 0 && operator == that.operator && variable.equals(that.variable);
 
     }
 
     @Override
     public int hashCode() {
-        int result = (value != +0.0f ? Float.floatToIntBits(value) : 0);
+        long result = (value != +0.0f ? Double.doubleToLongBits(value) : 0);
         result = 31 * result + variable.hashCode();
         result = 31 * result + operator.hashCode();
-        return result;
+        return (int) result;
     }
 }

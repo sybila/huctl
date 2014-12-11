@@ -34,13 +34,17 @@ define :
            VAR_NAME { String prop = $VAR_NAME.text; } 
            op_float 
            FLOAT_VAL 
-    { $root::propositions.put( name,
-        new FloatProposition(
-            Float.parseFloat($FLOAT_VAL.text),
-            prop,
-            $op_float.op
-            )
-      ); 
+    {
+        if ($root::propositions.containsKey(name)) {
+            throw new IllegalArgumentException("Redefinition of proposition "+name);
+        }
+        $root::propositions.put( name,
+            new FloatProposition(
+                Double.parseDouble($FLOAT_VAL.text),
+                prop,
+                $op_float.op
+                )
+        );
     }
 ;
 
