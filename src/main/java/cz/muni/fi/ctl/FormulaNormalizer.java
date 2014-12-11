@@ -33,9 +33,8 @@ public class FormulaNormalizer {
                 case EXISTS_FUTURE:
                     // EF p = E [ true U p ]
                     return new FormulaImpl(BinaryOperator.EXISTS_UNTIL, Tautology.INSTANCE,
-                            new FormulaImpl(UnaryOperator.NEGATION,
                                     normalize(formula.getSubFormulaAt(0))
-                            ));
+                            );
                 case ALL_FUTURE:
                     // AF p = A [ true U p ]
                     return
@@ -65,9 +64,10 @@ public class FormulaNormalizer {
                 case IMPLICATION:
                     // a => b = !a || b
                     return new FormulaImpl(BinaryOperator.OR,
-                            new FormulaImpl(UnaryOperator.NEGATION, normalize(formula.getSubFormulaAt(0)),
-                                    normalize(formula.getSubFormulaAt(1))
-                            ));
+                            new FormulaImpl(UnaryOperator.NEGATION,
+                                    normalize(formula.getSubFormulaAt(0))),
+                            normalize(formula.getSubFormulaAt(1))
+                            );
                 case EQUIVALENCE:
                     // a <=> b = (a && b) || (!a && !b)
                     return new FormulaImpl(BinaryOperator.OR,
