@@ -196,4 +196,13 @@ public class FormulaParserTest {
         assertEquals(second.getThreshold(), -0.01, TOLERANCE);
     }
 
+    @Test
+    public void realLifeTest() {
+        //TODO - medzery za \n
+        FormulaParser parser = new FormulaParser();
+        Formula formula = parser.parse("#define a x < 4.9 \n" +
+                "#define b x > 5.1 \n" +
+                "#property ( EF AG a && EF AG b )");
+    }
+
 }

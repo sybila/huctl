@@ -57,7 +57,7 @@ public class FormulaNormalizer {
                                                     normalize(formula.getSubFormulaAt(0))
                                             )));
                 default:
-                    return formula;
+                    return new FormulaImpl(formula.getOperator(), normalize(formula.getSubFormulaAt(0)));
             }
         } else if (operator instanceof BinaryOperator) {
             switch ((BinaryOperator) operator) {
@@ -77,7 +77,7 @@ public class FormulaNormalizer {
                                     new FormulaImpl(UnaryOperator.NEGATION, formula.getSubFormulaAt(1))
                             ));
                 default:
-                    return formula;
+                    return new FormulaImpl(formula.getOperator(), normalize(formula.getSubFormulaAt(0)), normalize(formula.getSubFormulaAt(1)));
             }
         } else {
             throw new IllegalArgumentException("Unsupported operator type: " + operator);

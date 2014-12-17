@@ -19,6 +19,8 @@ import static org.junit.Assert.assertThat;
  */
 public class FormulaNormalizerTest {
 
+    //TODO: nesting test with mixed good and bad
+
     @Test
     public void propositionTest() {
         FormulaNormalizer normalizer = new FormulaNormalizer();
