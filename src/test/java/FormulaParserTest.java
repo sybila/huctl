@@ -19,6 +19,7 @@ import static org.junit.Assert.assertThat;
 public class FormulaParserTest {
 
     private static final float TOLERANCE = 0.0001f;
+
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
@@ -52,6 +53,41 @@ public class FormulaParserTest {
         //unknown proposition
         exception.expect(IllegalArgumentException.class);
         parser.parse("#define a B > 3.0 #define a C <= 23.4 #define z Z > 4.0 #property D");
+    }
+
+    @Test
+    public void floatValuesTest() {
+        FormulaParser parser = new FormulaParser();
+        Formula formula = parser.parse("#define a B > 3 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        FloatProposition proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), 3, TOLERANCE);
+        formula = parser.parse("#define a B > -3 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), -3, TOLERANCE);
+        formula = parser.parse("#define a B > 0.2 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), 0.2, TOLERANCE);
+        formula = parser.parse("#define a B > -0.4 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), -0.4, TOLERANCE);
+        formula = parser.parse("#define a B > .3 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), 0.3, TOLERANCE);
+        formula = parser.parse("#define a B > -.9 #property a");
+        assertThat(formula, instanceOf(FloatProposition.class));
+        proposition = (FloatProposition) formula;
+        assertEquals(proposition.getVariable(), "B");
+        assertEquals(proposition.getThreshold(), -0.9, TOLERANCE);
     }
 
     @Test
@@ -197,12 +233,48 @@ public class FormulaParserTest {
     }
 
     @Test
-    public void realLifeTest() {
-        //TODO - medzery za \n
+    public void whitespaceTest() {
         FormulaParser parser = new FormulaParser();
-        Formula formula = parser.parse("#define a x < 4.9 \n" +
-                "#define b x > 5.1 \n" +
-                "#property ( EF AG a && EF AG b )");
+        Formula formula = parser.parse("\t \n \n#define\t\ta\nx    < \t \n 1.0\n#define\n\n\nb   x\t>2.0 #property \t\t E(   a U \tb )\n\n\t");
+        assertEquals(formula.getOperator(), BinaryOperator.EXISTS_UNTIL);
+        assertEquals(formula.getSubFormulaCount(), 2);
+        assertThat(formula.getSubFormulaAt(0), instanceOf(FloatProposition.class));
+        assertThat(formula.getSubFormulaAt(1), instanceOf(FloatProposition.class));
+        FloatProposition a = (FloatProposition) formula.getSubFormulaAt(0);
+        FloatProposition b = (FloatProposition) formula.getSubFormulaAt(1);
+        assertEquals(a.getVariable(), "x");
+        assertEquals(b.getVariable(), "x");
+        assertEquals(a.getThreshold(), 1.0, TOLERANCE);
+        assertEquals(b.getThreshold(), 2.0, TOLERANCE);
+    }
+
+    @Test
+    public void realLifeTest() {
+        FormulaParser parser = new FormulaParser();
+        Formula formula = parser.parse( "#define a x < 4.9 \n" +
+                                        "#define b x > 5.1 \n" +
+                                        "#property ( EF AG a && EF AG b )"
+        );
+        assertEquals(formula.getSubFormulaCount(), 2);
+        assertEquals(formula.getOperator(), BinaryOperator.AND);
+        Formula ef1 = formula.getSubFormulaAt(0);
+        Formula ef2 = formula.getSubFormulaAt(1);
+        assertEquals(ef1.getOperator(), UnaryOperator.EXISTS_FUTURE);
+        assertEquals(ef2.getOperator(), UnaryOperator.EXISTS_FUTURE);
+        Formula ag1 = ef1.getSubFormulaAt(0);
+        Formula ag2 = ef2.getSubFormulaAt(0);
+        assertEquals(ag1.getOperator(), UnaryOperator.ALL_GLOBAL);
+        assertEquals(ag2.getOperator(), UnaryOperator.ALL_GLOBAL);
+        Formula aF = ag1.getSubFormulaAt(0);
+        Formula bF = ag2.getSubFormulaAt(0);
+        assertThat(aF, instanceOf(FloatProposition.class));
+        assertThat(bF, instanceOf(FloatProposition.class));
+        FloatProposition a = (FloatProposition) aF;
+        FloatProposition b = (FloatProposition) bF;
+        assertEquals(a.getVariable(), "x");
+        assertEquals(b.getVariable(), "x");
+        assertEquals(a.getThreshold(), 4.9, TOLERANCE);
+        assertEquals(b.getThreshold(), 5.1, TOLERANCE);
     }
 
 }
