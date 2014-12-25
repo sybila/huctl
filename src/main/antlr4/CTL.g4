@@ -33,7 +33,7 @@ define :
            VAR_NAME { String name = $VAR_NAME.text; } 
            VAR_NAME { String prop = $VAR_NAME.text; } 
            op_float 
-           FLOAT_VAL 
+           FLOAT_VAL
     {
         if ($root::propositions.containsKey(name)) {
             throw new IllegalArgumentException("Redefinition of proposition "+name);
@@ -98,7 +98,6 @@ op_float returns [ FloatProposition.Operator op ] :
 
 DEF : '#define';
 PROP : '#property';
-NEWLINE   : '\r' '\n' | '\n' | '\r';
 
 /* Terminals: */
     bool : TRUE | FALSE ;
@@ -126,5 +125,5 @@ NEWLINE   : '\r' '\n' | '\n' | '\r';
         B_CLOSE : ')';
     /* Values */
         VAR_NAME : [a-zA-Z]+;
-        FLOAT_VAL : [-]?[0-9]+.[0-9]+;
+        FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
     WS : [ \t\n]+ -> skip ; // toss out whitespace
