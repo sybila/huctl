@@ -3,6 +3,7 @@ import cz.muni.fi.ctl.FormulaNormalizer;
 import cz.muni.fi.ctl.formula.Formula;
 import cz.muni.fi.ctl.formula.FormulaImpl;
 import cz.muni.fi.ctl.formula.operator.BinaryOperator;
+import cz.muni.fi.ctl.formula.operator.Operator;
 import cz.muni.fi.ctl.formula.operator.UnaryOperator;
 import cz.muni.fi.ctl.formula.proposition.Contradiction;
 import cz.muni.fi.ctl.formula.proposition.FloatProposition;
@@ -18,8 +19,6 @@ import static org.junit.Assert.assertThat;
  * Tests for FormulaNormalizer
  */
 public class FormulaNormalizerTest {
-
-    //TODO: nesting test with mixed good and bad
 
     @Test
     public void propositionTest() {
@@ -106,5 +105,46 @@ public class FormulaNormalizerTest {
                         new FormulaImpl(UnaryOperator.NEGATION, Contradiction.INSTANCE)
                 ));
         assertEquals(norm, normalizer.normalize(new FormulaImpl(BinaryOperator.EQUIVALENCE, Contradiction.INSTANCE, Contradiction.INSTANCE)));
+    }
+
+    @Test
+    public void nestedUnchanged() {
+        FormulaNormalizer normalizer = new FormulaNormalizer();
+        Formula sample = new FormulaImpl(BinaryOperator.AND,
+                new FormulaImpl(BinaryOperator.OR,
+                        new FormulaImpl(BinaryOperator.ALL_UNTIL,
+                                new FormulaImpl(UnaryOperator.EXISTS_NEXT, Tautology.INSTANCE),
+                                new FormulaImpl(UnaryOperator.NEGATION, Tautology.INSTANCE)
+                        ),
+                        Contradiction.INSTANCE
+                ),
+                new FormulaImpl(BinaryOperator.EXISTS_UNTIL,
+                        Tautology.INSTANCE,
+                        Contradiction.INSTANCE
+                )
+        );
+        assertEquals(sample, normalizer.normalize(sample));
+    }
+
+    @Test
+    public void complexTest() {
+        FormulaNormalizer normalizer = new FormulaNormalizer();
+        Formula sample = new FormulaImpl(BinaryOperator.AND,
+                new FormulaImpl(BinaryOperator.IMPLICATION, Contradiction.INSTANCE, Contradiction.INSTANCE),
+                new FormulaImpl(UnaryOperator.EXISTS_FUTURE,
+                        new FormulaImpl(UnaryOperator.EXISTS_NEXT,
+                                new FormulaImpl(UnaryOperator.ALL_GLOBAL, Contradiction.INSTANCE)))
+        );
+        Formula expected = new FormulaImpl(BinaryOperator.AND,
+                new FormulaImpl(BinaryOperator.OR,
+                        new FormulaImpl(UnaryOperator.NEGATION, Contradiction.INSTANCE),
+                        Contradiction.INSTANCE),
+                new FormulaImpl(BinaryOperator.EXISTS_UNTIL, Tautology.INSTANCE,
+                        new FormulaImpl(UnaryOperator.EXISTS_NEXT,
+                                new FormulaImpl(UnaryOperator.NEGATION,
+                                        new FormulaImpl(BinaryOperator.EXISTS_UNTIL, Tautology.INSTANCE,
+                                        new FormulaImpl(UnaryOperator.NEGATION, Contradiction.INSTANCE)))))
+        );
+        assertEquals(expected, normalizer.normalize(sample));
     }
 }
