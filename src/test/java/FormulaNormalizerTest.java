@@ -3,7 +3,6 @@ import cz.muni.fi.ctl.FormulaNormalizer;
 import cz.muni.fi.ctl.formula.Formula;
 import cz.muni.fi.ctl.formula.FormulaImpl;
 import cz.muni.fi.ctl.formula.operator.BinaryOperator;
-import cz.muni.fi.ctl.formula.operator.Operator;
 import cz.muni.fi.ctl.formula.operator.UnaryOperator;
 import cz.muni.fi.ctl.formula.proposition.Contradiction;
 import cz.muni.fi.ctl.formula.proposition.FloatProposition;
@@ -11,9 +10,7 @@ import cz.muni.fi.ctl.formula.proposition.Proposition;
 import cz.muni.fi.ctl.formula.proposition.Tautology;
 import org.junit.Test;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
 
 /**
  * Tests for FormulaNormalizer
