@@ -124,6 +124,6 @@ PROP : '#property';
         B_OPEN : '(';
         B_CLOSE : ')';
     /* Values */
-        VAR_NAME : [a-zA-Z]+;
+        VAR_NAME : [a-zA-Z0-9]+;
         FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
     WS : [ \t\n]+ -> skip ; // toss out whitespace
