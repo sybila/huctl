@@ -16,7 +16,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'me.champeau.gradle.antlr4'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.7
 version = '1.0'
 
 //antlr config
