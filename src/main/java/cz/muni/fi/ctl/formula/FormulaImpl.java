@@ -5,7 +5,6 @@ import cz.muni.fi.ctl.formula.operator.Operator;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class FormulaImpl implements Formula {
 
@@ -31,7 +30,7 @@ public class FormulaImpl implements Formula {
         if (operator.getCardinality() != formulas.length) {
             throw new IllegalArgumentException("Operator requires "+operator.getCardinality()+" subFormulas, "+formulas.length+" formulas provided");
         }
-        this.formulas.addAll(Arrays.stream(formulas).collect(Collectors.toList()));
+        this.formulas.addAll(Arrays.asList(formulas));
     }
 
     @Override
