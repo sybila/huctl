@@ -21,7 +21,7 @@ public class FormulaParserTest {
     private static final float TOLERANCE = 0.0001f;
 
     @Rule
-    public ExpectedException exception = ExpectedException.none();
+    public final ExpectedException exception = ExpectedException.none();
 
     @Test
     public void propositionTest() {
