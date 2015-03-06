@@ -33,8 +33,8 @@ public class FloatProposition extends Proposition<Double> {
         }
     }
 
-    public int getNativeOperator() {
-        return operator.getOperatorIndex();
+    public Operator getFloatOperator() {
+        return operator;
     }
 
     public double getThreshold() {
