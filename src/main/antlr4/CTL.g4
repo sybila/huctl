@@ -2,7 +2,7 @@
 
 grammar CTL;
 
-@header { 
+@header {
 import cz.muni.fi.ctl.formula.Formula;
 import cz.muni.fi.ctl.formula.FormulaImpl;
 import cz.muni.fi.ctl.formula.operator.Operator;
@@ -16,14 +16,14 @@ import cz.muni.fi.ctl.formula.proposition.Tautology;
 import java.util.HashMap; 
 import java.util.List;
 import java.util.Map;
-} 
+}
 
 root locals [
     Map<String, Proposition> propositions = new HashMap<>(),
     Formula result
     ] : ctl; 
 
-ctl : 
+ctl :
       define ctl
     | property
 ;
