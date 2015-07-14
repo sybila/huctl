@@ -16,7 +16,7 @@ fullStop : NEWLINE+ | EOF;
 
 formula : VAR_NAME                                          #id
         | (TRUE | FALSE)                                    #bool
-        | VAR_NAME ':' ('in'|'out') ('+'|'-')               #direction
+        | VAR_NAME ':' (IN | OUT) (PLUS | MINUS)            #direction
         | VAR_NAME floatOp FLOAT_VAL                        #proposition
         | '(' formula ')'                                   #parenthesis
         | unaryOp formula                                   #unary
