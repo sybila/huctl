@@ -45,7 +45,7 @@ public class FloatProposition extends Proposition<Double> {
         return variable;
     }
 
-    public static enum Operator {
+    public enum Operator {
         EQ("==", -1), NEQ("!=", -1), GT(">", 0), GT_EQ(">=", 2), LT("<", 1), LT_EQ("<=", 3);
 
         private final String val;

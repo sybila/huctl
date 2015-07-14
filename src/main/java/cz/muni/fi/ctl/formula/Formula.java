@@ -9,15 +9,15 @@ import java.util.Collection;
 public interface Formula {
 
     /** Get number of sub formulas. **/
-    public int getSubFormulaCount();
+    int getSubFormulaCount();
 
     /** Get sub formula at specified index. **/
-    public Formula getSubFormulaAt(int index);
+    Formula getSubFormulaAt(int index);
 
     @NotNull
-    public Collection<Formula> getSubFormulas();
+    Collection<Formula> getSubFormulas();
 
     @NotNull
-    public Operator getOperator();
+    Operator getOperator();
 
 }
