@@ -31,7 +31,7 @@ antlr4 {
 compileJava.dependsOn antlr4
 
 // add the generated source files to the list of java sources
-sourceSets.main.java.srcDirs += antlr4.output
+sourceSets.main.java.srcDirs += new File('src/main/gen')
 
 // add antlr4 to classpath
 configurations {
