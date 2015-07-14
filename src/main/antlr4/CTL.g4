@@ -3,14 +3,14 @@ grammar CTL;
 
 /* Main format structure */
 
-root : (statement break)*;
+root : (statement fullstop)*;
 
 statement : '#include' STRING                       # include
           | VAR_NAME '=' formula                    # assign
           | '#check' formula (',' formula)*         # check
           ;
 
-break : NEWLINE+ | EOF;
+fullstop : NEWLINE+ | EOF;
 
 /* Formula and propositions */
 
