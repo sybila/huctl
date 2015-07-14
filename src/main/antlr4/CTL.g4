@@ -3,33 +3,33 @@ grammar CTL;
 
 /* Main format structure */
 
-root : (statement fullstop)*;
+root : (statement fullStop)*;
 
 statement : '#include' STRING                       # include
           | VAR_NAME '=' formula                    # assign
           | '#check' formula (',' formula)*         # check
           ;
 
-fullstop : NEWLINE+ | EOF;
+fullStop : NEWLINE+ | EOF;
 
 /* Formula and propositions */
 
 formula : VAR_NAME                                          #id
         | (TRUE | FALSE)                                    #bool
         | VAR_NAME ':' ('in'|'out') ('+'|'-')               #direction
-        | VAR_NAME float_op FLOAT_VAL                       #proposition
+        | VAR_NAME floatOp FLOAT_VAL                        #proposition
         | '(' formula ')'                                   #parenthesis
-        | unary_op formula                                  #unary
-        | formula bool_op formula                           #binary
+        | unaryOp formula                                   #unary
+        | formula boolOp formula                            #binary
         | 'E' formula 'U' formula                           #existUntil
         | 'A' formula 'U' formula                           #allUntil
         ;
 
 /** Helper/Grouping parser rules **/
 
-unary_op : NEG | EX | EF | EG | AX | AF | AG;
-bool_op : CON | DIS | IMPL | EQIV;
-float_op : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
+unaryOp : NEG | EX | EF | EG | AX | AF | AG;
+boolOp : CON | DIS | IMPL | EQIV;
+floatOp : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
 
 /** Terminals **/
 
