@@ -2,7 +2,7 @@ package cz.muni.fi.ctl.formula.proposition;
 
 import org.jetbrains.annotations.NotNull;
 
-public class FloatProposition extends Proposition<Double> {
+public class FloatProposition extends Proposition {
 
     private final double value;
     private final String variable;
@@ -12,25 +12,6 @@ public class FloatProposition extends Proposition<Double> {
         this.value = value;
         this.operator = operator;
         this.variable = variable;
-    }
-
-    @Override
-    public boolean evaluate(Double value) {
-        switch (operator) {
-            case LT:
-                return value < this.value;
-            case LT_EQ:
-                return value <= this.value;
-            case GT:
-                return value > this.value;
-            case GT_EQ:
-                return value >= this.value;
-            case NEQ:
-                return value != this.value;
-            case EQ:
-            default:
-                return value == this.value;
-        }
     }
 
     public Operator getFloatOperator() {

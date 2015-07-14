@@ -8,9 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public abstract class Proposition<T> implements Formula {
-
-    public abstract boolean evaluate(T value);
+public abstract class Proposition implements Formula {
 
     @Override
     public int getSubFormulaCount() {
