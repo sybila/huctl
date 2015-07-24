@@ -24,7 +24,7 @@ antlr4 {
     extraArgs=['-package', 'cz.muni.fi.ctl.antlr']
     output=new File('src/main/gen/cz/muni/fi/ctl/antlr')
     visitor=false
-    listener=false
+    listener=true
 }
 
 // make the Java compile task depend on the antlr4 task
