@@ -2,14 +2,14 @@ package cz.muni.fi.ctl
 
 //Formulas
 public interface Formula {
-    val operator: Operator
+    val operator: Op
     val subFormulas: List<Formula>
 
     public fun get(i: Int): Formula = subFormulas[i]
 }
 
 data class FormulaImpl (
-        override val operator: Operator = Operator.ATOM,
+        override val operator: Op = Op.ATOM,
         override val subFormulas: List<Formula> = listOf()
 ) : Formula {
 
@@ -21,7 +21,7 @@ data class FormulaImpl (
         }
     }
 
-    constructor(operator: Operator, vararg formulas: Formula) : this(operator, formulas.toList())
+    constructor(operator: Op, vararg formulas: Formula) : this(operator, formulas.toList())
 
     override fun toString(): String = when (operator.cardinality) {
         1 -> "$operator(${subFormulas[0]})"
@@ -32,7 +32,7 @@ data class FormulaImpl (
 }
 
 open class Atom : Formula {
-    final override val operator = Operator.ATOM
+    final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
 }
 
@@ -48,7 +48,7 @@ val False = object : Atom() {
 //Float atoms
 public data class FloatProposition (
         val variable: String,
-        val floatOp: FloatOperator,
+        val floatOp: FloatOp,
         val value: Double
 ) : Atom() {
     override fun toString(): String = "$variable $floatOp $value"
@@ -77,16 +77,17 @@ public data class DirectionProposition (
 
 
 //Simplified builders
-fun not(f: Formula) = FormulaImpl(Operator.NEGATION, f)
-fun EX(f: Formula) = FormulaImpl(Operator.EXISTS_NEXT, f)
-fun AX(f: Formula) = FormulaImpl(Operator.ALL_NEXT, f)
-fun EF(f: Formula) = FormulaImpl(Operator.EXISTS_FUTURE, f)
-fun AF(f: Formula) = FormulaImpl(Operator.ALL_FUTURE, f)
-fun EG(f: Formula) = FormulaImpl(Operator.EXISTS_GLOBAL, f)
-fun AG(f: Formula) = FormulaImpl(Operator.ALL_GLOBAL, f)
-fun Formula.or(f2: Formula): Formula = FormulaImpl(Operator.OR, this, f2)
-fun Formula.and(f2: Formula): Formula = FormulaImpl(Operator.AND, this, f2)
-fun Formula.implies(f2: Formula): Formula = FormulaImpl(Operator.IMPLICATION, this, f2)
-fun Formula.equals(f2: Formula): Formula = FormulaImpl(Operator.EQUIVALENCE, this, f2)
-fun Formula.EU(f2: Formula): Formula = FormulaImpl(Operator.EXISTS_UNTIL, this, f2)
-fun Formula.AU(f2: Formula): Formula = FormulaImpl(Operator.ALL_UNTIL, this, f2)
+fun not(f: Formula) = FormulaImpl(Op.NEGATION, f)
+fun EX(f: Formula) = FormulaImpl(Op.EXISTS_NEXT, f)
+fun AX(f: Formula) = FormulaImpl(Op.ALL_NEXT, f)
+fun EF(f: Formula) = FormulaImpl(Op.EXISTS_FUTURE, f)
+fun AF(f: Formula) = FormulaImpl(Op.ALL_FUTURE, f)
+fun EG(f: Formula) = FormulaImpl(Op.EXISTS_GLOBAL, f)
+fun AG(f: Formula) = FormulaImpl(Op.ALL_GLOBAL, f)
+fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
+fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
+fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
+fun Formula.equals(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
+fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
+fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
+fun Formula.map(x: (Formula) -> Formula) = FormulaImpl(this.operator, this.subFormulas.map(x))

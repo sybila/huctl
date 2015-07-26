@@ -1,6 +1,6 @@
 package cz.muni.fi.ctl
 
-public enum class Operator(val cardinality: Int, val str: String) {
+public enum class Op(val cardinality: Int, val str: String) {
     //nullary
     ATOM(0,"null"),
     //unary
@@ -22,8 +22,10 @@ public enum class Operator(val cardinality: Int, val str: String) {
     override fun toString(): String = str
 }
 
-public enum class FloatOperator(val str: String) {
-    EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
+public enum class FloatOp(val str: String, val neg: FloatOp) {
+    EQ("==", NEQ), NEQ("!=", EQ), GT(">", LT_EQ), GT_EQ(">=", LT), LT("<", GT_EQ), LT_EQ("<=", GT);
 
     override fun toString(): String = str
+
+
 }
