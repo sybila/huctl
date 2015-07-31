@@ -3,22 +3,35 @@ package cz.muni.fi.ctl
 
 public class Optimizer {
 
+    public fun optimize(f: Formula): Formula {
+        //it's hard to optimize while formula at once, so we just compute it as a fix point
+        var one = optimizeTree(f)
+        var two = optimizeTree(one)
+        while(two != one) {
+            one = two
+            two = optimizeTree(two)
+        }
+        return two
+    }
+
     private val optimize = { f: Formula -> optimizeTree(f) }
 
     fun optimizeTree(f: Formula): Formula = when {
         f.operator.cardinality == 0 -> f
-        f.operator == Op.NEGATION ->
+        f.operator == Op.NEGATION -> {
+            val child = f[0]
             when {
                 // !True = False
-                f[0] == True -> False
+                child == True -> False
                 // !False = True
-                f[0] == False -> True
+                child == False -> True
                 // !a > 5 = a <= 5
-                f is FloatProposition -> f.copy(floatOp = f.floatOp.neg)
+                child is FloatProposition -> child.copy(floatOp = child.floatOp.neg)
                 // !!a = a
-                f[0].operator == Op.NEGATION -> optimizeTree(f[0][0])
+                child.operator == Op.NEGATION -> optimizeTree(child[0])
                 else -> f.treeMap(optimize)
             }
+        }
         f.operator == Op.AND ->
             when {
                 // a && False = False
@@ -26,9 +39,9 @@ public class Optimizer {
                 // a && True = a
                 f[0] == True -> optimizeTree(f[1])
                 f[1] == True -> optimizeTree(f[0])
-                //!a && !b = a || b
+                //!a && !b = !(a || b)
                 f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
-                    optimizeTree(f[0][0]) and optimizeTree(f[1][0])
+                    not(optimizeTree(f[0][0]) or optimizeTree(f[1][0]))
                 else -> f.treeMap(optimize)
             }
         f.operator == Op.OR ->
@@ -38,9 +51,9 @@ public class Optimizer {
                 // a || False = a
                 f[0] == False -> optimizeTree(f[1])
                 f[1] == False -> optimizeTree(f[0])
-                // !a || !b = a && b
+                // !a || !b = !(a && b)
                 f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
-                    optimizeTree(f[0][0]) and optimizeTree(f[1][0])
+                    not(optimizeTree(f[0][0]) and optimizeTree(f[1][0]))
                 else -> f.treeMap(optimize)
             }
         f.operator == Op.EXISTS_UNTIL ->
