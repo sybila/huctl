@@ -37,11 +37,11 @@ open class Atom : Formula {
 }
 
 //Boolean Atoms
-val True = object : Atom() {
+public val True: Formula = object : Atom() {
     override fun toString():String = "True"
 }
 
-val False = object : Atom() {
+public val False: Formula = object : Atom() {
     override fun toString():String = "False"
 }
 
@@ -77,19 +77,21 @@ public data class DirectionProposition (
 
 
 //Simplified builders
-fun not(f: Formula) = FormulaImpl(Op.NEGATION, f)
-fun EX(f: Formula) = FormulaImpl(Op.EXISTS_NEXT, f)
-fun AX(f: Formula) = FormulaImpl(Op.ALL_NEXT, f)
-fun EF(f: Formula) = FormulaImpl(Op.EXISTS_FUTURE, f)
-fun AF(f: Formula) = FormulaImpl(Op.ALL_FUTURE, f)
-fun EG(f: Formula) = FormulaImpl(Op.EXISTS_GLOBAL, f)
-fun AG(f: Formula) = FormulaImpl(Op.ALL_GLOBAL, f)
-fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
-fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
-fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
-fun Formula.equals(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
-fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
-fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
+public fun not(f: Formula): Formula = FormulaImpl(Op.NEGATION, f)
+public fun EX(f: Formula): Formula = FormulaImpl(Op.EXISTS_NEXT, f)
+public fun AX(f: Formula): Formula = FormulaImpl(Op.ALL_NEXT, f)
+public fun EF(f: Formula): Formula = FormulaImpl(Op.EXISTS_FUTURE, f)
+public fun AF(f: Formula): Formula = FormulaImpl(Op.ALL_FUTURE, f)
+public fun EG(f: Formula): Formula = FormulaImpl(Op.EXISTS_GLOBAL, f)
+public fun AG(f: Formula): Formula = FormulaImpl(Op.ALL_GLOBAL, f)
+public fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
+public fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
+public fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
+public fun Formula.equal(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
+public fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
+public fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
+
+//this is not typical map semantics -> don't make it public
 fun Formula.treeMap(x: (Formula) -> Formula) =
         if (this.operator.cardinality == 0) {
             this
