@@ -15,10 +15,10 @@ class OptimizerTest {
         val nf1 = FloatProposition("var2", FloatOp.GT, -15.3)
         val d1 = DirectionProposition("var1", DirectionProposition.Direction.IN, DirectionProposition.Facet.NEGATIVE)
 
-        val prop = EX(not(f1) EU not(True and ( not(d1) or (p1 AU False))))
+        val prop = p1 AU EX(not(f1) EU not(True and ( not(d1) or (p1 AU False))))
         val optimized = optimizer.optimize(prop)
 
-        assertEquals(EX(nf1 EU d1), optimized)
+        assertEquals(p1 AU EX(nf1 EU d1), optimized)
         assertEquals(optimized, optimizer.optimize(optimized))
     }
 
@@ -53,6 +53,11 @@ class OptimizerTest {
     Test fun booleanReduction() {
         val prop = EX( not(False) and ( (True or False) EU (False AU True) ))
         assertEquals(True, optimizer.optimize(prop))
+    }
+
+    Test fun preserveUnsupported() {
+        val prop = AX(EG(p1 implies p2))
+        assertEquals(prop, optimizer.optimize(prop))
     }
 
     Test fun floatPreserve() {

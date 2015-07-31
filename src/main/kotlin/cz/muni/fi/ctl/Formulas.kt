@@ -26,7 +26,7 @@ data class FormulaImpl (
     override fun toString(): String = when (operator.cardinality) {
         1 -> "$operator(${subFormulas[0]})"
         2 -> "${subFormulas[0]} $operator ${subFormulas[1]}"
-        else -> "$operator($subFormulas)"
+        else -> "$operator($subFormulas)"   //this never happens
     }
 
 }
@@ -63,12 +63,12 @@ public data class DirectionProposition (
 
     override fun toString(): String = "$variable:$direction$facet"
 
-    enum class Direction(val str: String) {
+    enum class Direction(private val str: String) {
         IN("in"), OUT("out");
         override fun toString(): String = str
     }
 
-    enum class Facet(val str: String) {
+    enum class Facet(private val str: String) {
         POSITIVE("+"), NEGATIVE("-");
         override fun toString(): String = str
     }

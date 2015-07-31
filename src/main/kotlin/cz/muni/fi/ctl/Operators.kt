@@ -1,6 +1,6 @@
 package cz.muni.fi.ctl
 
-public enum class Op(val cardinality: Int, val str: String) {
+public enum class Op(val cardinality: Int, private val str: String) {
     //nullary
     ATOM(0,"null"),
     //unary
@@ -22,7 +22,7 @@ public enum class Op(val cardinality: Int, val str: String) {
     override fun toString(): String = str
 }
 
-public enum class FloatOp(val str: String) {
+public enum class FloatOp(private val str: String) {
     EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
 
     val neg: FloatOp

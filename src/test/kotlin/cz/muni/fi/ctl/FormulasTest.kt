@@ -46,3 +46,38 @@ class MapTest {
     }
 
 }
+
+class Misc {
+
+    Test fun booleanToString() {
+        assertEquals("True", True.toString())
+        assertEquals("False", False.toString())
+    }
+
+    Test fun formulaToString() {
+        assertEquals("True && EX(False EU True)", (True and EX(False EU True)).toString())
+    }
+
+    Test fun floatToString() {
+        assertEquals("prop > 5.3", FloatProposition("prop", FloatOp.GT, 5.3).toString())
+    }
+
+    Test fun directionToString() {
+        assertEquals("prop:in+", DirectionProposition("prop", DirectionProposition.Direction.IN, DirectionProposition.Facet.POSITIVE).toString())
+    }
+
+    Test fun emptyFormula() {
+        assertEquals("null([])",FormulaImpl().toString())
+    }
+
+    Test(expected = IllegalArgumentException::class)
+    fun notEnoughFormulas() {
+        FormulaImpl(Op.ALL_UNTIL, True)
+    }
+
+    Test(expected = IllegalArgumentException::class)
+    fun tooManyFormulas() {
+        FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
+    }
+
+}
