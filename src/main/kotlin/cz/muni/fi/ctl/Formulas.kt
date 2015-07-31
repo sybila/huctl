@@ -90,4 +90,9 @@ fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2
 fun Formula.equals(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
 fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
 fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
-fun Formula.map(x: (Formula) -> Formula) = FormulaImpl(this.operator, this.subFormulas.map(x))
+fun Formula.treeMap(x: (Formula) -> Formula) =
+        if (this.operator.cardinality == 0) {
+            this
+        } else {
+            FormulaImpl(this.operator, this.subFormulas.map(x))
+        }

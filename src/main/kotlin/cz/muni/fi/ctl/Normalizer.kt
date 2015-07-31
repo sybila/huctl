@@ -38,11 +38,10 @@ public class Normalizer(
     private val normalForm = normalForm
 
     public fun normalize(f: Formula) : Formula {
-        if (f.operator.cardinality == 0) return f   //stop on propositions - we don't know how to handle them here
 
         val normalize = { f: Formula -> normalize(f) }
 
-        return normalForm[f.operator]?.invoke(f, normalize) ?: f.map(normalize)
+        return normalForm[f.operator]?.invoke(f, normalize) ?: f.treeMap(normalize)
     }
 
 }

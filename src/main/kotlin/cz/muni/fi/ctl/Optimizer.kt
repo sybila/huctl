@@ -17,7 +17,7 @@ public class Optimizer {
                 f is FloatProposition -> f.copy(floatOp = f.floatOp.neg)
                 // !!a = a
                 f[0].operator == Op.NEGATION -> optimizeTree(f[0][0])
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         f.operator == Op.AND ->
             when {
@@ -29,7 +29,7 @@ public class Optimizer {
                 //!a && !b = a || b
                 f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
                     optimizeTree(f[0][0]) and optimizeTree(f[1][0])
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         f.operator == Op.OR ->
             when {
@@ -41,7 +41,7 @@ public class Optimizer {
                 // !a || !b = a && b
                 f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
                     optimizeTree(f[0][0]) and optimizeTree(f[1][0])
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         f.operator == Op.EXISTS_UNTIL ->
             when {
@@ -49,7 +49,7 @@ public class Optimizer {
                 f[1] == True -> True
                 // E a U False = False
                 f[1] == False -> False
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         f.operator == Op.ALL_UNTIL ->
             when {
@@ -57,7 +57,7 @@ public class Optimizer {
                 f[1] == True -> True
                 // A a U False = False
                 f[1] == False -> False
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         f.operator == Op.EXISTS_NEXT ->
             when {
@@ -65,9 +65,9 @@ public class Optimizer {
                 f[0] == True -> True
                 // EX False = False
                 f[0] == False -> False
-                else -> f.map(optimize)
+                else -> f.treeMap(optimize)
             }
         else ->
-            f.map(optimize)
+            f.treeMap(optimize)
     }
 }
