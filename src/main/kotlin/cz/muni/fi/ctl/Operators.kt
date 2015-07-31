@@ -22,8 +22,18 @@ public enum class Op(val cardinality: Int, val str: String) {
     override fun toString(): String = str
 }
 
-public enum class FloatOp(val str: String, val neg: FloatOp) {
-    EQ("==", NEQ), NEQ("!=", EQ), GT(">", LT_EQ), GT_EQ(">=", LT), LT("<", GT_EQ), LT_EQ("<=", GT);
+public enum class FloatOp(val str: String) {
+    EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
+
+    val neg: FloatOp
+        get() = when (this) {
+            EQ -> NEQ
+            NEQ -> EQ
+            GT -> LT_EQ
+            GT_EQ -> LT
+            LT -> GT_EQ
+            LT_EQ -> GT
+        }
 
     override fun toString(): String = str
 
