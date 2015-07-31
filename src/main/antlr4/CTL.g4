@@ -3,7 +3,7 @@ grammar CTL;
 
 /* Main format structure */
 
-root : (statement fullStop)*;
+root : fullStop? (statement fullStop)*;
 
 statement : '#include' STRING                       # include
           | VAR_NAME '=' formula                    # assign
