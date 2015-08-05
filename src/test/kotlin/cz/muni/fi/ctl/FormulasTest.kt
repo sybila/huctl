@@ -55,7 +55,7 @@ class Misc {
     }
 
     Test fun formulaToString() {
-        assertEquals("True && EX(False EU True)", (True and EX(False EU True)).toString())
+        assertEquals("(True && EX (False EU True))", (True and EX(False EU True)).toString())
     }
 
     Test fun floatToString() {
@@ -78,6 +78,17 @@ class Misc {
     Test(expected = IllegalArgumentException::class)
     fun tooManyFormulas() {
         FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
+    }
+
+    Test fun get() {
+        val float = FloatProposition("val", FloatOp.GT, 34.12)
+        assertEquals("val", float.variable)
+        assertEquals(FloatOp.GT, float.floatOp)
+        assertEquals(34.12, float.value)
+        val dir = DirectionProposition("var", Direction.IN, Facet.NEGATIVE)
+        assertEquals("var", dir.variable)
+        assertEquals(Direction.IN, dir.direction)
+        assertEquals(Facet.NEGATIVE, dir.facet)
     }
 
 }

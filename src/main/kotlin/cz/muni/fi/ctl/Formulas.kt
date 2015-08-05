@@ -24,8 +24,8 @@ data class FormulaImpl (
     constructor(operator: Op, vararg formulas: Formula) : this(operator, formulas.toList())
 
     override fun toString(): String = when (operator.cardinality) {
-        1 -> "$operator(${subFormulas[0]})"
-        2 -> "${subFormulas[0]} $operator ${subFormulas[1]}"
+        1 -> "$operator ${subFormulas[0]}"
+        2 -> "(${subFormulas[0]} $operator ${subFormulas[1]})"
         else -> "$operator($subFormulas)"   //this never happens
     }
 

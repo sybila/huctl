@@ -19,13 +19,18 @@ formula : VAR_NAME                                          #id
         | VAR_NAME floatOp FLOAT_VAL                        #proposition
         | '(' formula ')'                                   #parenthesis
         | unaryOp formula                                   #unary
-        | formula binaryOp formula                          #binary
+        //we list operators explicitly, becuase writing them as a subrule broke operator priority
+        | formula CON formula                               #and
+        | formula DIS formula                               #or
+        | formula IMPL formula                              #implies
+        | formula EQIV formula                              #equal
+        | formula EU formula                                #EU
+        | formula AU formula                                #AU
         ;
 
 /** Helper/Grouping parser rules **/
 
 unaryOp : NEG | EX | EF | EG | AX | AF | AG;
-binaryOp : EU | AU | CON | DIS | IMPL | EQIV;
 floatOp : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
 
 /** Terminals **/

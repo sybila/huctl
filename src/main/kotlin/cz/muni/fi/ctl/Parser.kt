@@ -112,7 +112,7 @@ data class ParserContext(
     init {
         for (one in assignments) {
             for (two in assignments) {
-                if (one.name == two.name && one.location != two.location) {
+                if (one.name == two.name && (one.location != two.location || one.formula != two.formula)) {
                     throw IllegalStateException(
                             "Duplicate assignment for ${one.name} defined in ${one.location} and ${two.location}"
                     )
@@ -145,7 +145,7 @@ class FileContext(val location: String) : CTLBaseListener() {
         assignments.add(Assignment(
                 ctx.VAR_NAME().getText()!!,
                 formulas[ctx.formula()]!!,
-                location
+                location+":"+ctx.start.getLine()
         ))
     }
 
@@ -183,10 +183,29 @@ class FileContext(val location: String) : CTLBaseListener() {
         formulas[ctx] = FormulaImpl(ctx.unaryOp().toOperator(), formulas[ctx.formula()]!!)
     }
 
-    override fun exitBinary(ctx: CTLParser.BinaryContext) {
-        formulas[ctx] = FormulaImpl(ctx.binaryOp().toOperator(), formulas[ctx.formula(0)]!!, formulas[ctx.formula(1)]!!)
+    override fun exitOr(ctx: CTLParser.OrContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! or formulas[ctx.formula(1)]!!
     }
 
+    override fun exitAnd(ctx: CTLParser.AndContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! and formulas[ctx.formula(1)]!!
+    }
+
+    override fun exitImplies(ctx: CTLParser.ImpliesContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! implies formulas[ctx.formula(1)]!!
+    }
+
+    override fun exitEqual(ctx: CTLParser.EqualContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! equal  formulas[ctx.formula(1)]!!
+    }
+
+    override fun exitEU(ctx: CTLParser.EUContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! EU formulas[ctx.formula(1)]!!
+    }
+
+    override fun exitAU(ctx: CTLParser.AUContext) {
+        formulas[ctx] = formulas[ctx.formula(0)]!! AU formulas[ctx.formula(1)]!!
+    }
 }
 
 data class Assignment(val name: String, val formula: Formula, val location: String)
@@ -195,25 +214,14 @@ data class Reference(val name: String) : Atom()
 
 //convenience methods
 
-fun CTLParser.BinaryOpContext.toOperator(): Op = when {
-    EU() != null -> Op.EXISTS_UNTIL
-    AU() != null -> Op.ALL_UNTIL
-    CON() != null -> Op.AND
-    DIS() != null -> Op.OR
-    IMPL() != null -> Op.IMPLICATION
-    EQIV() != null -> Op.EQUIVALENCE
-    else -> throw IllegalStateException("Invalid binary operator: ${getText()}")
-}
-
 fun CTLParser.UnaryOpContext.toOperator(): Op = when {
-    NEG() != null -> Op.NEGATION
     EX() != null -> Op.EXISTS_NEXT
     AX() != null -> Op.ALL_NEXT
     EF() != null -> Op.EXISTS_FUTURE
     AF() != null -> Op.ALL_FUTURE
     EG() != null -> Op.EXISTS_GLOBAL
     AG() != null -> Op.ALL_GLOBAL
-    else -> throw IllegalStateException("Invalid unary operator: ${getText()}")
+    else -> Op.NEGATION
 }
 
 fun CTLParser.FloatOpContext.toOperator(): FloatOp = when {
