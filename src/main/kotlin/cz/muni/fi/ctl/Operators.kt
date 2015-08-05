@@ -37,5 +37,14 @@ public enum class FloatOp(private val str: String) {
 
     override fun toString(): String = str
 
+}
 
+public enum class Direction(private val str: String) {
+    IN("in"), OUT("out");
+    override fun toString(): String = str
+}
+
+public enum class Facet(private val str: String) {
+    POSITIVE("+"), NEGATIVE("-");
+    override fun toString(): String = str
 }

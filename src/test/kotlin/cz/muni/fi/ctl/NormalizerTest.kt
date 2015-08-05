@@ -16,8 +16,8 @@ class UntilNormalFormTest {
 
         val f1 = FloatProposition("var1", FloatOp.NEQ, 14.3)
         val f2 = FloatProposition("var2", FloatOp.LT, -15.3)
-        val d1 = DirectionProposition("var1", DirectionProposition.Direction.IN, DirectionProposition.Facet.NEGATIVE)
-        val d2 = DirectionProposition("var2", DirectionProposition.Direction.OUT, DirectionProposition.Facet.POSITIVE)
+        val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
+        val d2 = DirectionProposition("var2", Direction.OUT, Facet.POSITIVE)
 
         val prop = EF( AF((EX(f1) AU False) equal not(d2)) implies AX( EG(f2) EU AG(d1)))
         assertEquals(
@@ -134,7 +134,7 @@ class UntilNormalFormTest {
     }
 
     Test fun directionPreserve() {
-        val prop = DirectionProposition("var", DirectionProposition.Direction.IN, DirectionProposition.Facet.POSITIVE)
+        val prop = DirectionProposition("var", Direction.IN, Facet.POSITIVE)
         assertEquals(prop, normalizer.normalize(prop))
     }
 

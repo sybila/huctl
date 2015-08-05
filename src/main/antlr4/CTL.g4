@@ -7,7 +7,6 @@ root : fullStop? (statement fullStop)*;
 
 statement : '#include' STRING                       # include
           | VAR_NAME '=' formula                    # assign
-          | '#check' formula (',' formula)*         # check
           ;
 
 fullStop : NEWLINE+ | EOF;
@@ -20,21 +19,19 @@ formula : VAR_NAME                                          #id
         | VAR_NAME floatOp FLOAT_VAL                        #proposition
         | '(' formula ')'                                   #parenthesis
         | unaryOp formula                                   #unary
-        | formula boolOp formula                            #binary
-        | 'E' formula 'U' formula                           #existUntil
-        | 'A' formula 'U' formula                           #allUntil
+        | formula binaryOp formula                          #binary
         ;
 
 /** Helper/Grouping parser rules **/
 
 unaryOp : NEG | EX | EF | EG | AX | AF | AG;
-boolOp : CON | DIS | IMPL | EQIV;
+binaryOp : EU | AU | CON | DIS | IMPL | EQIV;
 floatOp : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
 
 /** Terminals **/
 
-TRUE : ([tT]'rue' | 'tt' | 'TT');
-FALSE : ([fF]'alse' | 'ff' | 'FF');
+TRUE : ([tT]'rue' | 'tt');
+FALSE : ([fF]'alse' | 'ff');
 
 IN : 'in';
 OUT : 'out';
@@ -50,6 +47,8 @@ EG : 'EG';
 AX : 'AX';
 AF : 'AF';
 AG : 'AG';
+EU : 'EU';
+AU : 'AU';
 
 EQ : '==';
 NEQ : '!=';

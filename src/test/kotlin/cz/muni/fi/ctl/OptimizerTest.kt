@@ -13,7 +13,7 @@ class OptimizerTest {
     Test fun complexTest() {
         val f1 = FloatProposition("var2", FloatOp.LT_EQ, -15.3)
         val nf1 = FloatProposition("var2", FloatOp.GT, -15.3)
-        val d1 = DirectionProposition("var1", DirectionProposition.Direction.IN, DirectionProposition.Facet.NEGATIVE)
+        val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
 
         val prop = p1 AU EX(not(f1) EU not(True and ( not(d1) or (p1 AU False))))
         val optimized = optimizer.optimize(prop)
@@ -71,7 +71,7 @@ class OptimizerTest {
     }
 
     Test fun directionPreserve() {
-        val prop = DirectionProposition("var", DirectionProposition.Direction.IN, DirectionProposition.Facet.POSITIVE)
+        val prop = DirectionProposition("var", Direction.IN, Facet.POSITIVE)
         assertEquals(prop, optimizer.optimize(prop))
     }
 

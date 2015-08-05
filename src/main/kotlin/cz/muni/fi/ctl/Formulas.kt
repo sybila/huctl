@@ -57,21 +57,11 @@ public data class FloatProposition (
 //Direction atoms
 public data class DirectionProposition (
         val variable: String,
-        val direction: DirectionProposition.Direction,
-        val facet: DirectionProposition.Facet
+        val direction: Direction,
+        val facet: Facet
 ) : Atom() {
 
     override fun toString(): String = "$variable:$direction$facet"
-
-    enum class Direction(private val str: String) {
-        IN("in"), OUT("out");
-        override fun toString(): String = str
-    }
-
-    enum class Facet(private val str: String) {
-        POSITIVE("+"), NEGATIVE("-");
-        override fun toString(): String = str
-    }
 
 }
 

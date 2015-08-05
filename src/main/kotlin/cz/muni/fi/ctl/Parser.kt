@@ -14,16 +14,27 @@ import java.util.HashMap
 import java.util.HashSet
 import java.util.Stack
 
+/**
+ * Workflow:
+ * Antlr constructs a parse tree that is transformed into FileContext.
+ * File context is a direct representation of a file.
+ * Using FileParser, includes in the file context are resolved and merged into a ParserContext.
+ * Duplicate assignments are checked at this stage.
+ * Lastly, Parser resolves references in ParserContext (checking for undefined or cyclic references)
+ * and returns a final map of valid assignments
+ */
+
 public class Parser {
 
-    public fun parse(input: String): List<Formula> = process(FileParser().process(input))
+    public fun formula(input: String): Formula = parse("val = $input").get("val")!!
 
-    public fun parse(input: File): List<Formula> = process(FileParser().process(input))
+    public fun parse(input: String): Map<String, Formula> = process(FileParser().process(input))
 
-    fun process(ctx: ParserContext): List<Formula> {
+    public fun parse(input: File): Map<String, Formula> = process(FileParser().process(input))
+
+    fun process(ctx: ParserContext): Map<String, Formula> {
 
         val formulas = ctx.formulas
-        val checks = ctx.checks
 
         // Resolve references
 
@@ -50,7 +61,7 @@ public class Parser {
             references[name] = formula.treeMap(::replace)
         }
 
-        return checks.map(::replace)
+        return references
     }
 
 }
@@ -89,8 +100,7 @@ class FileParser {
 }
 
 data class ParserContext(
-        val assignments: List<Assignment>,
-        val checks: List<Formula> = listOf()
+        val assignments: List<Assignment>
 ) {
 
     val formulas: Map<String, Formula>
@@ -112,7 +122,7 @@ data class ParserContext(
     }
 
     fun plus(ctx: ParserContext): ParserContext {
-        return ParserContext(assignments + ctx.assignments, checks + ctx.checks)
+        return ParserContext(assignments + ctx.assignments)
     }
 
 }
@@ -121,11 +131,10 @@ class FileContext(val location: String) : CTLBaseListener() {
 
     val includes = ArrayList<File>()
     val assignments = ArrayList<Assignment>()
-    val checks = ArrayList<Formula>()
 
     private val formulas = ParseTreeProperty<Formula>()
 
-    fun toParseContext() = ParserContext(assignments, checks)
+    fun toParseContext() = ParserContext(assignments)
 
     override fun exitInclude(ctx: CTLParser.IncludeContext) {
         val string = ctx.STRING().getText()!!
@@ -138,12 +147,6 @@ class FileContext(val location: String) : CTLBaseListener() {
                 formulas[ctx.formula()]!!,
                 location
         ))
-    }
-
-    override fun exitCheck(ctx: CTLParser.CheckContext) {
-        for (context in ctx.formula()) {
-            checks.add(formulas[context]!!)
-        }
     }
 
     /** ------ Formula Parsing ------ **/
@@ -159,8 +162,8 @@ class FileContext(val location: String) : CTLBaseListener() {
     override fun exitDirection(ctx: CTLParser.DirectionContext) {
         formulas[ctx] = DirectionProposition(
                 variable = ctx.VAR_NAME().getText()!!,
-                direction = if (ctx.IN() != null) DirectionProposition.Direction.IN else DirectionProposition.Direction.OUT,
-                facet = if (ctx.PLUS() != null) DirectionProposition.Facet.POSITIVE else DirectionProposition.Facet.NEGATIVE
+                direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
+                facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
         )
     }
 
@@ -181,16 +184,9 @@ class FileContext(val location: String) : CTLBaseListener() {
     }
 
     override fun exitBinary(ctx: CTLParser.BinaryContext) {
-        formulas[ctx] = FormulaImpl(ctx.boolOp().toOperator(), formulas[ctx.formula(0)]!!, formulas[ctx.formula(1)]!!)
+        formulas[ctx] = FormulaImpl(ctx.binaryOp().toOperator(), formulas[ctx.formula(0)]!!, formulas[ctx.formula(1)]!!)
     }
 
-    override fun exitExistUntil(ctx: CTLParser.ExistUntilContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! EU formulas[ctx.formula(1)]!!
-    }
-
-    override fun exitAllUntil(ctx: CTLParser.AllUntilContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! AU formulas[ctx.formula(1)]!!
-    }
 }
 
 data class Assignment(val name: String, val formula: Formula, val location: String)
@@ -199,7 +195,9 @@ data class Reference(val name: String) : Atom()
 
 //convenience methods
 
-fun CTLParser.BoolOpContext.toOperator(): Op = when {
+fun CTLParser.BinaryOpContext.toOperator(): Op = when {
+    EU() != null -> Op.EXISTS_UNTIL
+    AU() != null -> Op.ALL_UNTIL
     CON() != null -> Op.AND
     DIS() != null -> Op.OR
     IMPL() != null -> Op.IMPLICATION
@@ -219,13 +217,12 @@ fun CTLParser.UnaryOpContext.toOperator(): Op = when {
 }
 
 fun CTLParser.FloatOpContext.toOperator(): FloatOp = when {
-    EQ() != null -> FloatOp.EQ
     NEQ() != null -> FloatOp.NEQ
     LT() != null -> FloatOp.LT
     LTEQ() != null -> FloatOp.LT_EQ
     GT() != null -> FloatOp.GT
     GTEQ() != null -> FloatOp.GT_EQ
-    else -> throw IllegalStateException("Invalid float operator: ${getText()}")
+    else -> FloatOp.EQ
 }
 
 fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)

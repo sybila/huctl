@@ -8,7 +8,7 @@ class MapTest {
     val formula = EX( True EU (
             FloatProposition("var", FloatOp.EQ, 13.3)
                     or
-            DirectionProposition("val", DirectionProposition.Direction.IN, DirectionProposition.Facet.NEGATIVE)
+            DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
         )
     )
 
@@ -39,7 +39,7 @@ class MapTest {
                 AX( True AU (
                 FloatProposition("var", FloatOp.EQ, 13.3)
                     and
-                DirectionProposition("val", DirectionProposition.Direction.IN, DirectionProposition.Facet.NEGATIVE)
+                DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
                 )
         ), transform(formula))
 
@@ -63,7 +63,7 @@ class Misc {
     }
 
     Test fun directionToString() {
-        assertEquals("prop:in+", DirectionProposition("prop", DirectionProposition.Direction.IN, DirectionProposition.Facet.POSITIVE).toString())
+        assertEquals("prop:in+", DirectionProposition("prop", Direction.IN, Facet.POSITIVE).toString())
     }
 
     Test fun emptyFormula() {
