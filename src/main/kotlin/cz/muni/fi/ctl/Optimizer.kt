@@ -16,7 +16,7 @@ public class Optimizer {
 
     private val optimize = { f: Formula -> optimizeTree(f) }
 
-    fun optimizeTree(f: Formula): Formula = when {
+    private fun optimizeTree(f: Formula): Formula = when {
         f.operator.cardinality == 0 -> f
         f.operator == Op.NEGATION -> {
             val child = f[0]
