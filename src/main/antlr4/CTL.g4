@@ -22,10 +22,10 @@ formula : VAR_NAME                                          #id
         //we list operators explicitly, becuase writing them as a subrule broke operator priority
         | formula CON formula                               #and
         | formula DIS formula                               #or
-        | formula IMPL formula                              #implies
+        |<assoc=right> formula IMPL formula                              #implies
         | formula EQIV formula                              #equal
-        | formula EU formula                                #EU
-        | formula AU formula                                #AU
+        |<assoc=right> formula EU formula                                #EU
+        |<assoc=right> formula AU formula                                #AU
         ;
 
 /** Helper/Grouping parser rules **/

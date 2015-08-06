@@ -81,7 +81,26 @@ class Complex {
 
     }
 
+    Test fun operatorAssociativity() {
+        //These binary operators are by convention right-associative
+        //Other binary operators, such as &&, ||, <=> are associative,
+        //so it doesn't matter if we resolve them left to right or right to left
+        assertEquals(
+                True EU (False EU True),
+                parser.formula("True EU False EU True")
+        )
+        assertEquals(
+                True AU (False AU True),
+                parser.formula("True AU False AU True")
+        )
+        assertEquals(
+                True implies (False implies True),
+                parser.formula("True => False => True")
+        )
+    }
+
     Test fun operatorPriority() {
+        //we do not test every combination, since priority should be transitive
         assertEquals(
                 not(False) and not(True),
                 parser.formula("!False && !True")
