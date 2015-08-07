@@ -2,6 +2,7 @@ package cz.muni.fi.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.failsWith
 
 class MapTest {
 
@@ -70,14 +71,16 @@ class Misc {
         assertEquals("null([])",FormulaImpl().toString())
     }
 
-    Test(expected = IllegalArgumentException::class)
-    fun notEnoughFormulas() {
-        FormulaImpl(Op.ALL_UNTIL, True)
+    Test fun notEnoughFormulas() {
+        failsWith(javaClass<IllegalStateException>()) {
+            FormulaImpl(Op.ALL_UNTIL, True)
+        }
     }
 
-    Test(expected = IllegalArgumentException::class)
-    fun tooManyFormulas() {
-        FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
+    Test fun tooManyFormulas() {
+        failsWith(javaClass<IllegalStateException>()) {
+            FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
+        }
     }
 
     Test fun get() {

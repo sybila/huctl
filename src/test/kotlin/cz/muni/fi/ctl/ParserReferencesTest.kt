@@ -3,45 +3,47 @@ package cz.muni.fi.ctl
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.failsWith
 
 class References {
 
     val parser = Parser()
 
-    Test(expected = IllegalStateException::class)
-    fun cyclicReferenceThroughFiles() {
+    Test fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")
-        try {
 
-            file.bufferedWriter().use {
-                it.write("k = m")
-            }
+        file.bufferedWriter().use {
+            it.write("k = m")
+        }
 
+        failsWith(javaClass<IllegalStateException>()) {
             parser.parse("""
                 m = !k
             """)
-        } finally {
-            file.delete()
+        }
+        file.delete()
+    }
+
+    Test fun transitiveCyclicReference() {
+        failsWith(javaClass<IllegalStateException>()) {
+            parser.parse("""
+                k = EX l
+                l = AX m
+                m = ! k
+            """)
         }
     }
 
-    Test(expected = IllegalStateException::class)
-    fun transitiveCyclicReference() {
-        parser.parse("""
-            k = EX l
-            l = AX m
-            m = ! k
-        """)
+    Test fun simpleCyclicReference() {
+        failsWith(javaClass<IllegalStateException>()) {
+            parser.parse("k = !k")
+        }
     }
 
-    Test(expected = IllegalStateException::class)
-    fun simpleCyclicReference() {
-        parser.parse("k = !k")
-    }
-
-    Test(expected = IllegalStateException::class)
-    fun undefinedReference() {
-        parser.parse("k = EF m")
+    Test fun undefinedReference() {
+        failsWith(javaClass<IllegalStateException>()) {
+            parser.parse("k = EF m")
+        }
     }
 
     Test fun declarationOrderIndependence() {
@@ -57,8 +59,7 @@ class References {
 
     }
 
-    Test(expected = IllegalStateException::class)
-    fun duplicateDeclarationInFiles() {
+    Test fun duplicateDeclarationInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
 
@@ -66,24 +67,24 @@ class References {
             it.write("k = True")
         }
 
-        try {
+        failsWith(javaClass<IllegalStateException>()) {
             parser.parse(
                     "#include \"${ i1.getAbsolutePath() }\" \n" +
                             "k = False"
             )
-        } finally {
-            i1.delete()
         }
+
+        i1.delete()
     }
 
-    Test(expected = IllegalStateException::class)
-    fun duplicateDeclarationInString() {
-
-        parser.parse("""
-            k = True
-            l = False
-            k = False
-        """)
+    Test fun duplicateDeclarationInString() {
+        failsWith(javaClass<IllegalStateException>()) {
+            parser.parse("""
+                k = True
+                l = False
+                k = False
+            """)
+        }
     }
 
     Test fun transitiveResolveInFiles() {
