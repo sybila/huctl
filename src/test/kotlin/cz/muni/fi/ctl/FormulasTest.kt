@@ -72,13 +72,13 @@ class Misc {
     }
 
     Test fun notEnoughFormulas() {
-        failsWith(javaClass<IllegalStateException>()) {
+        failsWith(javaClass<IllegalArgumentException>()) {
             FormulaImpl(Op.ALL_UNTIL, True)
         }
     }
 
     Test fun tooManyFormulas() {
-        failsWith(javaClass<IllegalStateException>()) {
+        failsWith(javaClass<IllegalArgumentException>()) {
             FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
         }
     }
