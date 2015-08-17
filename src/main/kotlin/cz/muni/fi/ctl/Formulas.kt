@@ -31,7 +31,7 @@ data class FormulaImpl (
 
 }
 
-open class Atom : Formula {
+public open class Atom : Formula {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
 }
