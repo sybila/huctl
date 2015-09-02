@@ -157,4 +157,14 @@ class References {
         assertEquals(not(True), result.get("l"))
     }
 
+    Test fun aliasInString() {
+        val result = parser.parse("""
+            k = True
+            l = k
+        """)
+        assertEquals(2, result.size())
+        assertEquals(True, result.get("k"))
+        assertEquals(True, result.get("l"))
+    }
+
 }

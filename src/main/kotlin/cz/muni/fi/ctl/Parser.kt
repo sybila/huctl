@@ -58,7 +58,7 @@ public class Parser {
         }
 
         for ((name, formula) in formulas) {
-            references[name] = formula.treeMap(::replace)
+            references[name] = replace(formula)
         }
 
         return references
