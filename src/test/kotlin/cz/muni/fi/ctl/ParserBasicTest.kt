@@ -7,14 +7,14 @@ class Basic {
 
     val parser = Parser()
 
-    Test fun parenthesis() {
+    @Test fun parenthesis() {
         assertEquals(
                 True,
                 parser.formula("(True)")
         )
     }
 
-    Test fun binaryOps() {
+    @Test fun binaryOps() {
         assertEquals(
                 True EU False,
                 parser.formula("True EU False")
@@ -41,7 +41,7 @@ class Basic {
         )
     }
 
-    Test fun unaryOps() {
+    @Test fun unaryOps() {
         assertEquals(
                 not(True),
                 parser.formula("!True")
@@ -72,7 +72,7 @@ class Basic {
         )
     }
 
-    Test fun floats() {
+    @Test fun floats() {
         assertEquals(
                 FloatProposition("var", FloatOp.EQ, 0.0),
                 parser.formula("var == 0")
@@ -103,7 +103,7 @@ class Basic {
         )
     }
 
-    Test fun directions() {
+    @Test fun directions() {
         assertEquals(
                 DirectionProposition("var", Direction.IN, Facet.POSITIVE),
                 parser.formula("var:in+")
@@ -122,7 +122,7 @@ class Basic {
         )
     }
 
-    Test fun booleans() {
+    @Test fun booleans() {
         assertEquals(True, parser.formula("true"))
         assertEquals(True, parser.formula("True"))
         assertEquals(True, parser.formula("tt"))

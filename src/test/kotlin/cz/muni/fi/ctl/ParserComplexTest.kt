@@ -13,7 +13,7 @@ class Complex {
     val p2 = DirectionProposition("p2", Direction.IN, Facet.NEGATIVE)
     val p3 = FloatProposition("p3", FloatOp.LT, -3.14)
 
-    Test fun complexFiles() {
+    @Test fun complexFiles() {
 
         val f1 = File.createTempFile("file", ".ctl")
         val f2 = File.createTempFile("file2", ".ctl")
@@ -24,14 +24,14 @@ class Complex {
         }
 
         f2.bufferedWriter().use {
-            it.write("#include \"${ f1.getAbsolutePath() }\" \n")
+            it.write("#include \"${ f1.absolutePath }\" \n")
             it.write("b = EX c <=> True \n")
             it.write("d = e => e")
         }
 
         f3.bufferedWriter().use {
             it.write("a = ! p1 == 4 \n")
-            it.write("#include \"${ f2.getAbsolutePath() }\" \n")
+            it.write("#include \"${ f2.absolutePath }\" \n")
             it.write("e = True && c || c && False")
         }
 
@@ -44,11 +44,11 @@ class Complex {
         val d = e implies e
 
         assertEquals(5, result.size())
-        assertEquals(a, result.get("a"))
-        assertEquals(b, result.get("b"))
-        assertEquals(c, result.get("c"))
-        assertEquals(d, result.get("d"))
-        assertEquals(e, result.get("e"))
+        assertEquals(a, result["a"])
+        assertEquals(b, result["b"])
+        assertEquals(c, result["c"])
+        assertEquals(d, result["d"])
+        assertEquals(e, result["e"])
 
         f1.delete()
         f2.delete()
@@ -56,7 +56,7 @@ class Complex {
 
     }
 
-    Test fun complexString() {
+    @Test fun complexString() {
 
         val result = parser.parse("""
             b = EX p3 < -3.14 EU a
@@ -73,15 +73,15 @@ class Complex {
         val e = (c and True) or (False and b)
 
         assertEquals(5, result.size())
-        assertEquals(a, result.get("a"))
-        assertEquals(b, result.get("b"))
-        assertEquals(c, result.get("c"))
-        assertEquals(d, result.get("d"))
-        assertEquals(e, result.get("e"))
+        assertEquals(a, result["a"])
+        assertEquals(b, result["b"])
+        assertEquals(c, result["c"])
+        assertEquals(d, result["d"])
+        assertEquals(e, result["e"])
 
     }
 
-    Test fun operatorAssociativity() {
+    @Test fun operatorAssociativity() {
         //These binary operators are by convention right-associative
         //Other binary operators, such as &&, ||, <=> are associative,
         //so it doesn't matter if we resolve them left to right or right to left
@@ -99,7 +99,7 @@ class Complex {
         )
     }
 
-    Test fun operatorPriority() {
+    @Test fun operatorPriority() {
         //we do not test every combination, since priority should be transitive
         assertEquals(
                 not(False) and not(True),

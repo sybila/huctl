@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
  */
 class Integration {
 
-    Test fun test() {
+    @Test fun test() {
 
         val f1 = File.createTempFile("file", ".ctl")
 
@@ -23,7 +23,7 @@ class Integration {
         }
 
         val formulas = parser.parse(
-                "#include \"${ f1.getAbsolutePath() }\" \n" +
+                "#include \"${ f1.absolutePath }\" \n" +
         """
             a = True && p1:out+
             f = EF True && EG pop || AX a
@@ -39,10 +39,10 @@ class Integration {
         val f = (EF(True) and EG(pop)) or AX(a)
 
         assertEquals(4, formulas.size())
-        assertEquals(a, formulas.get("a"))
-        assertEquals(c, formulas.get("c"))
-        assertEquals(pop, formulas.get("pop"))
-        assertEquals(f, formulas.get("f"))
+        assertEquals(a, formulas["a"])
+        assertEquals(c, formulas["c"])
+        assertEquals(pop, formulas["pop"])
+        assertEquals(f, formulas["f"])
 
         val normalized = normalizer.normalize(f)
 

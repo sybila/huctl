@@ -10,7 +10,7 @@ class OptimizerTest {
 
     val optimizer = Optimizer()
 
-    Test fun complexTest() {
+    @Test fun complexTest() {
         val f1 = FloatProposition("var2", FloatOp.LT_EQ, -15.3)
         val nf1 = FloatProposition("var2", FloatOp.GT, -15.3)
         val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
@@ -22,15 +22,15 @@ class OptimizerTest {
         assertEquals(optimized, optimizer.optimize(optimized))
     }
 
-    Test fun orNegation() {
+    @Test fun orNegation() {
         assertEquals(not(p1 and p2), optimizer.optimize(not(p1) or not(p2)))
     }
 
-    Test fun andNegation() {
+    @Test fun andNegation() {
         assertEquals(not(p1 or p2), optimizer.optimize(not(p1) and not(p2)))
     }
 
-    Test fun floatNegation() {
+    @Test fun floatNegation() {
         assertEquals(
                 FloatProposition("val", FloatOp.NEQ, 13.2),
                 optimizer.optimize(
@@ -45,32 +45,32 @@ class OptimizerTest {
         )
     }
 
-    Test fun doubleNegation() {
+    @Test fun doubleNegation() {
         assertEquals(p1, optimizer.optimize(not(not(p1))))
         assertEquals(not(p2), optimizer.optimize(not(not(not(p2)))))
     }
 
-    Test fun booleanReduction() {
+    @Test fun booleanReduction() {
         val prop = EX( not(False) and ( (True or False) EU (False AU True) ))
         assertEquals(True, optimizer.optimize(prop))
     }
 
-    Test fun preserveUnsupported() {
+    @Test fun preserveUnsupported() {
         val prop = AX(EG(p1 implies p2))
         assertEquals(prop, optimizer.optimize(prop))
     }
 
-    Test fun floatPreserve() {
+    @Test fun floatPreserve() {
         val prop = FloatProposition("val", FloatOp.GT_EQ, 32.2)
         assertEquals(prop, optimizer.optimize(prop))
     }
 
-    Test fun booleanPreserve() {
+    @Test fun booleanPreserve() {
         assertEquals(True, optimizer.optimize(True))
         assertEquals(False, optimizer.optimize(False))
     }
 
-    Test fun directionPreserve() {
+    @Test fun directionPreserve() {
         val prop = DirectionProposition("var", Direction.IN, Facet.POSITIVE)
         assertEquals(prop, optimizer.optimize(prop))
     }

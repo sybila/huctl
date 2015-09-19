@@ -2,7 +2,7 @@ package cz.muni.fi.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.failsWith
+import kotlin.test.assertFailsWith
 
 class MapTest {
 
@@ -13,13 +13,13 @@ class MapTest {
         )
     )
 
-    Test fun treeMapId() {
+    @Test fun treeMapId() {
 
         assertEquals(formula, formula.treeMap { it })
 
     }
 
-    Test fun treeMapPropositions() {
+    @Test fun treeMapPropositions() {
 
         formula.treeMap {
             if (it.operator.cardinality == 0) throw IllegalStateException("Executing tree map on a leaf")
@@ -27,7 +27,7 @@ class MapTest {
         }
     }
 
-    Test fun treeMapComplex() {
+    @Test fun treeMapComplex() {
 
         fun transform(f: Formula): Formula = when(f.operator) {
             Op.EXISTS_NEXT -> FormulaImpl(Op.ALL_NEXT, f.subFormulas.map(::transform))
@@ -50,40 +50,40 @@ class MapTest {
 
 class Misc {
 
-    Test fun booleanToString() {
+    @Test fun booleanToString() {
         assertEquals("True", True.toString())
         assertEquals("False", False.toString())
     }
 
-    Test fun formulaToString() {
+    @Test fun formulaToString() {
         assertEquals("(True && EX (False EU True))", (True and EX(False EU True)).toString())
     }
 
-    Test fun floatToString() {
+    @Test fun floatToString() {
         assertEquals("prop > 5.3", FloatProposition("prop", FloatOp.GT, 5.3).toString())
     }
 
-    Test fun directionToString() {
+    @Test fun directionToString() {
         assertEquals("prop:in+", DirectionProposition("prop", Direction.IN, Facet.POSITIVE).toString())
     }
 
-    Test fun emptyFormula() {
+    @Test fun emptyFormula() {
         assertEquals("null([])",FormulaImpl().toString())
     }
 
-    Test fun notEnoughFormulas() {
-        failsWith(javaClass<IllegalArgumentException>()) {
+    @Test fun notEnoughFormulas() {
+        assertFailsWith(IllegalArgumentException::class) {
             FormulaImpl(Op.ALL_UNTIL, True)
         }
     }
 
-    Test fun tooManyFormulas() {
-        failsWith(javaClass<IllegalArgumentException>()) {
+    @Test fun tooManyFormulas() {
+        assertFailsWith(IllegalArgumentException::class) {
             FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
         }
     }
 
-    Test fun get() {
+    @Test fun get() {
         val float = FloatProposition("val", FloatOp.GT, 34.12)
         assertEquals("val", float.variable)
         assertEquals(FloatOp.GT, float.floatOp)

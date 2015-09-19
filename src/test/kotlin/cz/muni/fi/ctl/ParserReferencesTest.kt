@@ -3,20 +3,20 @@ package cz.muni.fi.ctl
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
-import kotlin.test.failsWith
+import kotlin.test.assertFailsWith
 
 class References {
 
     val parser = Parser()
 
-    Test fun cyclicReferenceThroughFiles() {
+    @Test fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")
 
         file.bufferedWriter().use {
             it.write("k = m")
         }
 
-        failsWith(javaClass<IllegalStateException>()) {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 m = !k
             """)
@@ -24,8 +24,8 @@ class References {
         file.delete()
     }
 
-    Test fun transitiveCyclicReference() {
-        failsWith(javaClass<IllegalStateException>()) {
+    @Test fun transitiveCyclicReference() {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 k = EX l
                 l = AX m
@@ -34,19 +34,19 @@ class References {
         }
     }
 
-    Test fun simpleCyclicReference() {
-        failsWith(javaClass<IllegalStateException>()) {
+    @Test fun simpleCyclicReference() {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse("k = !k")
         }
     }
 
-    Test fun undefinedReference() {
-        failsWith(javaClass<IllegalStateException>()) {
+    @Test fun undefinedReference() {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse("k = EF m")
         }
     }
 
-    Test fun declarationOrderIndependence() {
+    @Test fun declarationOrderIndependence() {
 
         val result = parser.parse("""
             k = ! m
@@ -54,12 +54,12 @@ class References {
         """)
 
         assertEquals(2, result.size())
-        assertEquals(not(True), result.get("k"))
-        assertEquals(True, result.get("m"))
+        assertEquals(not(True), result["k"])
+        assertEquals(True, result["m"])
 
     }
 
-    Test fun duplicateDeclarationInFiles() {
+    @Test fun duplicateDeclarationInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
 
@@ -67,9 +67,9 @@ class References {
             it.write("k = True")
         }
 
-        failsWith(javaClass<IllegalStateException>()) {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse(
-                    "#include \"${ i1.getAbsolutePath() }\" \n" +
+                    "#include \"${ i1.absolutePath }\" \n" +
                             "k = False"
             )
         }
@@ -77,8 +77,8 @@ class References {
         i1.delete()
     }
 
-    Test fun duplicateDeclarationInString() {
-        failsWith(javaClass<IllegalStateException>()) {
+    @Test fun duplicateDeclarationInString() {
+        assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 k = True
                 l = False
@@ -87,7 +87,7 @@ class References {
         }
     }
 
-    Test fun transitiveResolveInFiles() {
+    @Test fun transitiveResolveInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
@@ -101,18 +101,18 @@ class References {
 
         val result = parser.parse(
                 "m = !l \n" +
-                        "#include \"${ i1.getAbsolutePath() }\" \n" +
-                        "#include \"${ i2.getAbsolutePath() }\" \n"
+                        "#include \"${ i1.absolutePath }\" \n" +
+                        "#include \"${ i2.absolutePath }\" \n"
         )
 
         assertEquals(3, result.size())
-        assertEquals(True, result.get("k"))
-        assertEquals(EF(True), result.get("l"))
-        assertEquals(not(EF(True)), result.get("m"))
+        assertEquals(True, result["k"])
+        assertEquals(EF(True), result["l"])
+        assertEquals(not(EF(True)), result["m"])
 
     }
 
-    Test fun transitiveResolveInString() {
+    @Test fun transitiveResolveInString() {
 
         val result = parser.parse("""
                 k = True
@@ -121,13 +121,13 @@ class References {
         """)
 
         assertEquals(3, result.size())
-        assertEquals(True, result.get("k"))
-        assertEquals(EF(True), result.get("l"))
-        assertEquals(not(EF(True)), result.get("m"))
+        assertEquals(True, result["k"])
+        assertEquals(EF(True), result["l"])
+        assertEquals(not(EF(True)), result["m"])
 
     }
 
-    Test fun simpleResolveInInclude() {
+    @Test fun simpleResolveInInclude() {
 
         val i = File.createTempFile("include", ".ctl")
 
@@ -137,35 +137,35 @@ class References {
 
         val result = parser.parse(
                 "k = !val \n " +
-                        "#include \"${ i.getAbsoluteFile() }\" \n"
+                        "#include \"${ i.absolutePath }\" \n"
         )
 
         assertEquals(2, result.size())
-        assertEquals(False, result.get("val"))
-        assertEquals(not(False), result.get("k"))
+        assertEquals(False, result["val"])
+        assertEquals(not(False), result["k"])
 
         i.delete()
 
     }
 
-    Test fun simpleResolveInString() {
+    @Test fun simpleResolveInString() {
         val result = parser.parse("""
             k = True
             l = !k
         """)
         assertEquals(2, result.size())
-        assertEquals(True, result.get("k"))
-        assertEquals(not(True), result.get("l"))
+        assertEquals(True, result["k"])
+        assertEquals(not(True), result["l"])
     }
 
-    Test fun aliasInString() {
+    @Test fun aliasInString() {
         val result = parser.parse("""
             k = True
             l = k
         """)
         assertEquals(2, result.size())
-        assertEquals(True, result.get("k"))
-        assertEquals(True, result.get("l"))
+        assertEquals(True, result["k"])
+        assertEquals(True, result["l"])
     }
 
 }

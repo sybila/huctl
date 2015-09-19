@@ -4,46 +4,48 @@ import org.junit.Test
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class Includes {
 
     val parser = Parser()
 
-    Test(expected = FileNotFoundException::class)
-    fun invalidInclude() {
-        parser.parse("#include \"bogus.foo\" ")
+    @Test fun invalidInclude() {
+        assertFailsWith(FileNotFoundException::class) {
+            parser.parse("#include \"bogus.foo\" ")
+        }
     }
 
-    Test fun duplicateInclude() {
+    @Test fun duplicateInclude() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
 
         i1.bufferedWriter().use {
             it.write("val = True \n")
-            it.write("#include \"${ i1.getAbsolutePath() }\"")
+            it.write("#include \"${ i1.absolutePath }\"")
         }
         i2.bufferedWriter().use {
-            it.write("#include \"${ i1.getAbsolutePath() }\" \n")
-            it.write("#include \"${ i2.getAbsolutePath() }\" \n")
+            it.write("#include \"${ i1.absolutePath }\" \n")
+            it.write("#include \"${ i2.absolutePath }\" \n")
             it.write("val2 = False")
         }
 
         val result = parser.parse(
-                "#include \"${ i2.getAbsolutePath() }\" \n" +
-                        "#include \"${ i1.getAbsolutePath() }\" "
+                "#include \"${ i2.absolutePath }\" \n" +
+                        "#include \"${ i1.absolutePath }\" "
         )
 
         assertEquals(2, result.size())
-        assertEquals(True, result.get("val"))
-        assertEquals(False, result.get("val2"))
+        assertEquals(True, result["val"])
+        assertEquals(False, result["val2"])
 
         i1.delete()
         i2.delete()
 
     }
 
-    Test fun transitiveInclude() {
+    @Test fun transitiveInclude() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
@@ -52,20 +54,20 @@ class Includes {
             it.write("val = True")
         }
         i2.bufferedWriter().use {
-            it.write("#include \"${ i1.getAbsolutePath() }\"")
+            it.write("#include \"${ i1.absolutePath }\"")
         }
 
-        val result = parser.parse("#include \"${ i2.getAbsolutePath() }\"")
+        val result = parser.parse("#include \"${ i2.absolutePath }\"")
 
         assertEquals(1, result.size())
-        assertEquals(True, result.get("val"))
+        assertEquals(True, result["val"])
 
         i1.delete()
         i2.delete()
 
     }
 
-    Test fun simpleIncludeFromFile() {
+    @Test fun simpleIncludeFromFile() {
 
         val include = File.createTempFile("simpleInclude", ".ctl")
 
@@ -75,19 +77,19 @@ class Includes {
 
         val file = File.createTempFile("simpleFile", ".ctl")
         file.bufferedWriter().use {
-            it.write("#include \"${include.getAbsolutePath()}\"")
+            it.write("#include \"${ include.absolutePath }\"")
         }
 
         val result = parser.parse(file)
 
         assertEquals(1, result.size())
-        assertEquals(True, result.get("val"))
+        assertEquals(True, result["val"])
 
         file.delete()
         include.delete()
     }
 
-    Test fun simpleIncludeFromString() {
+    @Test fun simpleIncludeFromString() {
 
         val file = File.createTempFile("simpleInclude", ".ctl")
 
@@ -96,11 +98,11 @@ class Includes {
         }
 
         val result = parser.parse(
-                "#include \"${ file.getAbsolutePath() }\""
+                "#include \"${ file.absolutePath }\""
         )
 
         assertEquals(1, result.size())
-        assertEquals(True, result.get("val"))
+        assertEquals(True, result["val"])
 
         file.delete()
     }

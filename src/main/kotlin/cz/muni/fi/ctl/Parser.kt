@@ -9,10 +9,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.File
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.HashSet
-import java.util.Stack
+import java.util.*
 
 /**
  * Workflow:
@@ -49,7 +46,7 @@ public class Parser {
                     throw IllegalStateException("Cyclic reference: ${f.name}")
                 else -> {
                     replaced.push(f.name)
-                    val result = references[f.name].treeMap(::replace)
+                    val result = references[f.name]!!.treeMap(::replace)
                     replaced.pop()
                     result
                 }
@@ -88,7 +85,7 @@ class FileParser {
             processStream(ANTLRInputStream(input.toCharArray(), input.length()), "input string")
 
     private fun processFile(input: File): FileContext =
-            input.inputStream().use { processStream(ANTLRInputStream(it), input.getAbsolutePath()) }
+            input.inputStream().use { processStream(ANTLRInputStream(it), input.absolutePath) }
 
     private fun processStream(input: ANTLRInputStream, location: String): FileContext {
         val root = CTLParser(CommonTokenStream(CTLLexer(input))).root()
@@ -137,22 +134,22 @@ class FileContext(val location: String) : CTLBaseListener() {
     fun toParseContext() = ParserContext(assignments)
 
     override fun exitInclude(ctx: CTLParser.IncludeContext) {
-        val string = ctx.STRING().getText()!!
+        val string = ctx.STRING().text!!
         includes.add(File(string.substring(1, string.length() - 1)))    //remove quotes
     }
 
     override fun exitAssign(ctx: CTLParser.AssignContext) {
         assignments.add(Assignment(
-                ctx.VAR_NAME().getText()!!,
+                ctx.VAR_NAME().text!!,
                 formulas[ctx.formula()]!!,
-                location+":"+ctx.start.getLine()
+                location+":"+ctx.start.line
         ))
     }
 
     /** ------ Formula Parsing ------ **/
 
     override fun exitId(ctx: CTLParser.IdContext) {
-        formulas[ctx] = Reference(ctx.getText()!!)
+        formulas[ctx] = Reference(ctx.text!!)
     }
 
     override fun exitBool(ctx: CTLParser.BoolContext) {
@@ -161,7 +158,7 @@ class FileContext(val location: String) : CTLBaseListener() {
 
     override fun exitDirection(ctx: CTLParser.DirectionContext) {
         formulas[ctx] = DirectionProposition(
-                variable = ctx.VAR_NAME().getText()!!,
+                variable = ctx.VAR_NAME().text!!,
                 direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
                 facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
         )
@@ -169,9 +166,9 @@ class FileContext(val location: String) : CTLBaseListener() {
 
     override fun exitProposition(ctx: CTLParser.PropositionContext) {
         formulas[ctx] = FloatProposition(
-                variable = ctx.VAR_NAME().getText()!!,
+                variable = ctx.VAR_NAME().text!!,
                 floatOp = ctx.floatOp().toOperator(),
-                value = ctx.FLOAT_VAL().getText().toDouble()
+                value = ctx.FLOAT_VAL().text.toDouble()
         )
     }
 
