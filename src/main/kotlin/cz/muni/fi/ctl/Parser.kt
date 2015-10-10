@@ -118,7 +118,7 @@ data class ParserContext(
         }
     }
 
-    fun plus(ctx: ParserContext): ParserContext {
+    operator fun plus(ctx: ParserContext): ParserContext {
         return ParserContext(assignments + ctx.assignments)
     }
 
@@ -141,7 +141,7 @@ class FileContext(val location: String) : CTLBaseListener() {
     override fun exitAssign(ctx: CTLParser.AssignContext) {
         assignments.add(Assignment(
                 ctx.VAR_NAME().text!!,
-                formulas[ctx.formula()]!!,
+                formulas[ctx.formula()],
                 location+":"+ctx.start.line
         ))
     }
@@ -173,41 +173,44 @@ class FileContext(val location: String) : CTLBaseListener() {
     }
 
     override fun exitParenthesis(ctx: CTLParser.ParenthesisContext) {
-        formulas[ctx] = formulas[ctx.formula()]!!
+        formulas[ctx] = formulas[ctx.formula()]
     }
 
     override fun exitUnary(ctx: CTLParser.UnaryContext) {
-        formulas[ctx] = FormulaImpl(ctx.unaryOp().toOperator(), formulas[ctx.formula()]!!)
+        formulas[ctx] = FormulaImpl(ctx.unaryOp().toOperator(), formulas[ctx.formula()])
     }
 
     override fun exitOr(ctx: CTLParser.OrContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! or formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] or formulas[ctx.formula(1)]
     }
 
     override fun exitAnd(ctx: CTLParser.AndContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! and formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] and formulas[ctx.formula(1)]
     }
 
     override fun exitImplies(ctx: CTLParser.ImpliesContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! implies formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] implies formulas[ctx.formula(1)]
     }
 
     override fun exitEqual(ctx: CTLParser.EqualContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! equal  formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] equal  formulas[ctx.formula(1)]
     }
 
     override fun exitEU(ctx: CTLParser.EUContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! EU formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] EU formulas[ctx.formula(1)]
     }
 
     override fun exitAU(ctx: CTLParser.AUContext) {
-        formulas[ctx] = formulas[ctx.formula(0)]!! AU formulas[ctx.formula(1)]!!
+        formulas[ctx] = formulas[ctx.formula(0)] AU formulas[ctx.formula(1)]
     }
 }
 
 data class Assignment(val name: String, val formula: Formula, val location: String)
 
-data class Reference(val name: String) : Atom()
+data class Reference(val name: String) : Atom {
+    final override val operator = Op.ATOM
+    final override val subFormulas = listOf<Formula>()
+}
 
 //convenience methods
 
@@ -230,4 +233,5 @@ fun CTLParser.FloatOpContext.toOperator(): FloatOp = when {
     else -> FloatOp.EQ
 }
 
-fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)
+operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)
+operator fun <T> ParseTreeProperty<T>.get(k: ParseTree): T = this.get(k)

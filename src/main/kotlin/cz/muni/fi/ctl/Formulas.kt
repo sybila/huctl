@@ -5,7 +5,7 @@ public interface Formula {
     val operator: Op
     val subFormulas: List<Formula>
 
-    public fun get(i: Int): Formula = subFormulas[i]
+    operator public fun get(i: Int): Formula = subFormulas[i]
 }
 
 data class FormulaImpl (
@@ -31,17 +31,18 @@ data class FormulaImpl (
 
 }
 
-public open class Atom : Formula {
-    final override val operator = Op.ATOM
-    final override val subFormulas = listOf<Formula>()
-}
+public interface Atom : Formula
 
 //Boolean Atoms
-public val True: Formula = object : Atom() {
+public val True: Formula = object : Atom {
+    final override val operator = Op.ATOM
+    final override val subFormulas = listOf<Formula>()
     override fun toString():String = "True"
 }
 
-public val False: Formula = object : Atom() {
+public val False: Formula = object : Atom {
+    final override val operator = Op.ATOM
+    final override val subFormulas = listOf<Formula>()
     override fun toString():String = "False"
 }
 
@@ -50,7 +51,9 @@ public data class FloatProposition (
         val variable: String,
         val floatOp: FloatOp,
         val value: Double
-) : Atom() {
+) : Atom {
+    final override val operator = Op.ATOM
+    final override val subFormulas = listOf<Formula>()
     override fun toString(): String = "$variable $floatOp $value"
 }
 
@@ -59,10 +62,10 @@ public data class DirectionProposition (
         val variable: String,
         val direction: Direction,
         val facet: Facet
-) : Atom() {
-
+) : Atom {
+    final override val operator = Op.ATOM
+    final override val subFormulas = listOf<Formula>()
     override fun toString(): String = "$variable:$direction$facet"
-
 }
 
 

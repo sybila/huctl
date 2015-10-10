@@ -79,7 +79,7 @@ class Misc {
 
     @Test fun tooManyFormulas() {
         assertFailsWith(IllegalArgumentException::class) {
-            FormulaImpl(Op.ALL_UNTIL, True, False, Atom())
+            FormulaImpl(Op.ALL_UNTIL, True, False, Reference("nothing"))
         }
     }
 

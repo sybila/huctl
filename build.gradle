@@ -1,6 +1,11 @@
-//include antlr plugin
+apply plugin: 'java'
+apply plugin: 'kotlin'
+apply plugin: 'me.champeau.gradle.antlr4'
+
+//include antlr and kotlin plugin
 buildscript {
-    ext.kotlin_version = '0.13.1513'
+    ext.kotlin_version = '0.14.451'
+
     repositories {
         maven {
             name 'JFrog OSS snapshot repo'
@@ -16,11 +21,9 @@ buildscript {
     }
 }
 
-apply plugin: 'java'
-apply plugin: 'kotlin'
-apply plugin: 'me.champeau.gradle.antlr4'
-
-version = '1.0'
+group = "com.github.sybila"
+archivesBaseName = "ctlParser"
+version = '1.0.0'
 
 //antlr config
 antlr4 {
