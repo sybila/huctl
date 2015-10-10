@@ -54,7 +54,7 @@ You can also automatically perform some simple formula optimizations (propositio
 
 There are currently three main classes you can use ```Parser```, ```Normalizer```, ```Optimizer```. ```Parser``` provides methods that will parse a file, string or a single formula string (you don't have to perform an assignment). These methods automatically resolve all includes and references.
 
-For more complex usage example, see the [IntegrationTest](https://github.com/sybila/CTL-Parser/blob/new_parser/src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
+For more complex usage example, see the [IntegrationTest](src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
 
 ###Building and using
 
