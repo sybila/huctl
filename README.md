@@ -1,5 +1,8 @@
 Simple parser, normalizer and optimizer for CTL temporal logic formulas written in Kotlin.
 
+###How to get it
+The repo is jitpack-compatibile, so all you have to do is look up the latest version on jitpack and then integrate it into your favorite build system: [CTL Parser on Jitpack](https://jitpack.io/#sybila/CTL-Parser)
+
 ###Features
 
  - File includes
@@ -51,7 +54,7 @@ You can also automatically perform some simple formula optimizations (propositio
 
 There are currently three main classes you can use ```Parser```, ```Normalizer```, ```Optimizer```. ```Parser``` provides methods that will parse a file, string or a single formula string (you don't have to perform an assignment). These methods automatically resolve all includes and references.
 
-For more complex usage example, see [IntegrationTest]{https://github.com/sybila/CTL-Parser/blob/new_parser/src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt}
+For more complex usage example, see the [IntegrationTest](https://github.com/sybila/CTL-Parser/blob/new_parser/src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
 
 ###Building and using
 
