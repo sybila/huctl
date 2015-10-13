@@ -34,13 +34,13 @@ data class FormulaImpl (
 public interface Atom : Formula
 
 //Boolean Atoms
-public val True: Formula = object : Atom {
+public val True: Atom = object : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
     override fun toString():String = "True"
 }
 
-public val False: Formula = object : Atom {
+public val False: Atom = object : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
     override fun toString():String = "False"
