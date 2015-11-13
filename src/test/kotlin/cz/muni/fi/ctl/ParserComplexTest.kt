@@ -43,7 +43,7 @@ class Complex {
         val e = (True and c) or (c and False)
         val d = e implies e
 
-        assertEquals(5, result.size())
+        assertEquals(5, result.size)
         assertEquals(a, result["a"])
         assertEquals(b, result["b"])
         assertEquals(c, result["c"])
@@ -72,7 +72,7 @@ class Complex {
         val d = AG(AX(c))
         val e = (c and True) or (False and b)
 
-        assertEquals(5, result.size())
+        assertEquals(5, result.size)
         assertEquals(a, result["a"])
         assertEquals(b, result["b"])
         assertEquals(c, result["c"])

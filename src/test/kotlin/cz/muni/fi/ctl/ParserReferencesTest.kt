@@ -53,7 +53,7 @@ class References {
             m = True
         """)
 
-        assertEquals(2, result.size())
+        assertEquals(2, result.size)
         assertEquals(not(True), result["k"])
         assertEquals(True, result["m"])
 
@@ -105,7 +105,7 @@ class References {
                         "#include \"${ i2.absolutePath }\" \n"
         )
 
-        assertEquals(3, result.size())
+        assertEquals(3, result.size)
         assertEquals(True, result["k"])
         assertEquals(EF(True), result["l"])
         assertEquals(not(EF(True)), result["m"])
@@ -120,7 +120,7 @@ class References {
                 m = !l
         """)
 
-        assertEquals(3, result.size())
+        assertEquals(3, result.size)
         assertEquals(True, result["k"])
         assertEquals(EF(True), result["l"])
         assertEquals(not(EF(True)), result["m"])
@@ -140,7 +140,7 @@ class References {
                         "#include \"${ i.absolutePath }\" \n"
         )
 
-        assertEquals(2, result.size())
+        assertEquals(2, result.size)
         assertEquals(False, result["val"])
         assertEquals(not(False), result["k"])
 
@@ -153,7 +153,7 @@ class References {
             k = True
             l = !k
         """)
-        assertEquals(2, result.size())
+        assertEquals(2, result.size)
         assertEquals(True, result["k"])
         assertEquals(not(True), result["l"])
     }
@@ -163,7 +163,7 @@ class References {
             k = True
             l = k
         """)
-        assertEquals(2, result.size())
+        assertEquals(2, result.size)
         assertEquals(True, result["k"])
         assertEquals(True, result["l"])
     }

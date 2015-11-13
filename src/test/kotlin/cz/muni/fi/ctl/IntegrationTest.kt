@@ -38,7 +38,7 @@ class Integration {
         val pop = True EU (c EU a)
         val f = (EF(True) and EG(pop)) or AX(a)
 
-        assertEquals(4, formulas.size())
+        assertEquals(4, formulas.size)
         assertEquals(a, formulas["a"])
         assertEquals(c, formulas["c"])
         assertEquals(pop, formulas["pop"])

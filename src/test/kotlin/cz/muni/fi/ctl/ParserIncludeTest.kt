@@ -36,7 +36,7 @@ class Includes {
                         "#include \"${ i1.absolutePath }\" "
         )
 
-        assertEquals(2, result.size())
+        assertEquals(2, result.size)
         assertEquals(True, result["val"])
         assertEquals(False, result["val2"])
 
@@ -59,7 +59,7 @@ class Includes {
 
         val result = parser.parse("#include \"${ i2.absolutePath }\"")
 
-        assertEquals(1, result.size())
+        assertEquals(1, result.size)
         assertEquals(True, result["val"])
 
         i1.delete()
@@ -82,7 +82,7 @@ class Includes {
 
         val result = parser.parse(file)
 
-        assertEquals(1, result.size())
+        assertEquals(1, result.size)
         assertEquals(True, result["val"])
 
         file.delete()
@@ -101,7 +101,7 @@ class Includes {
                 "#include \"${ file.absolutePath }\""
         )
 
-        assertEquals(1, result.size())
+        assertEquals(1, result.size)
         assertEquals(True, result["val"])
 
         file.delete()

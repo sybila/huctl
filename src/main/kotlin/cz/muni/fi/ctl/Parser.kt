@@ -82,7 +82,7 @@ class FileParser {
     }
 
     private fun processString(input: String): FileContext =
-            processStream(ANTLRInputStream(input.toCharArray(), input.length()), "input string")
+            processStream(ANTLRInputStream(input.toCharArray(), input.length), "input string")
 
     private fun processFile(input: File): FileContext =
             input.inputStream().use { processStream(ANTLRInputStream(it), input.absolutePath) }
@@ -135,7 +135,7 @@ class FileContext(val location: String) : CTLBaseListener() {
 
     override fun exitInclude(ctx: CTLParser.IncludeContext) {
         val string = ctx.STRING().text!!
-        includes.add(File(string.substring(1, string.length() - 1)))    //remove quotes
+        includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
 
     override fun exitAssign(ctx: CTLParser.AssignContext) {
