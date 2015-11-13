@@ -14,10 +14,10 @@ data class FormulaImpl (
 ) : Formula {
 
     init {
-        if (subFormulas.size() != operator.cardinality) {
+        if (subFormulas.size != operator.cardinality) {
             throw IllegalArgumentException(
                     "Operator cardinality(${operator.cardinality}) and " +
-                    "number of sub formulas(${subFormulas.size()}) do not match")
+                    "number of sub formulas(${subFormulas.size}) do not match")
         }
     }
 
@@ -77,12 +77,12 @@ public fun EF(f: Formula): Formula = FormulaImpl(Op.EXISTS_FUTURE, f)
 public fun AF(f: Formula): Formula = FormulaImpl(Op.ALL_FUTURE, f)
 public fun EG(f: Formula): Formula = FormulaImpl(Op.EXISTS_GLOBAL, f)
 public fun AG(f: Formula): Formula = FormulaImpl(Op.ALL_GLOBAL, f)
-public fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
-public fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
+public infix fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
+public infix fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
 public fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
 public fun Formula.equal(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
-public fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
-public fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
+public infix fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
+public infix fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
 
 //this is not typical map semantics -> don't make it public
 fun Formula.treeMap(x: (Formula) -> Formula) =
