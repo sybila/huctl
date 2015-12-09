@@ -122,6 +122,55 @@ class Basic {
         )
     }
 
+    @Test fun floatOps() {
+        assertEquals(
+                FloatProposition("var1".toVariable() plus "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                parser.formula("var1 + var2 == 0")
+        )
+        assertEquals(
+                FloatProposition("var1".toVariable() minus "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                parser.formula("var1 - var2 == 0")
+        )
+        assertEquals(
+                FloatProposition("var1".toVariable() times "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                parser.formula("var1 * var2 == 0")
+        )
+        assertEquals(
+                FloatProposition("var1".toVariable() over "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                parser.formula("var1 / var2 == 0")
+        )
+    }
+
+    @Test fun comments() {
+        var result = parser.parse("""
+            //f = False
+            k = True
+            //l = False
+        """)
+        assertEquals(1, result.size)
+        assertEquals(True, result["k"])
+
+        result = parser.parse("""
+            /* Some redundant text
+            f = False
+            */
+            k = True
+            //l = False
+        """)
+        assertEquals(1, result.size)
+        assertEquals(True, result["k"])
+
+        result = parser.parse("""
+            /* Comment f = False
+                /* With nesting */
+            */
+            k = True
+            //l = False
+        """)
+        assertEquals(1, result.size)
+        assertEquals(True, result["k"])
+    }
+
     @Test fun booleans() {
         assertEquals(True, parser.formula("true"))
         assertEquals(True, parser.formula("True"))

@@ -31,14 +31,11 @@ public class Parser {
 
     fun process(ctx: ParserContext): Map<String, Formula> {
 
-        val assignments = ctx.toMap()
-
         //Resolve references
         //First resolve all aliases - we need to find out whether they reference formulas or expressions
-        //Afterwards, expressions and formulas are resolved recursively at the same time.
         //Only formulas are returned.
 
-        val references = HashMap(assignments)  //mutable copy
+        val references = HashMap(ctx.toMap())  //mutable copy
         val replaced = Stack<String>()  //processing stack for cycle detection
 
         fun <R> stacked(name: String, action: () -> R): R {
@@ -51,46 +48,50 @@ public class Parser {
         fun resolveAlias(a: Assignment): Assignment =
             when {
                 a !is AliasAssignment -> a
-                a.name in replaced -> throw IllegalStateException("Cyclic reference ${a.name}")
-                a.name !in references -> throw IllegalStateException("Undefined reference ${a.name}")
-                else -> stacked(a.name) { resolveAlias(references[a.name]!!) }
+                a.name in replaced -> throw IllegalStateException("Cyclic reference ${a.name} in ${a.location}")
+                a.alias !in references -> ExpressionAssignment(a.name, a.alias.toVariable(), a.location)
+                else -> stacked(a.name) { resolveAlias(references[a.alias]!!) }
             }
 
-        fun replace(e: Expression): Expression = when (e) {
+        fun resolveExpression(e: Expression): Expression = when (e) {
             is Variable -> when {
                 e.name in replaced -> throw IllegalStateException("Cyclic reference: ${e.name}")
                 e.name in references -> stacked(e.name) {
                     val assignment = references[e.name]!!
-                    if (assignment is ExpressionAssignment) assignment.expression
+                    if (assignment is ExpressionAssignment) resolveExpression(assignment.expression)
                     else throw IllegalStateException("${e.name} is a formula. Expression needed.")
                 }
                 else -> e   //This is a valid variable, not a reference
             }
-            else -> e.treeMap(::replace)
+            else -> e.treeMap(::resolveExpression)
         }
 
-        fun replace(f: Formula): Formula = when (f) {
+        fun resolveFormula(f: Formula): Formula = when (f) {
             is Reference -> when {
                 f.name in replaced -> throw IllegalStateException("Cyclic reference: ${f.name}")
                 f.name !in references -> throw IllegalStateException("Undefined reference: ${f.name}")
                 else -> stacked(f.name) {
                     val assignment = references[f.name]!!
-                    if (assignment is FormulaAssignment) assignment.formula
+                    if (assignment is FormulaAssignment) resolveFormula(assignment.formula)
                     else throw IllegalStateException("${f.name} is an expression. Formula needed.")
                 }
             }
             //dive into the expressions
-            is FloatProposition -> FloatProposition(f.left.treeMap(::replace), f.compareOp, f.right.treeMap(::replace))
-            else -> f.treeMap(::replace)
+            is FloatProposition -> FloatProposition(resolveExpression(f.left), f.compareOp, resolveExpression(f.right))
+            else -> f.treeMap(::resolveFormula)
         }
 
         for ((name, assignment) in references) {    //resolve aliases
-            if (assignment is AliasAssignment) references[name] = resolveAlias(assignment)
+            references[name] = resolveAlias(assignment)
+        }
+
+        for ((name, assignment) in references) {    //resolve expressions - this way we catch errors also for unused expressions
+            if (assignment is ExpressionAssignment) references[name] = ExpressionAssignment(name, resolveExpression(assignment.expression), assignment.location)
         }
 
         val results = HashMap<String, Formula>()
-        for ((name, assignment) in assignments) {
-            if (assignment is FormulaAssignment) results[name] = replace(assignment.formula)
+        for ((name, assignment) in references) {
+            if (assignment is FormulaAssignment) results[name] = resolveFormula(assignment.formula)
         }
 
         return results

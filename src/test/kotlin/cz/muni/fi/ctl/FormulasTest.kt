@@ -14,13 +14,10 @@ class MapTest {
     )
 
     @Test fun treeMapId() {
-
         assertEquals(formula, formula.treeMap { it })
-
     }
 
     @Test fun treeMapPropositions() {
-
         formula.treeMap {
             if (it.operator.cardinality == 0) throw IllegalStateException("Executing tree map on a leaf")
             else it
@@ -55,12 +52,29 @@ class Misc {
         assertEquals("False", False.toString())
     }
 
+    @Test fun variableToString() {
+        assertEquals("test", "test".toVariable().toString())
+    }
+
+    @Test fun constantToString() {
+        assertEquals("3.14", 3.14.toConstant().toString())
+    }
+
+    @Test fun expressionToString() {
+        assertEquals("((a + 12.0) / ((3.0 * 4.0) - Var))",
+                (
+                        ("a".toVariable() plus 12.0.toConstant())
+                                over
+                        ((3.0.toConstant() times 4.0.toConstant()) minus "Var".toVariable())
+                ).toString())
+    }
+
     @Test fun formulaToString() {
         assertEquals("(True && EX (False EU True))", (True and EX(False EU True)).toString())
     }
 
-    @Test fun floatToString() {
-        assertEquals("prop > 5.3", FloatProposition("prop", CompareOp.GT, 5.3).toString())
+    @Test fun floatPropositionToString() {
+        assertEquals("prop > 5.3", FloatProposition("prop".toVariable(), CompareOp.GT, 5.3.toConstant()).toString())
     }
 
     @Test fun directionToString() {
@@ -85,9 +99,11 @@ class Misc {
 
     @Test fun get() {
         val float = FloatProposition("val", CompareOp.GT, 34.12)
-        assertEquals("val", float.variable)
+        assert(float.left is Variable)
+        assertEquals("val", (float.left as Variable).name)
         assertEquals(CompareOp.GT, float.compareOp)
-        assertEquals(34.12, float.value)
+        assert(float.right is Constant)
+        assertEquals(34.12, (float.right as Constant).value)
         val dir = DirectionProposition("var", Direction.IN, Facet.NEGATIVE)
         assertEquals("var", dir.variable)
         assertEquals(Direction.IN, dir.direction)
