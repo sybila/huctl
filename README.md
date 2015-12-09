@@ -1,4 +1,6 @@
-[![Kotlin](https://img.shields.io/badge/kotlin-1.0.0--beta--3595-blue.svg)](http://kotlinlang.org) [![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
+[![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/CTL-Parser/blob/master/LICENSE.txt)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.0.0--beta--3595-blue.svg)](http://kotlinlang.org)
 
 
 Simple parser, normalizer and optimizer for CTL temporal logic formulas written in Kotlin.
