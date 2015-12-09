@@ -22,10 +22,10 @@ public enum class Op(val cardinality: Int, private val str: String) {
     override fun toString(): String = str
 }
 
-public enum class FloatOp(private val str: String) {
+public enum class CompareOp(private val str: String) {
     EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
 
-    val neg: FloatOp
+    val neg: CompareOp
         get() = when (this) {
             EQ -> NEQ
             NEQ -> EQ
@@ -37,6 +37,12 @@ public enum class FloatOp(private val str: String) {
 
     override fun toString(): String = str
 
+}
+
+public enum class FloatOp(private val str: String) {
+    ADD("+"), SUBTRACT("-"), MULTIPLY("*"), DIVIDE("/");
+
+    override fun toString(): String = str
 }
 
 public enum class Direction(private val str: String) {

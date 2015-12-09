@@ -48,13 +48,13 @@ public val False: Atom = object : Atom {
 
 //Float atoms
 public data class FloatProposition (
-        val variable: String,
-        val floatOp: FloatOp,
-        val value: Double
+        val left: Expression,
+        val compareOp: CompareOp,
+        val right: Expression
 ) : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
-    override fun toString(): String = "$variable $floatOp $value"
+    override fun toString(): String = "$left $compareOp $right"
 }
 
 //Direction atoms
@@ -68,6 +68,22 @@ public data class DirectionProposition (
     override fun toString(): String = "$variable:$direction$facet"
 }
 
+//Float expressions
+public interface Expression;
+
+public data class Variable(
+        val name: String
+) : Expression
+
+public data class Constant(
+        val value: Double
+) : Expression
+
+public data class ExpressionImpl(
+        val left: Expression,
+        val operator: FloatOp,
+        val right: Expression
+) : Expression
 
 //Simplified builders
 public fun not(f: Formula): Formula = FormulaImpl(Op.NEGATION, f)
@@ -84,6 +100,13 @@ public infix fun Formula.equal(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENC
 public infix fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
 public infix fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
 
+public fun Double.toExpression(): Expression = Constant(this)
+public fun String.toVariable(): Variable = Variable(this)
+public infix fun Expression.plus(other: Expression): Expression = ExpressionImpl(this, FloatOp.ADD, other)
+public infix fun Expression.minus(other: Expression): Expression = ExpressionImpl(this, FloatOp.SUBTRACT, other)
+public infix fun Expression.times(other: Expression): Expression = ExpressionImpl(this, FloatOp.MULTIPLY, other)
+public infix fun Expression.over(other: Expression): Expression = ExpressionImpl(this, FloatOp.DIVIDE, other)
+
 //this is not typical map semantics -> don't make it public
 fun Formula.treeMap(x: (Formula) -> Formula) =
         if (this.operator.cardinality == 0) {
@@ -91,3 +114,8 @@ fun Formula.treeMap(x: (Formula) -> Formula) =
         } else {
             FormulaImpl(this.operator, this.subFormulas.map(x))
         }
+
+fun Expression.treeMap(x: (Expression) -> Expression) =
+        if (this is ExpressionImpl) {
+            ExpressionImpl(x(left), this.operator, x(right))
+        } else this

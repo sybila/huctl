@@ -14,8 +14,8 @@ class UntilNormalFormTest {
 
     @Test fun complexTest() {
 
-        val f1 = FloatProposition("var1", FloatOp.NEQ, 14.3)
-        val f2 = FloatProposition("var2", FloatOp.LT, -15.3)
+        val f1 = FloatProposition("var1", CompareOp.NEQ, 14.3)
+        val f2 = FloatProposition("var2", CompareOp.LT, -15.3)
         val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
         val d2 = DirectionProposition("var2", Direction.OUT, Facet.POSITIVE)
 
@@ -124,7 +124,7 @@ class UntilNormalFormTest {
     }
 
     @Test fun floatPreserve() {
-        val prop = FloatProposition("val", FloatOp.GT_EQ, 32.2)
+        val prop = FloatProposition("val", CompareOp.GT_EQ, 32.2)
         assertEquals(prop, normalizer.normalize(prop))
     }
 

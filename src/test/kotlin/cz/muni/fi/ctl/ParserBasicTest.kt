@@ -74,31 +74,31 @@ class Basic {
 
     @Test fun floats() {
         assertEquals(
-                FloatProposition("var", FloatOp.EQ, 0.0),
+                FloatProposition("var", CompareOp.EQ, 0.0),
                 parser.formula("var == 0")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.EQ, 1.0),
+                FloatProposition("var", CompareOp.EQ, 1.0),
                 parser.formula("var == 1")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.NEQ, -1.0),
+                FloatProposition("var", CompareOp.NEQ, -1.0),
                 parser.formula("var != -1")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.GT, 0.158),
+                FloatProposition("var", CompareOp.GT, 0.158),
                 parser.formula("var > 0.158")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.GT_EQ, -0.9995),
+                FloatProposition("var", CompareOp.GT_EQ, -0.9995),
                 parser.formula("var >= -0.9995")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.LT, 1040.58),
+                FloatProposition("var", CompareOp.LT, 1040.58),
                 parser.formula("var < 1040.58")
         )
         assertEquals(
-                FloatProposition("var", FloatOp.LT_EQ, -586.44),
+                FloatProposition("var", CompareOp.LT_EQ, -586.44),
                 parser.formula("var <= -586.44")
         )
     }

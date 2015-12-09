@@ -7,7 +7,7 @@ import kotlin.test.assertFailsWith
 class MapTest {
 
     val formula = EX( True EU (
-            FloatProposition("var", FloatOp.EQ, 13.3)
+            FloatProposition("var", CompareOp.EQ, 13.3)
                     or
             DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
         )
@@ -38,7 +38,7 @@ class MapTest {
 
         assertEquals(
                 AX( True AU (
-                FloatProposition("var", FloatOp.EQ, 13.3)
+                FloatProposition("var", CompareOp.EQ, 13.3)
                     and
                 DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
                 )
@@ -60,7 +60,7 @@ class Misc {
     }
 
     @Test fun floatToString() {
-        assertEquals("prop > 5.3", FloatProposition("prop", FloatOp.GT, 5.3).toString())
+        assertEquals("prop > 5.3", FloatProposition("prop", CompareOp.GT, 5.3).toString())
     }
 
     @Test fun directionToString() {
@@ -84,9 +84,9 @@ class Misc {
     }
 
     @Test fun get() {
-        val float = FloatProposition("val", FloatOp.GT, 34.12)
+        val float = FloatProposition("val", CompareOp.GT, 34.12)
         assertEquals("val", float.variable)
-        assertEquals(FloatOp.GT, float.floatOp)
+        assertEquals(CompareOp.GT, float.compareOp)
         assertEquals(34.12, float.value)
         val dir = DirectionProposition("var", Direction.IN, Facet.NEGATIVE)
         assertEquals("var", dir.variable)

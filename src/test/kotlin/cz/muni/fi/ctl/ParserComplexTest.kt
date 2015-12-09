@@ -9,9 +9,9 @@ class Complex {
     val parser = Parser()
 
 
-    val p1 = FloatProposition("p1", FloatOp.EQ, 4.0)
+    val p1 = FloatProposition("p1", CompareOp.EQ, 4.0)
     val p2 = DirectionProposition("p2", Direction.IN, Facet.NEGATIVE)
-    val p3 = FloatProposition("p3", FloatOp.LT, -3.14)
+    val p3 = FloatProposition("p3", CompareOp.LT, -3.14)
 
     @Test fun complexFiles() {
 

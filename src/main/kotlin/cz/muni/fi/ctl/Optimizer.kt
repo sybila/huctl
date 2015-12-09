@@ -26,7 +26,7 @@ public class Optimizer {
                 // !False = True
                 child == False -> True
                 // !a > 5 = a <= 5
-                child is FloatProposition -> child.copy(floatOp = child.floatOp.neg)
+                child is FloatProposition -> child.copy(compareOp = child.compareOp.neg)
                 // !!a = a
                 child.operator == Op.NEGATION -> optimizeTree(child[0])
                 else -> f.treeMap(optimize)
