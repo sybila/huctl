@@ -1,5 +1,6 @@
-[![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
 [![Jitpack](https://img.shields.io/badge/jitpack-1.1.0-green.svg?style=flat)](https://jitpack.io/#sybila/CTL-Parser/1.1.0)
+[![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
+[![codecov.io](https://codecov.io/github/sybila/CTL-Parser/coverage.svg?branch=master)](https://codecov.io/github/sybila/CTL-Parser?branch=master)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/CTL-Parser/blob/master/LICENSE.txt)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.0.0--beta--3595-blue.svg)](http://kotlinlang.org)
 
