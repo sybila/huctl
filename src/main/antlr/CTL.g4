@@ -6,8 +6,10 @@ grammar CTL;
 root : fullStop? (statement fullStop)*;
 
 statement : '#include' STRING                       # include
-          | VAR_NAME '=' formula                    # assign_formula
-          | VAR_NAME '=' expression                 # assign_expression
+          //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
+          | VAR_NAME '=' VAR_NAME                   # assignAlias
+          | VAR_NAME '=' formula                    # assignFormula
+          | VAR_NAME '=' expression                 # assignExpression
           ;
 
 fullStop : NEWLINE+ | EOF;
@@ -29,11 +31,11 @@ formula : VAR_NAME                                          #id
         |<assoc=right> formula AU formula                   #AU
         ;
 
-expression : VAR_NAME                                       #id_expression
+expression : VAR_NAME                                       #idExpression
         | FLOAT_VAL                                         #value
-        | '(' expression ')'                                #parenthesis_exp
+        | '(' expression ')'                                #parenthesisExpression
         //we list operators explicitly, becuase writing them as a subrule broke operator priority
-        | expression MUL expression                         #multipliction
+        | expression MUL expression                         #multiplication
         | expression DIV expression                         #division
         | expression PLUS expression                        #addition
         | expression MINUS expression                       #subtraction
