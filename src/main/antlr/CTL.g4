@@ -6,32 +6,45 @@ grammar CTL;
 root : fullStop? (statement fullStop)*;
 
 statement : '#include' STRING                       # include
-          | VAR_NAME '=' formula                    # assign
+          //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
+          | VAR_NAME '=' VAR_NAME                   # assignAlias
+          | VAR_NAME '=' formula                    # assignFormula
+          | VAR_NAME '=' expression                 # assignExpression
           ;
 
-fullStop : NEWLINE+ | EOF;
+fullStop : NEWLINE+ | EOF | ';';
 
 /* Formula and propositions */
 
 formula : VAR_NAME                                          #id
         | (TRUE | FALSE)                                    #bool
         | VAR_NAME ':' (IN | OUT) (PLUS | MINUS)            #direction
-        | VAR_NAME floatOp FLOAT_VAL                        #proposition
+        | expression compare expression                     #proposition
         | '(' formula ')'                                   #parenthesis
         | unaryOp formula                                   #unary
         //we list operators explicitly, becuase writing them as a subrule broke operator priority
         | formula CON formula                               #and
         | formula DIS formula                               #or
-        |<assoc=right> formula IMPL formula                              #implies
+        |<assoc=right> formula IMPL formula                 #implies
         | formula EQIV formula                              #equal
-        |<assoc=right> formula EU formula                                #EU
-        |<assoc=right> formula AU formula                                #AU
+        |<assoc=right> formula EU formula                   #EU
+        |<assoc=right> formula AU formula                   #AU
+        ;
+
+expression : VAR_NAME                                       #idExpression
+        | FLOAT_VAL                                         #value
+        | '(' expression ')'                                #parenthesisExpression
+        //we list operators explicitly, becuase writing them as a subrule broke operator priority
+        | expression MUL expression                         #multiplication
+        | expression DIV expression                         #division
+        | expression PLUS expression                        #addition
+        | expression MINUS expression                       #subtraction
         ;
 
 /** Helper/Grouping parser rules **/
 
 unaryOp : NEG | EX | EF | EG | AX | AF | AG;
-floatOp : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
+compare : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
 
 /** Terminals **/
 
@@ -67,6 +80,9 @@ CON : '&&';
 DIS : '||';
 IMPL : '=>';
 EQIV : '<=>';
+
+MUL : '*';
+DIV : '/';
 
 /* Literals */
 

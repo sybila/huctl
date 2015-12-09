@@ -30,8 +30,8 @@ class Integration {
         """)
 
         val p1 = DirectionProposition("p1", Direction.OUT, Facet.POSITIVE)
-        val p2 = FloatProposition("p2", FloatOp.GT, 3.14)
-        val np2 = FloatProposition("p2", FloatOp.LT_EQ, 3.14)
+        val p2 = FloatProposition("p2", CompareOp.GT, 3.14)
+        val np2 = FloatProposition("p2", CompareOp.LT_EQ, 3.14)
 
         val a = True and p1
         val c = p2 equal False

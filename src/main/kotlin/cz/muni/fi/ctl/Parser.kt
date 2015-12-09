@@ -17,13 +17,13 @@ import java.util.*
  * File context is a direct representation of a file.
  * Using FileParser, includes in the file context are resolved and merged into a ParserContext.
  * Duplicate assignments are checked at this stage.
- * Lastly, Parser resolves references in ParserContext (checking for undefined or cyclic references)
- * and returns a final map of valid assignments
+ * Lastly, Parser resolves references in ParserContext (checking for undefined, cyclic and invalid type references)
+ * and returns a final map of valid formula assignments
  */
 
 public class Parser {
 
-    public fun formula(input: String): Formula = parse("val = $input").get("val")!!
+    public fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
     public fun parse(input: String): Map<String, Formula> = process(FileParser().process(input))
 
@@ -31,34 +31,70 @@ public class Parser {
 
     fun process(ctx: ParserContext): Map<String, Formula> {
 
-        val formulas = ctx.formulas
+        //Resolve references
+        //First resolve all aliases - we need to find out whether they reference formulas or expressions
+        //Only formulas are returned.
 
-        // Resolve references
-
-        val references = HashMap(formulas)  //mutable copy
+        val references = HashMap(ctx.toMap())  //mutable copy
         val replaced = Stack<String>()  //processing stack for cycle detection
 
-        fun replace(f: Formula): Formula = when (f) {
+        fun <R> stacked(name: String, action: () -> R): R {
+            replaced.push(name)
+            val result = action()
+            replaced.pop()
+            return result
+        }
+
+        fun resolveAlias(a: Assignment): Assignment =
+            when {
+                a !is AliasAssignment -> a
+                a.name in replaced -> throw IllegalStateException("Cyclic reference ${a.name} in ${a.location}")
+                a.alias !in references -> ExpressionAssignment(a.name, a.alias.toVariable(), a.location)
+                else -> stacked(a.name) { resolveAlias(references[a.alias]!!) }
+            }
+
+        fun resolveExpression(e: Expression): Expression = when (e) {
+            is Variable -> when {
+                e.name in replaced -> throw IllegalStateException("Cyclic reference: ${e.name}")
+                e.name in references -> stacked(e.name) {
+                    val assignment = references[e.name]!!
+                    if (assignment is ExpressionAssignment) resolveExpression(assignment.expression)
+                    else throw IllegalStateException("${e.name} is a formula. Expression needed.")
+                }
+                else -> e   //This is a valid variable, not a reference
+            }
+            else -> e.treeMap(::resolveExpression)
+        }
+
+        fun resolveFormula(f: Formula): Formula = when (f) {
             is Reference -> when {
-                f.name !in references ->
-                    throw IllegalStateException("Undefined reference: ${f.name}")
-                f.name in replaced ->
-                    throw IllegalStateException("Cyclic reference: ${f.name}")
-                else -> {
-                    replaced.push(f.name)
-                    val result = references[f.name]!!.treeMap(::replace)
-                    replaced.pop()
-                    result
+                f.name in replaced -> throw IllegalStateException("Cyclic reference: ${f.name}")
+                f.name !in references -> throw IllegalStateException("Undefined reference: ${f.name}")
+                else -> stacked(f.name) {
+                    val assignment = references[f.name]!!
+                    if (assignment is FormulaAssignment) resolveFormula(assignment.formula)
+                    else throw IllegalStateException("${f.name} is an expression. Formula needed.")
                 }
             }
-            else -> f.treeMap(::replace)
+            //dive into the expressions
+            is FloatProposition -> FloatProposition(resolveExpression(f.left), f.compareOp, resolveExpression(f.right))
+            else -> f.treeMap(::resolveFormula)
         }
 
-        for ((name, formula) in formulas) {
-            references[name] = replace(formula)
+        for ((name, assignment) in references) {    //resolve aliases
+            references[name] = resolveAlias(assignment)
         }
 
-        return references
+        for ((name, assignment) in references) {    //resolve expressions - this way we catch errors also for unused expressions
+            if (assignment is ExpressionAssignment) references[name] = ExpressionAssignment(name, resolveExpression(assignment.expression), assignment.location)
+        }
+
+        val results = HashMap<String, Formula>()
+        for ((name, assignment) in references) {
+            if (assignment is FormulaAssignment) results[name] = resolveFormula(assignment.formula)
+        }
+
+        return results
     }
 
 }
@@ -100,8 +136,7 @@ data class ParserContext(
         val assignments: List<Assignment>
 ) {
 
-    val formulas: Map<String, Formula>
-        get() = assignments.toMap({ it.name }, { it.formula} )
+    fun toMap() = assignments.toMap({ it.name }, { it } )
 
     /**
      * Checks for duplicate assignments received from parser
@@ -109,7 +144,7 @@ data class ParserContext(
     init {
         for (one in assignments) {
             for (two in assignments) {
-                if (one.name == two.name && (one.location != two.location || one.formula != two.formula)) {
+                if (one.name == two.name && one.location != two.location) {
                     throw IllegalStateException(
                             "Duplicate assignment for ${one.name} defined in ${one.location} and ${two.location}"
                     )
@@ -127,37 +162,86 @@ data class ParserContext(
 class FileContext(val location: String) : CTLBaseListener() {
 
     val includes = ArrayList<File>()
-    val assignments = ArrayList<Assignment>()
+    val formulas = ArrayList<FormulaAssignment>()
+    val expressions = ArrayList<ExpressionAssignment>()
+    val aliases = ArrayList<AliasAssignment>()
 
-    private val formulas = ParseTreeProperty<Formula>()
+    private val formulaTree = ParseTreeProperty<Formula>()
+    private val expressionTree = ParseTreeProperty<Expression>()
 
-    fun toParseContext() = ParserContext(assignments)
+    fun toParseContext() = ParserContext(formulas + expressions + aliases)
 
     override fun exitInclude(ctx: CTLParser.IncludeContext) {
         val string = ctx.STRING().text!!
         includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
 
-    override fun exitAssign(ctx: CTLParser.AssignContext) {
-        assignments.add(Assignment(
-                ctx.VAR_NAME().text!!,
-                formulas[ctx.formula()],
+    override fun exitAssignFormula(ctx: CTLParser.AssignFormulaContext) {
+        formulas.add(FormulaAssignment(
+                ctx.VAR_NAME().text,
+                formulaTree[ctx.formula()],
                 location+":"+ctx.start.line
         ))
+    }
+
+    override fun exitAssignExpression(ctx: CTLParser.AssignExpressionContext) {
+        expressions.add(ExpressionAssignment(
+                ctx.VAR_NAME().text,
+                expressionTree[ctx.expression()],
+                location+":"+ctx.start.line
+        ))
+    }
+
+    override fun exitAssignAlias(ctx: CTLParser.AssignAliasContext) {
+        aliases.add(AliasAssignment(
+                ctx.VAR_NAME(0).text!!,
+                ctx.VAR_NAME(1).text!!,
+                location+":"+ctx.start.line
+        ))
+    }
+
+    /** ------ Expression Parsing ----- **/
+
+    override fun exitIdExpression(ctx: CTLParser.IdExpressionContext) {
+        expressionTree[ctx] = Variable(ctx.text)
+    }
+
+    override fun exitValue(ctx: CTLParser.ValueContext) {
+        expressionTree[ctx] = Constant(ctx.FLOAT_VAL().text.toDouble())
+    }
+
+    override fun exitParenthesisExpression(ctx: CTLParser.ParenthesisExpressionContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression()]
+    }
+
+    override fun exitMultiplication(ctx: CTLParser.MultiplicationContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] times expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitDivision(ctx: CTLParser.DivisionContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] over expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitAddition(ctx: CTLParser.AdditionContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] plus expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitSubtraction(ctx: CTLParser.SubtractionContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
     }
 
     /** ------ Formula Parsing ------ **/
 
     override fun exitId(ctx: CTLParser.IdContext) {
-        formulas[ctx] = Reference(ctx.text!!)
+        formulaTree[ctx] = Reference(ctx.text!!)
     }
 
     override fun exitBool(ctx: CTLParser.BoolContext) {
-        formulas[ctx] = if (ctx.TRUE() != null) True else False
+        formulaTree[ctx] = if (ctx.TRUE() != null) True else False
     }
 
     override fun exitDirection(ctx: CTLParser.DirectionContext) {
-        formulas[ctx] = DirectionProposition(
+        formulaTree[ctx] = DirectionProposition(
                 variable = ctx.VAR_NAME().text!!,
                 direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
                 facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
@@ -165,47 +249,53 @@ class FileContext(val location: String) : CTLBaseListener() {
     }
 
     override fun exitProposition(ctx: CTLParser.PropositionContext) {
-        formulas[ctx] = FloatProposition(
-                variable = ctx.VAR_NAME().text!!,
-                floatOp = ctx.floatOp().toOperator(),
-                value = ctx.FLOAT_VAL().text.toDouble()
+        formulaTree[ctx] = FloatProposition(
+                left = expressionTree[ctx.expression(0)],
+                compareOp = ctx.compare().toOperator(),
+                right = expressionTree[ctx.expression(1)]
         )
     }
 
     override fun exitParenthesis(ctx: CTLParser.ParenthesisContext) {
-        formulas[ctx] = formulas[ctx.formula()]
+        formulaTree[ctx] = formulaTree[ctx.formula()]
     }
 
     override fun exitUnary(ctx: CTLParser.UnaryContext) {
-        formulas[ctx] = FormulaImpl(ctx.unaryOp().toOperator(), formulas[ctx.formula()])
+        formulaTree[ctx] = FormulaImpl(ctx.unaryOp().toOperator(), formulaTree[ctx.formula()])
     }
 
     override fun exitOr(ctx: CTLParser.OrContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] or formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] or formulaTree[ctx.formula(1)]
     }
 
     override fun exitAnd(ctx: CTLParser.AndContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] and formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] and formulaTree[ctx.formula(1)]
     }
 
     override fun exitImplies(ctx: CTLParser.ImpliesContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] implies formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] implies formulaTree[ctx.formula(1)]
     }
 
     override fun exitEqual(ctx: CTLParser.EqualContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] equal  formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] equal  formulaTree[ctx.formula(1)]
     }
 
     override fun exitEU(ctx: CTLParser.EUContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] EU formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] EU formulaTree[ctx.formula(1)]
     }
 
     override fun exitAU(ctx: CTLParser.AUContext) {
-        formulas[ctx] = formulas[ctx.formula(0)] AU formulas[ctx.formula(1)]
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] AU formulaTree[ctx.formula(1)]
     }
 }
 
-data class Assignment(val name: String, val formula: Formula, val location: String)
+interface Assignment {
+    val name: String
+    val location: String
+}
+data class FormulaAssignment(override val name: String, val formula: Formula, override val location: String) : Assignment
+data class ExpressionAssignment(override val name: String, val expression: Expression, override val location: String) : Assignment
+data class AliasAssignment(override val name: String, val alias: String, override val location: String) : Assignment
 
 data class Reference(val name: String) : Atom {
     final override val operator = Op.ATOM
@@ -224,13 +314,13 @@ fun CTLParser.UnaryOpContext.toOperator(): Op = when {
     else -> Op.NEGATION
 }
 
-fun CTLParser.FloatOpContext.toOperator(): FloatOp = when {
-    NEQ() != null -> FloatOp.NEQ
-    LT() != null -> FloatOp.LT
-    LTEQ() != null -> FloatOp.LT_EQ
-    GT() != null -> FloatOp.GT
-    GTEQ() != null -> FloatOp.GT_EQ
-    else -> FloatOp.EQ
+fun CTLParser.CompareContext.toOperator(): CompareOp = when {
+    NEQ() != null -> CompareOp.NEQ
+    LT() != null -> CompareOp.LT
+    LTEQ() != null -> CompareOp.LT_EQ
+    GT() != null -> CompareOp.GT
+    GTEQ() != null -> CompareOp.GT_EQ
+    else -> CompareOp.EQ
 }
 
 operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)

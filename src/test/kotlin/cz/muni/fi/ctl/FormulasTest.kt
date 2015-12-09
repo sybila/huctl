@@ -7,20 +7,17 @@ import kotlin.test.assertFailsWith
 class MapTest {
 
     val formula = EX( True EU (
-            FloatProposition("var", FloatOp.EQ, 13.3)
+            FloatProposition("var", CompareOp.EQ, 13.3)
                     or
             DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
         )
     )
 
     @Test fun treeMapId() {
-
         assertEquals(formula, formula.treeMap { it })
-
     }
 
     @Test fun treeMapPropositions() {
-
         formula.treeMap {
             if (it.operator.cardinality == 0) throw IllegalStateException("Executing tree map on a leaf")
             else it
@@ -38,7 +35,7 @@ class MapTest {
 
         assertEquals(
                 AX( True AU (
-                FloatProposition("var", FloatOp.EQ, 13.3)
+                FloatProposition("var", CompareOp.EQ, 13.3)
                     and
                 DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
                 )
@@ -55,12 +52,29 @@ class Misc {
         assertEquals("False", False.toString())
     }
 
+    @Test fun variableToString() {
+        assertEquals("test", "test".toVariable().toString())
+    }
+
+    @Test fun constantToString() {
+        assertEquals("3.14", 3.14.toConstant().toString())
+    }
+
+    @Test fun expressionToString() {
+        assertEquals("((a + 12.0) / ((3.0 * 4.0) - Var))",
+                (
+                        ("a".toVariable() plus 12.0.toConstant())
+                                over
+                        ((3.0.toConstant() times 4.0.toConstant()) minus "Var".toVariable())
+                ).toString())
+    }
+
     @Test fun formulaToString() {
         assertEquals("(True && EX (False EU True))", (True and EX(False EU True)).toString())
     }
 
-    @Test fun floatToString() {
-        assertEquals("prop > 5.3", FloatProposition("prop", FloatOp.GT, 5.3).toString())
+    @Test fun floatPropositionToString() {
+        assertEquals("prop > 5.3", FloatProposition("prop".toVariable(), CompareOp.GT, 5.3.toConstant()).toString())
     }
 
     @Test fun directionToString() {
@@ -84,10 +98,12 @@ class Misc {
     }
 
     @Test fun get() {
-        val float = FloatProposition("val", FloatOp.GT, 34.12)
-        assertEquals("val", float.variable)
-        assertEquals(FloatOp.GT, float.floatOp)
-        assertEquals(34.12, float.value)
+        val float = FloatProposition("val", CompareOp.GT, 34.12)
+        assert(float.left is Variable)
+        assertEquals("val", (float.left as Variable).name)
+        assertEquals(CompareOp.GT, float.compareOp)
+        assert(float.right is Constant)
+        assertEquals(34.12, (float.right as Constant).value)
         val dir = DirectionProposition("var", Direction.IN, Facet.NEGATIVE)
         assertEquals("var", dir.variable)
         assertEquals(Direction.IN, dir.direction)

@@ -32,11 +32,21 @@ class References {
                 m = ! k
             """)
         }
+        assertFailsWith(IllegalStateException::class) {
+            parser.parse("""
+                e = a + 2
+                a = b - 2
+                b = 2 * e
+            """)
+        }
     }
 
     @Test fun simpleCyclicReference() {
         assertFailsWith(IllegalStateException::class) {
             parser.parse("k = !k")
+        }
+        assertFailsWith(IllegalStateException::class) {
+            parser.parse("a = a + a")
         }
     }
 
@@ -87,6 +97,16 @@ class References {
         }
     }
 
+    @Test fun duplicateDeclarationExpression() {
+        assertFailsWith(IllegalStateException::class) {
+            parser.parse("""
+                k = 1
+                l = 2
+                k = 1.5
+            """)
+        }
+    }
+
     @Test fun transitiveResolveInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
@@ -115,12 +135,14 @@ class References {
     @Test fun transitiveResolveInString() {
 
         val result = parser.parse("""
-                k = True
+                j = True
+                k = j
                 l = EF k
                 m = !l
         """)
 
-        assertEquals(3, result.size)
+        assertEquals(4, result.size)
+        assertEquals(True, result["j"])
         assertEquals(True, result["k"])
         assertEquals(EF(True), result["l"])
         assertEquals(not(EF(True)), result["m"])
@@ -158,14 +180,40 @@ class References {
         assertEquals(not(True), result["l"])
     }
 
+    @Test fun simpleResolveExpression() {
+        val result = parser.parse("""
+            k = a + b
+            l = k / 2 == 0
+        """)
+        assertEquals(1, result.size)
+        assertEquals(FloatProposition(
+                ("a".toVariable() plus "b".toVariable()) over 2.0.toConstant(), CompareOp.EQ, 0.0.toConstant()
+        ), result["l"])
+    }
+
     @Test fun aliasInString() {
         val result = parser.parse("""
             k = True
             l = k
+            m = l
+            n = m
         """)
-        assertEquals(2, result.size)
+        assertEquals(4, result.size)
         assertEquals(True, result["k"])
         assertEquals(True, result["l"])
+        assertEquals(True, result["m"])
+        assertEquals(True, result["n"])
+    }
+
+    @Test fun expressionAlias() {
+        val result = parser.parse("""
+            k = name
+            l = k
+            m = l
+            n = m > 0
+        """)
+        assertEquals(1, result.size)
+        assertEquals(FloatProposition("name", CompareOp.GT, 0.0), result["n"])
     }
 
 }
