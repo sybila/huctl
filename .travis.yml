@@ -1,4 +1,5 @@
 language: java
 sudo: false
 
-after_failure: gradle --version
+before_install: gradle --version
+before_install: gradle tasks
