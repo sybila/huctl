@@ -2,4 +2,3 @@ language: java
 sudo: false
 
 before_install: gradle --version
-before_install: gradle tasks
