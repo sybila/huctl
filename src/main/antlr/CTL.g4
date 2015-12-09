@@ -12,7 +12,7 @@ statement : '#include' STRING                       # include
           | VAR_NAME '=' expression                 # assignExpression
           ;
 
-fullStop : NEWLINE+ | EOF;
+fullStop : NEWLINE+ | EOF | ';';
 
 /* Formula and propositions */
 
