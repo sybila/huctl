@@ -1,6 +1,6 @@
 package cz.muni.fi.ctl
 
-public enum class Op(val cardinality: Int, private val str: String) {
+enum class Op(val cardinality: Int, private val str: String) {
     //nullary
     ATOM(0,"null"),
     //unary
@@ -22,7 +22,7 @@ public enum class Op(val cardinality: Int, private val str: String) {
     override fun toString(): String = str
 }
 
-public enum class CompareOp(private val str: String) {
+enum class CompareOp(private val str: String) {
     EQ("=="), NEQ("!="), GT(">"), GT_EQ(">="), LT("<"), LT_EQ("<=");
 
     val neg: CompareOp
@@ -39,18 +39,18 @@ public enum class CompareOp(private val str: String) {
 
 }
 
-public enum class FloatOp(private val str: String) {
+enum class FloatOp(private val str: String) {
     ADD("+"), SUBTRACT("-"), MULTIPLY("*"), DIVIDE("/");
 
     override fun toString(): String = str
 }
 
-public enum class Direction(private val str: String) {
+enum class Direction(private val str: String) {
     IN("in"), OUT("out");
     override fun toString(): String = str
 }
 
-public enum class Facet(private val str: String) {
+enum class Facet(private val str: String) {
     POSITIVE("+"), NEGATIVE("-");
     override fun toString(): String = str
 }

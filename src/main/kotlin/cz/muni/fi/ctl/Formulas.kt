@@ -1,11 +1,11 @@
 package cz.muni.fi.ctl
 
 //Formulas
-public interface Formula {
+interface Formula {
     val operator: Op
     val subFormulas: List<Formula>
 
-    operator public fun get(i: Int): Formula = subFormulas[i]
+    operator fun get(i: Int): Formula = subFormulas[i]
 }
 
 data class FormulaImpl (
@@ -31,23 +31,23 @@ data class FormulaImpl (
 
 }
 
-public interface Atom : Formula
+interface Atom : Formula
 
 //Boolean Atoms
-public val True: Atom = object : Atom {
+val True: Atom = object : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
     override fun toString():String = "True"
 }
 
-public val False: Atom = object : Atom {
+val False: Atom = object : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
     override fun toString():String = "False"
 }
 
 //Float atoms
-public data class FloatProposition (
+data class FloatProposition (
         val left: Expression,
         val compareOp: CompareOp,
         val right: Expression
@@ -59,7 +59,7 @@ public data class FloatProposition (
 }
 
 //Direction atoms
-public data class DirectionProposition (
+data class DirectionProposition (
         val variable: String,
         val direction: Direction,
         val facet: Facet
@@ -70,21 +70,21 @@ public data class DirectionProposition (
 }
 
 //Float expressions
-public interface Expression;
+interface Expression;
 
-public data class Variable(
+data class Variable(
         val name: String
 ) : Expression {
     override fun toString(): String = name
 }
 
-public data class Constant(
+data class Constant(
         val value: Double
 ) : Expression {
     override fun toString(): String = value.toString()
 }
 
-public data class ExpressionImpl(
+data class ExpressionImpl(
         val left: Expression,
         val operator: FloatOp,
         val right: Expression
@@ -93,26 +93,26 @@ public data class ExpressionImpl(
 }
 
 //Simplified builders
-public fun not(f: Formula): Formula = FormulaImpl(Op.NEGATION, f)
-public fun EX(f: Formula): Formula = FormulaImpl(Op.EXISTS_NEXT, f)
-public fun AX(f: Formula): Formula = FormulaImpl(Op.ALL_NEXT, f)
-public fun EF(f: Formula): Formula = FormulaImpl(Op.EXISTS_FUTURE, f)
-public fun AF(f: Formula): Formula = FormulaImpl(Op.ALL_FUTURE, f)
-public fun EG(f: Formula): Formula = FormulaImpl(Op.EXISTS_GLOBAL, f)
-public fun AG(f: Formula): Formula = FormulaImpl(Op.ALL_GLOBAL, f)
-public infix fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
-public infix fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
-public infix fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
-public infix fun Formula.equal(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
-public infix fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
-public infix fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
+fun not(f: Formula): Formula = FormulaImpl(Op.NEGATION, f)
+fun EX(f: Formula): Formula = FormulaImpl(Op.EXISTS_NEXT, f)
+fun AX(f: Formula): Formula = FormulaImpl(Op.ALL_NEXT, f)
+fun EF(f: Formula): Formula = FormulaImpl(Op.EXISTS_FUTURE, f)
+fun AF(f: Formula): Formula = FormulaImpl(Op.ALL_FUTURE, f)
+fun EG(f: Formula): Formula = FormulaImpl(Op.EXISTS_GLOBAL, f)
+fun AG(f: Formula): Formula = FormulaImpl(Op.ALL_GLOBAL, f)
+infix fun Formula.or(f2: Formula): Formula = FormulaImpl(Op.OR, this, f2)
+infix fun Formula.and(f2: Formula): Formula = FormulaImpl(Op.AND, this, f2)
+infix fun Formula.implies(f2: Formula): Formula = FormulaImpl(Op.IMPLICATION, this, f2)
+infix fun Formula.equal(f2: Formula): Formula = FormulaImpl(Op.EQUIVALENCE, this, f2)
+infix fun Formula.EU(f2: Formula): Formula = FormulaImpl(Op.EXISTS_UNTIL, this, f2)
+infix fun Formula.AU(f2: Formula): Formula = FormulaImpl(Op.ALL_UNTIL, this, f2)
 
-public fun Double.toConstant(): Expression = Constant(this)
-public fun String.toVariable(): Variable = Variable(this)
-public infix fun Expression.plus(other: Expression): Expression = ExpressionImpl(this, FloatOp.ADD, other)
-public infix fun Expression.minus(other: Expression): Expression = ExpressionImpl(this, FloatOp.SUBTRACT, other)
-public infix fun Expression.times(other: Expression): Expression = ExpressionImpl(this, FloatOp.MULTIPLY, other)
-public infix fun Expression.over(other: Expression): Expression = ExpressionImpl(this, FloatOp.DIVIDE, other)
+fun Double.toConstant(): Expression = Constant(this)
+fun String.toVariable(): Variable = Variable(this)
+infix fun Expression.plus(other: Expression): Expression = ExpressionImpl(this, FloatOp.ADD, other)
+infix fun Expression.minus(other: Expression): Expression = ExpressionImpl(this, FloatOp.SUBTRACT, other)
+infix fun Expression.times(other: Expression): Expression = ExpressionImpl(this, FloatOp.MULTIPLY, other)
+infix fun Expression.over(other: Expression): Expression = ExpressionImpl(this, FloatOp.DIVIDE, other)
 
 //this is not typical map semantics -> don't make it public
 fun Formula.treeMap(x: (Formula) -> Formula) =

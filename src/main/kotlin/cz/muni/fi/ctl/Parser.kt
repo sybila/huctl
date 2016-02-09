@@ -21,13 +21,13 @@ import java.util.*
  * and returns a final map of valid formula assignments
  */
 
-public class Parser {
+class Parser {
 
-    public fun formula(input: String): Formula = parse("val = $input")["val"]!!
+    fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
-    public fun parse(input: String): Map<String, Formula> = process(FileParser().process(input))
+    fun parse(input: String): Map<String, Formula> = process(FileParser().process(input))
 
-    public fun parse(input: File): Map<String, Formula> = process(FileParser().process(input))
+    fun parse(input: File): Map<String, Formula> = process(FileParser().process(input))
 
     fun process(ctx: ParserContext): Map<String, Formula> {
 
@@ -136,7 +136,7 @@ data class ParserContext(
         val assignments: List<Assignment>
 ) {
 
-    fun toMap() = assignments.toMap({ it.name }, { it } )
+    fun toMap() = assignments.associateBy({ it.name }, { it })
 
     /**
      * Checks for duplicate assignments received from parser

@@ -31,13 +31,13 @@ val untilNormalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf
         }
 )
 
-public class Normalizer(
+class Normalizer(
         normalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = untilNormalForm
 ) {
 
     private val normalForm = normalForm
 
-    public fun normalize(f: Formula) : Formula {
+    fun normalize(f: Formula) : Formula {
 
         val normalize = { f: Formula -> normalize(f) }
 

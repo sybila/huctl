@@ -1,9 +1,9 @@
 package cz.muni.fi.ctl
 
 
-public class Optimizer {
+class Optimizer {
 
-    public fun optimize(f: Formula): Formula {
+    fun optimize(f: Formula): Formula {
         //it's hard to optimize while formula at once, so we just compute it as a fix point
         var one = optimizeTree(f)
         var two = optimizeTree(one)

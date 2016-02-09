@@ -6,7 +6,7 @@ apply plugin: 'jacoco'
 
 //include antlr and kotlin plugin
 buildscript {
-    ext.kotlin_version = '1.0.0-beta-3595'
+    ext.kotlin_version = '1.0.0-rc-1036'
 
     repositories {
         jcenter()
@@ -20,7 +20,7 @@ buildscript {
 
 group = "com.github.sybila"
 archivesBaseName = "ctlParser"
-version = '1.1.0'
+version = '1.1.1'
 
 //antlr config
 generateGrammarSource {
@@ -48,6 +48,7 @@ dependencies {
     compile 'com.intellij:annotations:5.1'
     antlr "org.antlr:antlr4:4.5.1-1"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
 }
 
 //create a single Jar with all dependencies
