@@ -1,4 +1,4 @@
-[![Release](https://jitpack.io/v/User/Repo.svg)](https://jitpack.io/#sybila/CTL-Parser)
+[![Release](https://jitpack.io/v/sybila/CTL-Parser.svg)](https://jitpack.io/#sybila/CTL-Parser)
 [![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
 [![codecov.io](https://codecov.io/github/sybila/CTL-Parser/coverage.svg?branch=master)](https://codecov.io/github/sybila/CTL-Parser?branch=master)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/CTL-Parser/blob/master/LICENSE.txt)
