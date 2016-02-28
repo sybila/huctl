@@ -15,7 +15,7 @@ Using this class you can parse strings, files or inlined formulas (references an
 
 Project also defines a convenient syntax for writing formulas directly in code.
 
-For more complex usage example, see the [IntegrationTest](src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
+For more complex usage example, see the [IntegrationTest](src/test/kotlin/com/github/sybila/ctl/IntegrationTest.kt)
 
 ###Features
 
