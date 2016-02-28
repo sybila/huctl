@@ -1,35 +1,42 @@
 package cz.muni.fi.ctl
 
-val untilNormalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf(
-        Op.ALL_NEXT to {
-            // AX p = !EX !p
-            f, x -> not( EX( not( x(f[0]) ) ) )
-        },
-        Op.EXISTS_FUTURE to {
-            // EF p = E [ true U p ]
-            f, x -> True EU x(f[0])
-        },
-        Op.ALL_FUTURE to {
-            // AF p = A [ true U p ]
-            f, x -> True AU x(f[0])
-        },
-        Op.EXISTS_GLOBAL to {
-            // EG p = ! A [ true U ! p ]
-            f, x -> not( True AU not( x(f[0]) ) )
-        },
-        Op.ALL_GLOBAL to {
-            // AG p = ! E [ true U ! p ]
-            f, x -> not( True EU not( x(f[0]) ) )
-        },
-        Op.IMPLICATION to {
-            // a => b = !a || b
-            f, x -> not(x(f[0])) or x(f[1])
-        },
-        Op.EQUIVALENCE to {
-            // a <=> b = (a && b) || (!a && !b)
-            f, x -> (x(f[0]) and x(f[1])) or (not(x(f[0])) and not(x(f[1])))
-        }
-)
+interface NormalForm {
+    val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula>
+}
+
+
+val untilNormalForm = object : NormalForm {
+    override val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf(
+            Op.ALL_NEXT to {
+                // AX p = !EX !p
+                f, x -> not( EX( not( x(f[0]) ) ) )
+            },
+            Op.EXISTS_FUTURE to {
+                // EF p = E [ true U p ]
+                f, x -> True EU x(f[0])
+            },
+            Op.ALL_FUTURE to {
+                // AF p = A [ true U p ]
+                f, x -> True AU x(f[0])
+            },
+            Op.EXISTS_GLOBAL to {
+                // EG p = ! A [ true U ! p ]
+                f, x -> not( True AU not( x(f[0]) ) )
+            },
+            Op.ALL_GLOBAL to {
+                // AG p = ! E [ true U ! p ]
+                f, x -> not( True EU not( x(f[0]) ) )
+            },
+            Op.IMPLICATION to {
+                // a => b = !a || b
+                f, x -> not(x(f[0])) or x(f[1])
+            },
+            Op.EQUIVALENCE to {
+                // a <=> b = (a && b) || (!a && !b)
+                f, x -> (x(f[0]) and x(f[1])) or (not(x(f[0])) and not(x(f[1])))
+            }
+    )
+}
 
 /**
  * Normalize the formula using specified normal form.
@@ -43,9 +50,9 @@ val untilNormalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf
  * Note that you shouldn't transform one unsupported operator to other unsupported operator,
  * because the tree is transformed only once!
  */
-fun Formula.normalize(normalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = untilNormalForm) : Formula {
+fun Formula.normalize(normalForm: NormalForm = untilNormalForm) : Formula {
 
     val normalize = { f: Formula -> this.normalize(normalForm) }
 
-    return normalForm[this.operator]?.invoke(this, normalize) ?: this.treeMap(normalize)
+    return normalForm.transformations[this.operator]?.invoke(this, normalize) ?: this.treeMap(normalize)
 }
