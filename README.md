@@ -1,14 +1,21 @@
-[![Release](https://jitpack.io/v/sybila/CTL-Parser.svg)](https://jitpack.io/#sybila/CTL-Parser)
-[![Build Status](https://travis-ci.org/sybila/CTL-Parser.svg?branch=master)](https://travis-ci.org/sybila/CTL-Parser)
-[![codecov.io](https://codecov.io/github/sybila/CTL-Parser/coverage.svg?branch=master)](https://codecov.io/github/sybila/CTL-Parser?branch=master)
-[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/CTL-Parser/blob/master/LICENSE.txt)
+[![Release](https://jitpack.io/v/sybila/ctl-parser.svg)](https://jitpack.io/#sybila/ctl-parser)
+[![Build Status](https://travis-ci.org/sybila/ctl-parser.svg?branch=master)](https://travis-ci.org/sybila/ctl-parser)
+[![codecov.io](https://codecov.io/github/sybila/ctl-parser/coverage.svg?branch=master)](https://codecov.io/github/sybila/ctl-parser?branch=master)
+[![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/ctl-parser/blob/master/LICENSE.txt)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.0.0-blue.svg)](http://kotlinlang.org)
 
 
-Simple parser, normalizer and optimizer for CTL temporal logic formulas written in Kotlin.
+Simple parser, normalizer and optimizer for CTL temporal logic formulas.
 
-###How to get it
-The repo is jitpack-compatibile, so all you have to do is look up the latest version on jitpack and then integrate it into your favorite build system: [CTL Parser on Jitpack](https://jitpack.io/#sybila/CTL-Parser)
+###How to use
+This repo is jitpack-compatibile, so all you have to do is look up the latest version on jitpack and then integrate it into your favorite build system: [CTL Parser on Jitpack](https://jitpack.io/#sybila/ctl-parser)
+
+There is a CTLParser class you can initialize with a configuration object (or use defaults).
+Using this class you can parse strings, files or inlined formulas (references and includes will be automatically resolved).
+
+Project also defines a convenient syntax for writing formulas directly in code.
+
+For more complex usage example, see the [IntegrationTest](src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
 
 ###Features
 
@@ -60,15 +67,11 @@ Example of usage:
 
 ###Normalization and Optimization
 
-Currently you can transform formulas into normal form that supports only operators EX, EU, AU, &&, ||, !. Alternatively, you can provide our own normalization function map that will implement your own normal form (or modify current one). 
+Currently you can transform formulas into normal form that uses only operators EX, EU, AU, &&, ||, !. Alternatively, you can provide our own normalization function map that will implement your own normal form (or modify current one).
 
 You can also automatically perform some simple formula optimizations (proposition negation, double negation removal, boolean propagation and some simplifications). Note that these optimizations expect the formula to be in until normal form. (Other formulas are also supported, but possible optimizations are limited)
 
-###API
-
-There are currently three main classes you can use ```Parser```, ```Normalizer```, ```Optimizer```. ```Parser``` provides methods that will parse a file, string or a single formula string (you don't have to perform an assignment). These methods automatically resolve all includes and references.
-
-For more complex usage example, see the [IntegrationTest](src/test/kotlin/cz/muni/fi/ctl/IntegrationTest.kt)
+These actions can be either performed by parser automatically or accessed using extension functions on Formula object.
 
 ###Building and using
 
