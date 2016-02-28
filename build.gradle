@@ -3,8 +3,8 @@ apply plugin: 'kotlin'
 apply plugin: 'antlr'
 apply plugin: 'maven'
 apply plugin: 'jacoco'
+apply plugin: "com.madvay.tools.build.gitbuildinfo"
 
-//include antlr and kotlin plugin
 buildscript {
     ext.kotlin_version = '1.0.0'
 
@@ -15,6 +15,7 @@ buildscript {
 
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "gradle.plugin.com.madvay.tools.build:gitbuildinfo:0.1.5-alpha"
     }
 }
 
@@ -93,3 +94,11 @@ jacocoTestReport {
 }
 
 check.dependsOn jacocoTestReport
+
+buildStamp {
+    // The git commit SHA will be appended to this url to generate the final url.
+    repoBaseUrl "https://github.com/sybila/ctl-parser/tree/"
+    // BuildInfo.java will be added under this package, in a
+    // generated build/ directory.
+    packageName "cz.muni.fi.ctl"
+}
