@@ -52,7 +52,7 @@ val untilNormalForm = object : NormalForm {
  */
 fun Formula.normalize(normalForm: NormalForm = untilNormalForm) : Formula {
 
-    val normalize = { f: Formula -> this.normalize(normalForm) }
+    val norm = { f: Formula -> f.normalize(normalForm) }
 
-    return normalForm.transformations[this.operator]?.invoke(this, normalize) ?: this.treeMap(normalize)
+    return normalForm.transformations[this.operator]?.invoke(this, norm) ?: this.treeMap(norm)
 }
