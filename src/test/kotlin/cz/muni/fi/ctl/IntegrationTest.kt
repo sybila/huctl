@@ -15,7 +15,6 @@ class Integration {
 
         val parser = CTLParser()
         val normalizer = Normalizer()
-        val optimizer = Optimizer()
 
         f1.bufferedWriter().use {
             it.write("c = p2 > 3.14 <=> False \n")
@@ -65,7 +64,7 @@ class Integration {
                 normalized
         )
 
-        val optimized = optimizer.optimize(normalized)
+        val optimized = normalized.optimize()
 
         assertEquals(
                 not(
