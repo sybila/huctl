@@ -71,10 +71,13 @@ sourceSets {
     test.java.srcDirs += 'src/test/kotlin'
 }
 
+/* For some esoteric reason, javadoc is broken with git build info in this repository
+You can try to enable this later - hopefully it's a bug in javadoc
 task javadocJar(type: Jar) {
     classifier = 'javadoc'
     from javadoc
 }
+*/
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
@@ -82,7 +85,8 @@ task sourcesJar(type: Jar) {
 }
 
 artifacts {
-    archives javadocJar, sourcesJar
+    //archives javadocJar, sourcesJar
+    archives sourcesJar
 }
 
 jacoco {
