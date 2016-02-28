@@ -5,11 +5,14 @@ import cz.muni.fi.ctl.antlr.CTLLexer
 import cz.muni.fi.ctl.antlr.CTLParser
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import java.io.File
 import java.util.*
+import java.util.logging.Level
+import java.util.logging.Logger
 
 /**
  * Workflow:
@@ -21,7 +24,17 @@ import java.util.*
  * and returns a final map of valid formula assignments
  */
 
-class CTLParser {
+class CTLParser(
+        private val config: Configuration = cz.muni.fi.ctl.CTLParser.Configuration()
+) {
+
+    data class Configuration(
+            val normalForm: NormalForm? = null,
+            val optimize: Boolean = false,
+            val logger: Logger = Logger.getLogger(cz.muni.fi.ctl.CTLParser::class.java.canonicalName).apply {
+                level = Level.OFF
+            }
+    )
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
@@ -29,7 +42,7 @@ class CTLParser {
 
     fun parse(input: File): Map<String, Formula> = process(FileParser().process(input))
 
-    fun process(ctx: ParserContext): Map<String, Formula> {
+    private fun process(ctx: ParserContext): Map<String, Formula> {
 
         //Resolve references
         //First resolve all aliases - we need to find out whether they reference formulas or expressions
@@ -94,12 +107,28 @@ class CTLParser {
             if (assignment is FormulaAssignment) results[name] = resolveFormula(assignment.formula)
         }
 
+        config.logger.log(Level.FINE, "Finished parsing.", results)
+
+        if (config.normalForm != null) {
+            for ((name, formula) in results) {
+                results[name] = formula.normalize(config.normalForm)
+            }
+            config.logger.log(Level.FINE, "Finished normalizing.", results)
+        }
+
+        if (config.optimize) {
+            for ((name, formula) in results) {
+                results[name] = formula.optimize()
+            }
+            config.logger.log(Level.FINE, "Finished optimizing.", results)
+        }
+
         return results
     }
 
 }
 
-class FileParser {
+private class FileParser {
 
     private val processed = HashSet<File>()
 
@@ -132,7 +161,7 @@ class FileParser {
 
 }
 
-data class ParserContext(
+private data class ParserContext(
         val assignments: List<Assignment>
 ) {
 
@@ -159,7 +188,7 @@ data class ParserContext(
 
 }
 
-class FileContext(val location: String) : CTLBaseListener() {
+private class FileContext(val location: String) : CTLBaseListener() {
 
     val includes = ArrayList<File>()
     val formulas = ArrayList<FormulaAssignment>()
@@ -198,6 +227,10 @@ class FileContext(val location: String) : CTLBaseListener() {
                 ctx.VAR_NAME(1).text!!,
                 location+":"+ctx.start.line
         ))
+    }
+
+    override fun visitErrorNode(node: ErrorNode) {
+        throw IllegalArgumentException("Parse error: $node")
     }
 
     /** ------ Expression Parsing ----- **/
@@ -289,22 +322,22 @@ class FileContext(val location: String) : CTLBaseListener() {
     }
 }
 
-interface Assignment {
+private interface Assignment {
     val name: String
     val location: String
 }
-data class FormulaAssignment(override val name: String, val formula: Formula, override val location: String) : Assignment
-data class ExpressionAssignment(override val name: String, val expression: Expression, override val location: String) : Assignment
-data class AliasAssignment(override val name: String, val alias: String, override val location: String) : Assignment
+private data class FormulaAssignment(override val name: String, val formula: Formula, override val location: String) : Assignment
+private data class ExpressionAssignment(override val name: String, val expression: Expression, override val location: String) : Assignment
+private data class AliasAssignment(override val name: String, val alias: String, override val location: String) : Assignment
 
-data class Reference(val name: String) : Atom {
+internal data class Reference(val name: String) : Atom {
     final override val operator = Op.ATOM
     final override val subFormulas = listOf<Formula>()
 }
 
 //convenience methods
 
-fun CTLParser.UnaryOpContext.toOperator(): Op = when {
+private fun CTLParser.UnaryOpContext.toOperator(): Op = when {
     EX() != null -> Op.EXISTS_NEXT
     AX() != null -> Op.ALL_NEXT
     EF() != null -> Op.EXISTS_FUTURE
@@ -314,7 +347,7 @@ fun CTLParser.UnaryOpContext.toOperator(): Op = when {
     else -> Op.NEGATION
 }
 
-fun CTLParser.CompareContext.toOperator(): CompareOp = when {
+private fun CTLParser.CompareContext.toOperator(): CompareOp = when {
     NEQ() != null -> CompareOp.NEQ
     LT() != null -> CompareOp.LT
     LTEQ() != null -> CompareOp.LT_EQ

@@ -115,14 +115,14 @@ infix fun Expression.times(other: Expression): Expression = ExpressionImpl(this,
 infix fun Expression.over(other: Expression): Expression = ExpressionImpl(this, FloatOp.DIVIDE, other)
 
 //this is not typical map semantics -> don't make it public
-fun Formula.treeMap(x: (Formula) -> Formula) =
+internal fun Formula.treeMap(x: (Formula) -> Formula) =
         if (this.operator.cardinality == 0) {
             this
         } else {
             FormulaImpl(this.operator, this.subFormulas.map(x))
         }
 
-fun Expression.treeMap(x: (Expression) -> Expression): Expression =
+internal fun Expression.treeMap(x: (Expression) -> Expression): Expression =
         if (this is ExpressionImpl) {
             ExpressionImpl(
                     x(left),

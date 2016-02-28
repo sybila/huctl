@@ -5,10 +5,10 @@ import kotlin.test.assertEquals
 
 class UntilNormalFormTest {
 
-    val p1 = Reference("p1")
-    val p2 = Reference("p2")
-    val p3 = Reference("p3")
-    val p4 = Reference("p4")
+    private val p1 = Reference("p1")
+    private val p2 = Reference("p2")
+    private val p3 = Reference("p3")
+    private val p4 = Reference("p4")
 
     @Test fun complexTest() {
 

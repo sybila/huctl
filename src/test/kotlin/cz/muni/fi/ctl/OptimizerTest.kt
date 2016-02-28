@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 
 class OptimizerTest {
 
-    val p1 = Reference("p1")
-    val p2 = Reference("p2")
+    private val p1 = Reference("p1")
+    private val p2 = Reference("p2")
 
     @Test fun complexTest() {
         val f1 = FloatProposition("var2", CompareOp.LT_EQ, -15.3)
