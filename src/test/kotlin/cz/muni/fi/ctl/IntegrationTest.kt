@@ -14,7 +14,6 @@ class Integration {
         val f1 = File.createTempFile("file", ".ctl")
 
         val parser = CTLParser()
-        val normalizer = Normalizer()
 
         f1.bufferedWriter().use {
             it.write("c = p2 > 3.14 <=> False \n")
@@ -43,7 +42,7 @@ class Integration {
         assertEquals(pop, formulas["pop"])
         assertEquals(f, formulas["f"])
 
-        val normalized = normalizer.normalize(f)
+        val normalized = f.normalize()
 
         assertEquals(
                 (

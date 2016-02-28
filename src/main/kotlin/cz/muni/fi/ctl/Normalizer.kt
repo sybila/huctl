@@ -31,17 +31,21 @@ val untilNormalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf
         }
 )
 
-class Normalizer(
-        normalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = untilNormalForm
-) {
+/**
+ * Normalize the formula using specified normal form.
+ * Normal form is basically a mapping from unsupported operators to transformations.
+ * Each transformation takes a formula and a function. It should update given formula so that
+ * the dangerous operator is removed and then recursively call given function on
+ * children of the formula (and include those as children instead of original children).
+ *
+ * See untilNormalForm for more details.
+ *
+ * Note that you shouldn't transform one unsupported operator to other unsupported operator,
+ * because the tree is transformed only once!
+ */
+fun Formula.normalize(normalForm: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = untilNormalForm) : Formula {
 
-    private val normalForm = normalForm
+    val normalize = { f: Formula -> this.normalize(normalForm) }
 
-    fun normalize(f: Formula) : Formula {
-
-        val normalize = { f: Formula -> normalize(f) }
-
-        return normalForm[f.operator]?.invoke(f, normalize) ?: f.treeMap(normalize)
-    }
-
+    return normalForm[this.operator]?.invoke(this, normalize) ?: this.treeMap(normalize)
 }
