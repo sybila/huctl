@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 interface NormalForm {
     val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula>
@@ -9,7 +9,8 @@ val untilNormalForm = object : NormalForm {
     override val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf(
             Op.ALL_NEXT to {
                 // AX p = !EX !p
-                f, x -> not( EX( not( x(f[0]) ) ) )
+                f, x ->
+                not(EX(not(x(f[0]))))
             },
             Op.EXISTS_FUTURE to {
                 // EF p = E [ true U p ]
@@ -21,11 +22,13 @@ val untilNormalForm = object : NormalForm {
             },
             Op.EXISTS_GLOBAL to {
                 // EG p = ! A [ true U ! p ]
-                f, x -> not( True AU not( x(f[0]) ) )
+                f, x ->
+                not(True AU not(x(f[0])))
             },
             Op.ALL_GLOBAL to {
                 // AG p = ! E [ true U ! p ]
-                f, x -> not( True EU not( x(f[0]) ) )
+                f, x ->
+                not(True EU not(x(f[0])))
             },
             Op.IMPLICATION to {
                 // a => b = !a || b
@@ -38,7 +41,7 @@ val untilNormalForm = object : NormalForm {
     )
 }
 
-/**
+/*
  * Normalize the formula using specified normal form.
  * Normal form is basically a mapping from unsupported operators to transformations.
  * Each transformation takes a formula and a function. It should update given formula so that

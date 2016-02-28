@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 fun Formula.optimize(): Formula {
     //it's hard to optimize whole formula at once, so we just compute it as a fix point

@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -17,20 +17,20 @@ class UntilNormalFormTest {
         val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
         val d2 = DirectionProposition("var2", Direction.OUT, Facet.POSITIVE)
 
-        val prop = EF( AF((EX(f1) AU False) equal not(d2)) implies AX( EG(f2) EU AG(d1)))
+        val prop = EF(AF((EX(f1) AU False) equal not(d2)) implies AX(EG(f2) EU AG(d1)))
         assertEquals(
                 True EU
-                        (not( True AU ((EX(f1) AU False and not(d2)) or (not(EX(f1) AU False) and not(not(d2)))))
+                        (not(True AU ((EX(f1) AU False and not(d2)) or (not(EX(f1) AU False) and not(not(d2)))))
                                 or
-                        not( EX( not( (not( True AU not(f2))) EU (not( True EU not(d1))) )))),
+                                not(EX(not((not(True AU not(f2))) EU (not(True EU not(d1))))))),
                 prop.normalize()
         )
     }
 
     @Test fun nestingNoPropositions() {
-        val prop = EF( p1 implies AX( EG(p2) EU AG(p1)))
+        val prop = EF(p1 implies AX(EG(p2) EU AG(p1)))
         assertEquals(
-                True EU (not(p1) or not( EX( not( (not( True AU not(p2))) EU (not( True EU not(p1))) )))),
+                True EU (not(p1) or not(EX(not((not(True AU not(p2))) EU (not(True EU not(p1))))))),
                 prop.normalize()
         )
     }
@@ -45,7 +45,7 @@ class UntilNormalFormTest {
     @Test fun equivChange() {
         val prop = p1 equal p2
         val norm = prop.normalize()
-        assertEquals( (p1 and p2) or (not(p1) and not(p2)), norm)
+        assertEquals((p1 and p2) or (not(p1) and not(p2)), norm)
         assertEquals(norm, norm.normalize())
     }
 
@@ -59,14 +59,14 @@ class UntilNormalFormTest {
     @Test fun agChange() {
         val prop = AG(p1)
         val norm = prop.normalize()
-        assertEquals(not( True EU  not(p1) ), norm)
+        assertEquals(not(True EU  not(p1)), norm)
         assertEquals(norm, norm.normalize())
     }
 
     @Test fun egChange() {
         val prop = EG(p1)
         val norm = prop.normalize()
-        assertEquals(not( True AU not(p1) ), norm)
+        assertEquals(not(True AU not(p1)), norm)
         assertEquals(norm, norm.normalize())
     }
 
@@ -87,7 +87,7 @@ class UntilNormalFormTest {
     @Test fun axChange() {
         val prop = AX(p1)
         val norm = prop.normalize()
-        assertEquals(not( EX( not(p1) ) ), norm)
+        assertEquals(not(EX(not(p1))), norm)
         assertEquals(norm, norm.normalize())
     }
 

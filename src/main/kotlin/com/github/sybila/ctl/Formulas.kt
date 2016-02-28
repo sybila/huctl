@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 //Formulas
 interface Formula {

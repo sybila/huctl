@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -6,11 +6,11 @@ import kotlin.test.assertFailsWith
 
 class MapTest {
 
-    val formula = EX( True EU (
+    val formula = EX(True EU (
             FloatProposition("var", CompareOp.EQ, 13.3)
                     or
-            DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
-        )
+                    DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
+            )
     )
 
     @Test fun treeMapId() {
@@ -34,12 +34,12 @@ class MapTest {
         }
 
         assertEquals(
-                AX( True AU (
-                FloatProposition("var", CompareOp.EQ, 13.3)
-                    and
-                DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
-                )
-        ), transform(formula))
+                AX(True AU (
+                        FloatProposition("var", CompareOp.EQ, 13.3)
+                                and
+                                DirectionProposition("val", Direction.IN, Facet.NEGATIVE)
+                        )
+                ), transform(formula))
 
     }
 
@@ -65,8 +65,8 @@ class Misc {
                 (
                         ("a".toVariable() plus 12.0.toConstant())
                                 over
-                        ((3.0.toConstant() times 4.0.toConstant()) minus "Var".toVariable())
-                ).toString())
+                                ((3.0.toConstant() times 4.0.toConstant()) minus "Var".toVariable())
+                        ).toString())
     }
 
     @Test fun formulaToString() {
@@ -82,7 +82,7 @@ class Misc {
     }
 
     @Test fun emptyFormula() {
-        assertEquals("null([])",FormulaImpl().toString())
+        assertEquals("null([])", FormulaImpl().toString())
     }
 
     @Test fun notEnoughFormulas() {

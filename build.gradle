@@ -23,7 +23,7 @@ buildscript {
 }
 
 group = "com.github.sybila"
-archivesBaseName = "ctlParser"
+archivesBaseName = "ctl-parser"
 version = '1.1.1'
 
 //antlr config
@@ -31,9 +31,9 @@ generateGrammarSource {
     arguments += [
             "-no-visitor",
             "-listener",
-            "-package", "cz.muni.fi.ctl.antlr"
+            "-package", "com.github.sybila.ctl.antlr"
     ]
-    outputDirectory = new File('src/main/gen/cz/muni/fi/ctl/antlr')
+    outputDirectory = new File('src/main/gen/com/github/sybila/ctl/antlr')
 }
 
 // make the Java compile task depend on the antlr4 task
@@ -107,5 +107,5 @@ buildStamp {
     repoBaseUrl "https://github.com/sybila/ctl-parser/tree/"
     // BuildInfo.java will be added under this package, in a
     // generated build/ directory.
-    packageName "cz.muni.fi.ctl"
+    packageName "com.github.sybila.ctl"
 }

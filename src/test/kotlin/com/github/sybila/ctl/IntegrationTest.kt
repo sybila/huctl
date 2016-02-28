@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 import org.junit.Test
 import java.io.File
@@ -46,20 +46,20 @@ class Integration {
 
         assertEquals(
                 (
-                (True EU True)  //EF
-                        and
-                not(True AU not(    //EG
-                        True
-                            EU
-                        (
-                            ((p2 and False) or (not(p2) and not(False)))    //<=>
-                                EU
-                            (True and p1)
+                        (True EU True)  //EF
+                                and
+                                not(True AU not(//EG
+                                        True
+                                                EU
+                                                (
+                                                        ((p2 and False) or (not(p2) and not(False)))    //<=>
+                                                                EU
+                                                                (True and p1)
+                                                        )
+                                ))
                         )
-                ))
-                )
-                    or
-                not(EX(not(True and p1))),    //AX
+                        or
+                        not(EX(not(True and p1))), //AX
                 normalized
         )
 
@@ -67,9 +67,9 @@ class Integration {
 
         assertEquals(
                 not(
-                    True AU not(True EU (np2 EU p1))
-                        and
-                    EX(not(p1))
+                        True AU not(True EU (np2 EU p1))
+                                and
+                                EX(not(p1))
                 ),
                 optimized
         )

@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
@@ -45,7 +45,7 @@ class OptimizerTest {
     }
 
     @Test fun booleanReduction() {
-        val prop = EX( not(False) and ( (True or False) EU (False AU True) ))
+        val prop = EX(not(False) and ( (True or False) EU (False AU True) ))
         assertEquals(True, prop.optimize())
     }
 

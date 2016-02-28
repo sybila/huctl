@@ -1,8 +1,8 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
-import cz.muni.fi.ctl.antlr.CTLBaseListener
-import cz.muni.fi.ctl.antlr.CTLLexer
-import cz.muni.fi.ctl.antlr.CTLParser
+import com.github.sybila.ctl.antlr.CTLBaseListener
+import com.github.sybila.ctl.antlr.CTLLexer
+import com.github.sybila.ctl.antlr.CTLParser
 import org.antlr.v4.runtime.ANTLRInputStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ErrorNode
@@ -14,7 +14,7 @@ import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
 
-/**
+/*
  * Workflow:
  * Antlr constructs a parse tree that is transformed into FileContext.
  * File context is a direct representation of a file.
@@ -25,13 +25,13 @@ import java.util.logging.Logger
  */
 
 class CTLParser(
-        private val config: Configuration = cz.muni.fi.ctl.CTLParser.Configuration()
+        private val config: Configuration = com.github.sybila.ctl.CTLParser.Configuration()
 ) {
 
     data class Configuration(
             val normalForm: NormalForm? = null,
             val optimize: Boolean = false,
-            val logger: Logger = Logger.getLogger(cz.muni.fi.ctl.CTLParser::class.java.canonicalName).apply {
+            val logger: Logger = Logger.getLogger(com.github.sybila.ctl.CTLParser::class.java.canonicalName).apply {
                 level = Level.OFF
             }
     )
@@ -167,7 +167,7 @@ private data class ParserContext(
 
     fun toMap() = assignments.associateBy({ it.name }, { it })
 
-    /**
+    /*
      * Checks for duplicate assignments received from parser
      */
     init {
@@ -209,7 +209,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         formulas.add(FormulaAssignment(
                 ctx.VAR_NAME().text,
                 formulaTree[ctx.formula()],
-                location+":"+ctx.start.line
+                location + ":" + ctx.start.line
         ))
     }
 
@@ -217,7 +217,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         expressions.add(ExpressionAssignment(
                 ctx.VAR_NAME().text,
                 expressionTree[ctx.expression()],
-                location+":"+ctx.start.line
+                location + ":" + ctx.start.line
         ))
     }
 
@@ -225,7 +225,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         aliases.add(AliasAssignment(
                 ctx.VAR_NAME(0).text!!,
                 ctx.VAR_NAME(1).text!!,
-                location+":"+ctx.start.line
+                location + ":" + ctx.start.line
         ))
     }
 
@@ -233,7 +233,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         throw IllegalArgumentException("Parse error: $node")
     }
 
-    /** ------ Expression Parsing ----- **/
+    /* ------ Expression Parsing ----- */
 
     override fun exitIdExpression(ctx: CTLParser.IdExpressionContext) {
         expressionTree[ctx] = Variable(ctx.text)
@@ -263,7 +263,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
     }
 
-    /** ------ Formula Parsing ------ **/
+    /* ------ Formula Parsing ------ */
 
     override fun exitId(ctx: CTLParser.IdContext) {
         formulaTree[ctx] = Reference(ctx.text!!)

@@ -1,4 +1,4 @@
-package cz.muni.fi.ctl
+package com.github.sybila.ctl
 
 enum class Op(val cardinality: Int, private val str: String) {
     //nullary
