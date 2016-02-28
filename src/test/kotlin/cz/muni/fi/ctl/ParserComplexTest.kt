@@ -6,7 +6,7 @@ import kotlin.test.assertEquals
 
 class Complex {
 
-    val parser = Parser()
+    val parser = CTLParser()
 
 
     val p1 = FloatProposition("p1", CompareOp.EQ, 4.0)

@@ -7,7 +7,7 @@ import kotlin.test.assertFailsWith
 
 class References {
 
-    val parser = Parser()
+    val parser = CTLParser()
 
     @Test fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")

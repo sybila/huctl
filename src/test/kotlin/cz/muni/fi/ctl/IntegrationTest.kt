@@ -13,7 +13,7 @@ class Integration {
 
         val f1 = File.createTempFile("file", ".ctl")
 
-        val parser = Parser()
+        val parser = CTLParser()
         val normalizer = Normalizer()
         val optimizer = Optimizer()
 

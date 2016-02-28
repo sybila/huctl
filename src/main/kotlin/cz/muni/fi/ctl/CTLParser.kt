@@ -21,7 +21,7 @@ import java.util.*
  * and returns a final map of valid formula assignments
  */
 
-class Parser {
+class CTLParser {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 

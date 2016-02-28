@@ -5,7 +5,7 @@ import kotlin.test.assertEquals
 
 class Basic {
 
-    val parser = Parser()
+    val parser = CTLParser()
 
     @Test fun parenthesis() {
         assertEquals(

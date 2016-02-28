@@ -8,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class Includes {
 
-    val parser = Parser()
+    val parser = CTLParser()
 
     @Test fun invalidInclude() {
         assertFailsWith(FileNotFoundException::class) {
