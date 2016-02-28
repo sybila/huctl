@@ -1,7 +1,7 @@
 package cz.muni.fi.ctl
 
 fun Formula.optimize(): Formula {
-    //it's hard to optimize while formula at once, so we just compute it as a fix point
+    //it's hard to optimize whole formula at once, so we just compute it as a fix point
     var one = optimizeTree(this)
     var two = optimizeTree(one)
     while(two != one) {
