@@ -25,7 +25,7 @@ buildscript {
 sourceCompatibility = 1.6
 group = "com.github.sybila"
 archivesBaseName = "ctl-parser"
-version = '1.2.0'
+version = '1.2.1'
 
 //antlr config
 generateGrammarSource {
