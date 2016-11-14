@@ -87,7 +87,7 @@ DIV : '/';
 /* Literals */
 
 STRING : ["].+?["]; //non-greedy match till next quotation mark
-VAR_NAME : [a-zA-Z]+[a-zA-Z0-9]*;
+VAR_NAME : [_a-zA-Z]+[_a-zA-Z0-9]*('?')?;
 FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
 
 NEWLINE : '\r'?'\n';

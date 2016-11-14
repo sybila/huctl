@@ -216,4 +216,12 @@ class References {
         assertEquals(FloatProposition("name", CompareOp.GT, 0.0), result["n"])
     }
 
+    @Test fun complexName() {
+        val result = parser.parse("""
+            some_name? = m > 0
+        """)
+        assertEquals(1, result.size)
+        assertEquals(FloatProposition("m", CompareOp.GT, 0.0), result["some_name?"])
+    }
+
 }
