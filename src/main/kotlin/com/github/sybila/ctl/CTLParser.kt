@@ -3,8 +3,9 @@ package com.github.sybila.ctl
 import com.github.sybila.ctl.antlr.CTLBaseListener
 import com.github.sybila.ctl.antlr.CTLLexer
 import com.github.sybila.ctl.antlr.CTLParser
-import org.antlr.v4.runtime.ANTLRInputStream
-import org.antlr.v4.runtime.CommonTokenStream
+import org.antlr.v4.runtime.*
+import org.antlr.v4.runtime.atn.ATNConfigSet
+import org.antlr.v4.runtime.dfa.DFA
 import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
@@ -153,10 +154,35 @@ private class FileParser {
             input.inputStream().use { processStream(ANTLRInputStream(it), input.absolutePath) }
 
     private fun processStream(input: ANTLRInputStream, location: String): FileContext {
-        val root = CTLParser(CommonTokenStream(CTLLexer(input))).root()
+        val lexer = CTLLexer(input)
+        val parser = CTLParser(CommonTokenStream(lexer))
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(errorListener)
+        parser.removeErrorListeners()
+        lexer.addErrorListener(errorListener)
+        val root = parser.root()
         val context = FileContext(location)
         ParseTreeWalker().walk(context, root)
         return context
+    }
+
+    private val errorListener = object : ANTLRErrorListener {
+        override fun reportAttemptingFullContext(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: BitSet?, p5: ATNConfigSet?) {
+            //ok
+            println("Full ctx!")
+        }
+        override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, char: Int, msg: String?, p5: RecognitionException?) {
+            throw IllegalArgumentException("Syntax error at $line:$char: $msg")
+        }
+        override fun reportAmbiguity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Boolean, p5: BitSet?, p6: ATNConfigSet?) {
+            //ok
+            println("Ambig")
+        }
+        override fun reportContextSensitivity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Int, p5: ATNConfigSet?) {
+            //ok
+            println("Sense")
+        }
+
     }
 
 }
@@ -331,8 +357,8 @@ private data class ExpressionAssignment(override val name: String, val expressio
 private data class AliasAssignment(override val name: String, val alias: String, override val location: String) : Assignment
 
 internal data class Reference(val name: String) : Atom {
-    final override val operator = Op.ATOM
-    final override val subFormulas = listOf<Formula>()
+    override val operator = Op.ATOM
+    override val subFormulas = listOf<Formula>()
 }
 
 //convenience methods
