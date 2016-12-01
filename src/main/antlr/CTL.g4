@@ -5,12 +5,15 @@ grammar CTL;
 
 root : fullStop? (statement fullStop)*;
 
-statement : '#include' STRING                       # include
+statement : ':include' STRING                               #includeStatement
           //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
-          | VAR_NAME '=' VAR_NAME                   # assignAlias
-          | VAR_NAME '=' formula                    # assignFormula
-          | VAR_NAME '=' expression                 # assignExpression
+          | ':?'? assign                                    #assignStatement
           ;
+
+assign : VAR_NAME '=' VAR_NAME                              #assignAlias
+       | VAR_NAME '=' formula                               #assignFormula
+       | VAR_NAME '=' expression                            #assignExpression
+       ;
 
 fullStop : NEWLINE+ | EOF | ';';
 
@@ -87,7 +90,7 @@ DIV : '/';
 /* Literals */
 
 STRING : ["].+?["]; //non-greedy match till next quotation mark
-VAR_NAME : [_a-zA-Z]+[_a-zA-Z0-9]*('?')?;
+VAR_NAME : [_a-zA-Z]+[_a-zA-Z0-9]*;
 FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
 
 NEWLINE : '\r'?'\n';
@@ -95,4 +98,5 @@ NEWLINE : '\r'?'\n';
 WS : [ \t\u]+ -> channel(HIDDEN) ;
 
 Block_comment : '/*' (Block_comment|.)*? '*/' -> channel(HIDDEN) ; // nesting allow
-Line_comment : '//' .*? '\n' -> channel(HIDDEN) ;
+C_Line_comment : '//' .*? ('\n' | EOF) -> channel(HIDDEN) ;
+Python_Line_comment : '#' .*? ('\n' | EOF) -> channel(HIDDEN) ;
