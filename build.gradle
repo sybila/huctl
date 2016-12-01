@@ -6,13 +6,12 @@ apply plugin: 'jacoco'
 apply plugin: "com.madvay.tools.build.gitbuildinfo"
 
 buildscript {
-    ext.kotlin_version = '1.1-M03'
+    ext.kotlin_version = '1.0.5'
 
     repositories {
         jcenter()
         mavenCentral()
         maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "http://dl.bintray.com/kotlin/kotlin-eap-1.1" }
     }
 
     dependencies {
