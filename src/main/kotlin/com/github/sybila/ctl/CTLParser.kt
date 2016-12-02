@@ -226,7 +226,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
 
     fun toParseContext() = ParserContext(formulas + expressions + aliases)
 
-    override fun exitInclude(ctx: CTLParser.IncludeContext) {
+    override fun exitIncludeStatement(ctx: CTLParser.IncludeStatementContext) {
         val string = ctx.STRING().text!!
         includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
