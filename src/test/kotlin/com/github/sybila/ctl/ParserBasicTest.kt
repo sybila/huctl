@@ -165,12 +165,27 @@ class Basic {
         assertEquals(True, result["k"])
 
         result = parser.parse("""
+            k = True
+            # Python style comment
+            f = False
+        """)
+        assertEquals(2, result.size)
+        assertEquals(True, result["k"])
+        assertEquals(False, result["f"])
+
+        result = parser.parse("""
             /* Comment f = False
                 /* With nesting */
             */
             k = True
             //l = False
         """)
+        assertEquals(1, result.size)
+        assertEquals(True, result["k"])
+
+        result = parser.parse("""
+            k = True
+        //comment at the end of file""")
         assertEquals(1, result.size)
         assertEquals(True, result["k"])
     }
