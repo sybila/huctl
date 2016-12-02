@@ -148,25 +148,18 @@ private class FileParser {
     }
 
     private val errorListener = object : ANTLRErrorListener {
-        override fun reportAttemptingFullContext(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: BitSet?, p5: ATNConfigSet?) {
-            //ok
-        }
+        override fun reportAttemptingFullContext(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: BitSet?, p5: ATNConfigSet?) { }
         override fun syntaxError(p0: Recognizer<*, *>?, p1: Any?, line: Int, char: Int, msg: String?, p5: RecognitionException?) {
             throw IllegalArgumentException("Syntax error at $line:$char: $msg")
         }
-        override fun reportAmbiguity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Boolean, p5: BitSet?, p6: ATNConfigSet?) {
-            //ok
-        }
-        override fun reportContextSensitivity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Int, p5: ATNConfigSet?) {
-            //ok
-        }
-
+        override fun reportAmbiguity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Boolean, p5: BitSet?, p6: ATNConfigSet?) { }
+        override fun reportContextSensitivity(p0: Parser?, p1: DFA?, p2: Int, p3: Int, p4: Int, p5: ATNConfigSet?) { }
     }
 
 }
 
 private data class ParserContext(
-        val assignments: List<Assignment>
+        private val assignments: List<Assignment>
 ) {
 
     fun toMap() = assignments.associateBy({ it.name }, { it })

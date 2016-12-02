@@ -2,19 +2,22 @@ package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class Basic {
 
     val parser = CTLParser()
 
-    @Test fun parenthesis() {
+    @Test
+    fun parenthesis() {
         assertEquals(
                 True,
                 parser.formula("(True)")
         )
     }
 
-    @Test fun binaryOps() {
+    @Test
+    fun binaryOps() {
         assertEquals(
                 True EU False,
                 parser.formula("True EU False")
@@ -41,7 +44,8 @@ class Basic {
         )
     }
 
-    @Test fun unaryOps() {
+    @Test
+    fun unaryOps() {
         assertEquals(
                 not(True),
                 parser.formula("!True")
@@ -72,7 +76,8 @@ class Basic {
         )
     }
 
-    @Test fun floats() {
+    @Test
+    fun floats() {
         val v = "var".asVariable()
         assertEquals(
                 (v eq 0.0.asConstant()).asAtom(),
@@ -104,7 +109,8 @@ class Basic {
         )
     }
 
-    @Test fun directions() {
+    @Test
+    fun directions() {
         assertEquals(
                 "var".positiveIn().asAtom(),
                 parser.formula("var:in+")
@@ -123,7 +129,8 @@ class Basic {
         )
     }
 
-    @Test fun floatOps() {
+    @Test
+    fun floatOps() {
         val v = "var1".asVariable()
         val w = "var2".asVariable()
         val zero = 0.0.asConstant()
@@ -145,7 +152,8 @@ class Basic {
         )
     }
 
-    @Test fun comments() {
+    @Test
+    fun comments() {
         var result = parser.parse("""
             //f = False
             k = True
@@ -190,13 +198,24 @@ class Basic {
         assertEquals(True, result["k"])
     }
 
-    @Test fun booleans() {
+    @Test
+    fun booleans() {
         assertEquals(True, parser.formula("true"))
         assertEquals(True, parser.formula("True"))
         assertEquals(True, parser.formula("tt"))
         assertEquals(False, parser.formula("false"))
         assertEquals(False, parser.formula("False"))
         assertEquals(False, parser.formula("ff"))
+    }
+
+    @Test
+    fun invalidInput() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse("""
+                l = True && False
+                k = tr&ue && False
+            """)
+        }
     }
 
 }

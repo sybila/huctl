@@ -113,3 +113,13 @@ sealed class Proposition : () -> Formula {
     }
     override fun invoke(): Formula = Formula.Atom(this)
 }
+
+enum class Direction(private val str: String) {
+    IN("in"), OUT("out");
+    override fun toString(): String = str
+}
+
+enum class Facet(private val str: String) {
+    POSITIVE("+"), NEGATIVE("-");
+    override fun toString(): String = str
+}
