@@ -1,61 +1,38 @@
 package com.github.sybila.ctl
 
-interface NormalForm {
-    val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula>
-}
+import com.github.sybila.ctl.Formula.Unary.*
+import com.github.sybila.ctl.Formula.Binary.*
 
+val unaryEqualities = mapOf<Class<out Formula.Unary<*>>, (Formula) -> Formula>(
+        AX::class.java to { i -> not(EX(not(i))) },     // AX p = ! EX ! p
+        EF::class.java to { i -> tt() EU i },           // EF p = true EU p
+        AF::class.java to { i -> tt() AU i },           // AF p = true AU p
+        EG::class.java to { i -> not(tt() AU not(i)) }, // EG p = ! (true AU ! p)
+        AG::class.java to { i -> not(tt() EU not(i)) }  // AG p = ! (true EU ! p)
+)
 
-val untilNormalForm = object : NormalForm {
-    override val transformations: Map<Op, (Formula, (Formula) -> Formula) -> Formula> = mapOf(
-            Op.ALL_NEXT to {
-                // AX p = !EX !p
-                f, x ->
-                not(EX(not(x(f[0]))))
-            },
-            Op.EXISTS_FUTURE to {
-                // EF p = E [ true U p ]
-                f, x -> True EU x(f[0])
-            },
-            Op.ALL_FUTURE to {
-                // AF p = A [ true U p ]
-                f, x -> True AU x(f[0])
-            },
-            Op.EXISTS_GLOBAL to {
-                // EG p = ! A [ true U ! p ]
-                f, x ->
-                not(True AU not(x(f[0])))
-            },
-            Op.ALL_GLOBAL to {
-                // AG p = ! E [ true U ! p ]
-                f, x ->
-                not(True EU not(x(f[0])))
-            },
-            Op.IMPLICATION to {
-                // a => b = !a || b
-                f, x -> not(x(f[0])) or x(f[1])
-            },
-            Op.EQUIVALENCE to {
-                // a <=> b = (a && b) || (!a && !b)
-                f, x -> (x(f[0]) and x(f[1])) or (not(x(f[0])) and not(x(f[1])))
-            }
-    )
-}
+val binaryEqualities = mapOf<Class<out Formula.Binary<*>>, (Formula, Formula) -> Formula>(
+        Implies::class.java to { l, r -> not(l) or r }, // a => b = !a || b
+        Equal::class.java to { l, r ->                  // a <=> b = (a && b) || (!a && !b)
+            (l and r) or (not(l) and not(r))
+        }
+)
+
 
 /*
  * Normalize the formula using specified normal form.
  * Normal form is basically a mapping from unsupported operators to transformations.
- * Each transformation takes a formula and a function. It should update given formula so that
- * the dangerous operator is removed and then recursively call given function on
- * children of the formula (and include those as children instead of original children).
- *
- * See untilNormalForm for more details.
  *
  * Note that you shouldn't transform one unsupported operator to other unsupported operator,
- * because the tree is transformed only once!
+ * because the tree is transformed only once! (no fix-point is computed)
  */
-fun Formula.normalize(normalForm: NormalForm = untilNormalForm) : Formula {
-
-    val norm = { f: Formula -> f.normalize(normalForm) }
-
-    return normalForm.transformations[this.operator]?.invoke(this, norm) ?: this.treeMap(norm)
+fun Formula.normalize(
+        unaryMap: Map<Class<out Formula.Unary<*>>, (Formula) -> Formula> = unaryEqualities,
+        binaryMap: Map<Class<out Formula.Binary<*>>, (Formula, Formula) -> Formula> = binaryEqualities
+) : Formula {
+    return this.fold<Formula>({ this }, { i ->
+        unaryMap[this.javaClass]?.invoke(i) ?: this.copy(i)
+    }, { l, r ->
+        binaryMap[this.javaClass]?.invoke(l, r) ?: this.copy(l, r)
+    })
 }

@@ -39,12 +39,6 @@ enum class CompareOp(private val str: String) {
 
 }
 
-enum class FloatOp(private val str: String) {
-    ADD("+"), SUBTRACT("-"), MULTIPLY("*"), DIVIDE("/");
-
-    override fun toString(): String = str
-}
-
 enum class Direction(private val str: String) {
     IN("in"), OUT("out");
     override fun toString(): String = str

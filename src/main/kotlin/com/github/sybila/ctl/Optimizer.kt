@@ -1,82 +1,65 @@
 package com.github.sybila.ctl
 
+import com.github.sybila.ctl.Formula.Unary.*
+import com.github.sybila.ctl.Formula.Binary.*
+import com.github.sybila.ctl.Proposition.*
+
 fun Formula.optimize(): Formula {
     //it's hard to optimize whole formula at once, so we just compute it as a fix point
-    var one = optimizeTree(this)
-    var two = optimizeTree(one)
+    var one = this.optimizeOnce()
+    var two = one.optimizeOnce()
     while(two != one) {
         one = two
-        two = optimizeTree(two)
+        two = this.optimizeOnce()
     }
     return two
 }
 
-private val optimize = { f: Formula -> optimizeTree(f) }
-
-private fun optimizeTree(f: Formula): Formula = when {
-    f.operator.cardinality == 0 -> f
-    f.operator == Op.NEGATION -> {
-        val child = f[0]
-        when {
-            // !True = False
-            child == True -> False
-            // !False = True
-            child == False -> True
-            // !a > 5 = a <= 5
-            child is FloatProposition -> child.copy(compareOp = child.compareOp.neg)
-            // !!a = a
-            child.operator == Op.NEGATION -> optimizeTree(child[0])
-            else -> f.treeMap(optimize)
+private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i ->
+    when (this) {
+        is Not -> when (i) {
+            is Formula.Atom -> when (i.proposition) {
+                is True -> ff().asAtom()                                            // !True = False
+                is False -> tt().asAtom()                                           // !False = True
+                is Comparison<*> -> i.proposition.negate().asAtom()                 // !a > 5 = a <= 5
+                else -> this.copy(i)
+            }
+            is Not -> i.inner                                                       // !!a = a
+            else -> this.copy(i)
         }
+        is EX -> when (i) {
+            is Formula.Atom -> when (i.proposition) {
+                is True -> tt().asAtom()                                            // EX True = True
+                is False -> ff().asAtom()                                           // EX False = False
+                else -> i
+            }
+            else -> EX(i)
+        }
+        else -> this.copy(i)
     }
-    f.operator == Op.AND ->
-        when {
-            // a && False = False
-            False in f.subFormulas -> False
-            // a && True = a
-            f[0] == True -> optimizeTree(f[1])
-            f[1] == True -> optimizeTree(f[0])
-            //!a && !b = !(a || b)
-            f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
-                not(optimizeTree(f[0][0]) or optimizeTree(f[1][0]))
-            else -> f.treeMap(optimize)
+}, { l, r ->
+    when (this) {
+        is And -> when {
+            l is Formula.Atom && l.proposition is False ||
+            r is Formula.Atom && r.proposition is False -> False                    // false && p = false
+            l is Formula.Atom && l.proposition is True -> r                         // true && p = p
+            r is Formula.Atom && r.proposition is True -> l                         // p && true = p
+            l is Not && r is Not -> Not(l.inner or r.inner)                         // !a && !b = !(a || b)
+            else -> l and r
         }
-    f.operator == Op.OR ->
-        when {
-            // a || True = True
-            True in f.subFormulas -> True
-            // a || False = a
-            f[0] == False -> optimizeTree(f[1])
-            f[1] == False -> optimizeTree(f[0])
-            // !a || !b = !(a && b)
-            f[0].operator == Op.NEGATION && f[1].operator == Op.NEGATION ->
-                not(optimizeTree(f[0][0]) and optimizeTree(f[1][0]))
-            else -> f.treeMap(optimize)
+        is Or -> when {
+            l is Formula.Atom && l.proposition is True ||
+            r is Formula.Atom && r.proposition is True -> True                      // true || p = true
+            l is Formula.Atom && l.proposition is False -> r                        // true || p = p
+            r is Formula.Atom && r.proposition is False -> l                        // p || true = p
+            l is Not && r is Not -> Not(l.inner and r.inner)                        // !a || !b = !(a && b)
+            else -> l or r
         }
-    f.operator == Op.EXISTS_UNTIL ->
-        when {
-            // E a U True = True
-            f[1] == True -> True
-            // E a U False = False
-            f[1] == False -> False
-            else -> f.treeMap(optimize)
+        is EU, is AU -> when {
+            r is Formula.Atom && r.proposition is True -> True                      // a (E/A)U True = True
+            r is Formula.Atom && r.proposition is False -> False                    // a (E/A)U False = False
+            else -> this.copy(l, r)
         }
-    f.operator == Op.ALL_UNTIL ->
-        when {
-            // A a U True = True
-            f[1] == True -> True
-            // A a U False = False
-            f[1] == False -> False
-            else -> f.treeMap(optimize)
-        }
-    f.operator == Op.EXISTS_NEXT ->
-        when {
-            // EX True = True
-            f[0] == True -> True
-            // EX False = False
-            f[0] == False -> False
-            else -> f.treeMap(optimize)
-        }
-    else ->
-        f.treeMap(optimize)
-}
+        else -> this.copy(l, r)
+    }
+})

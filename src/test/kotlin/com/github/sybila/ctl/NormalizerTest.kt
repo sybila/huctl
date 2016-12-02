@@ -5,17 +5,17 @@ import kotlin.test.assertEquals
 
 class UntilNormalFormTest {
 
-    private val p1 = Reference("p1")
-    private val p2 = Reference("p2")
-    private val p3 = Reference("p3")
-    private val p4 = Reference("p4")
+    private val p1 = Proposition.Reference("p1")
+    private val p2 = Proposition.Reference("p2")
+    private val p3 = Proposition.Reference("p3")
+    private val p4 = Proposition.Reference("p4")
 
     @Test fun complexTest() {
 
-        val f1 = FloatProposition("var1", CompareOp.NEQ, 14.3)
-        val f2 = FloatProposition("var2", CompareOp.LT, -15.3)
-        val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
-        val d2 = DirectionProposition("var2", Direction.OUT, Facet.POSITIVE)
+        val f1 = ("var1".asVariable() neq 14.3.asConstant())
+        val f2 = ("var2".asVariable() lt (-15.3).asConstant())
+        val d1 = "var1".negativeIn()
+        val d2 = "var2".positiveOut()
 
         val prop = EF(AF((EX(f1) AU False) equal not(d2)) implies AX(EG(f2) EU AG(d1)))
         assertEquals(
@@ -122,7 +122,7 @@ class UntilNormalFormTest {
     }
 
     @Test fun floatPreserve() {
-        val prop = FloatProposition("val", CompareOp.GT_EQ, 32.2)
+        val prop = ("val".asVariable() ge 32.2.asConstant()).asAtom()
         assertEquals(prop, prop.normalize())
     }
 
@@ -132,7 +132,7 @@ class UntilNormalFormTest {
     }
 
     @Test fun directionPreserve() {
-        val prop = DirectionProposition("var", Direction.IN, Facet.POSITIVE)
+        val prop = "var".positiveIn().asAtom()
         assertEquals(prop, prop.normalize())
     }
 

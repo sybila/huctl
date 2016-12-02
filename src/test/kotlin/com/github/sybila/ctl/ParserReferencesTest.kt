@@ -79,8 +79,8 @@ class References {
 
         assertFailsWith(IllegalStateException::class) {
             parser.parse(
-                    "#include \"${ i1.absolutePath }\" \n" +
-                            "k = False"
+                    ":include \"${ i1.absolutePath }\" \n" +
+                    "k = False"
             )
         }
 
@@ -121,8 +121,8 @@ class References {
 
         val result = parser.parse(
                 "m = !l \n" +
-                        "#include \"${ i1.absolutePath }\" \n" +
-                        "#include \"${ i2.absolutePath }\" \n"
+                ":include \"${ i1.absolutePath }\" \n" +
+                ":include \"${ i2.absolutePath }\" \n"
         )
 
         assertEquals(3, result.size)
@@ -159,7 +159,7 @@ class References {
 
         val result = parser.parse(
                 "k = !val \n " +
-                        "#include \"${ i.absolutePath }\" \n"
+                ":include \"${ i.absolutePath }\" \n"
         )
 
         assertEquals(2, result.size)
@@ -186,9 +186,8 @@ class References {
             l = k / 2 == 0
         """)
         assertEquals(1, result.size)
-        assertEquals(FloatProposition(
-                ("a".toVariable() plus "b".toVariable()) over 2.0.toConstant(), CompareOp.EQ, 0.0.toConstant()
-        ), result["l"])
+        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()).asAtom(),
+                result["l"])
     }
 
     @Test fun aliasInString() {
@@ -213,15 +212,7 @@ class References {
             n = m > 0
         """)
         assertEquals(1, result.size)
-        assertEquals(FloatProposition("name", CompareOp.GT, 0.0), result["n"])
-    }
-
-    @Test fun complexName() {
-        val result = parser.parse("""
-            some_name? = m > 0
-        """)
-        assertEquals(1, result.size)
-        assertEquals(FloatProposition("m", CompareOp.GT, 0.0), result["some_name?"])
+        assertEquals(("name".asVariable() gt 0.0.asConstant()).asAtom(), result["n"])
     }
 
 }

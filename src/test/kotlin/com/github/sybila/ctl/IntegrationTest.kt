@@ -21,15 +21,15 @@ class Integration {
         }
 
         val formulas = parser.parse(
-                "#include \"${ f1.absolutePath }\" \n" +
+                ":include \"${ f1.absolutePath }\" \n" +
         """
             a = True && p1:out+
             f = EF True && EG pop || AX a
         """)
 
-        val p1 = DirectionProposition("p1", Direction.OUT, Facet.POSITIVE)
-        val p2 = FloatProposition("p2", CompareOp.GT, 3.14)
-        val np2 = FloatProposition("p2", CompareOp.LT_EQ, 3.14)
+        val p1 = "p1".positiveOut()
+        val p2 = ("p2".asVariable() gt 3.14.asConstant())
+        val np2 =("p2".asVariable() le 3.14.asConstant())
 
         val a = True and p1
         val c = p2 equal False

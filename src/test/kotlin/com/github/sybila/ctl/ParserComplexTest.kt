@@ -9,12 +9,10 @@ class Complex {
     val parser = CTLParser()
 
 
-    val p1 = FloatProposition("p1", CompareOp.EQ, 4.0)
-    val p2 = DirectionProposition("p2", Direction.IN, Facet.NEGATIVE)
-    val p3 = FloatProposition(
-            ("p3".toVariable() over 1.3.toConstant()) plus 2.0.toConstant(),
-            CompareOp.LT,
-            ((-3.14).toConstant() plus (12.0.toConstant() minus "f".toVariable())) times 2.0.toConstant()
+    val p1 = ("p1".asVariable() eq 4.0.asConstant())
+    val p2 = "p2".negativeIn()
+    val p3 = (("p3".asVariable() div 1.3.asConstant()) plus 2.0.asConstant() lt
+            (((-3.14).asConstant() plus (12.0.asConstant() minus "f".asVariable())) times 2.0.asConstant())
     )
 
     @Test fun complexFiles() {
@@ -28,7 +26,7 @@ class Complex {
         }
 
         f2.bufferedWriter().use {
-            it.write("#include \"${ f1.absolutePath }\" \n")
+            it.write(":include \"${ f1.absolutePath }\" \n")
             it.write("b = EX c <=> True \n")
             it.write("d = e => e \n")
             it.write("q = 12 - f \n")
@@ -38,7 +36,7 @@ class Complex {
         f3.bufferedWriter().use {
             it.write("a = ! p1 == 4 \n")
             it.write("z = p3 / 1.3 \n")
-            it.write("#include \"${ f2.absolutePath }\" \n")
+            it.write(":include \"${ f2.absolutePath }\" \n")
             it.write("e = True && c || c && False")
         }
 
@@ -139,19 +137,15 @@ class Complex {
 
     @Test fun expressionOperatorPriority() {
         //We don't care about priority of * vs. / and + vs. -
-        val three = 3.0.toConstant()
-        assertEquals(FloatProposition(
-                (three times three) plus three, CompareOp.EQ, 0.0.toConstant()
-        ), parser.formula("3 * 3 + 3 == 0"))
-        assertEquals(FloatProposition(
-                (three times three) minus three, CompareOp.EQ, 0.0.toConstant()
-        ), parser.formula("3 * 3 - 3 == 0"))
-        assertEquals(FloatProposition(
-                (three over three) plus three, CompareOp.EQ, 0.0.toConstant()
-        ), parser.formula("3 / 3 + 3 == 0"))
-        assertEquals(FloatProposition(
-                (three over three) minus three, CompareOp.EQ, 0.0.toConstant()
-        ), parser.formula("3 / 3 - 3 == 0"))
+        val three = 3.0.asConstant()
+        assertEquals(((three times three) plus three eq 0.0.asConstant()).asAtom(),
+                parser.formula("3 * 3 + 3 == 0"))
+        assertEquals(((three times three) minus three eq 0.0.asConstant()).asAtom(),
+                parser.formula("3 * 3 - 3 == 0"))
+        assertEquals(((three div three) plus three eq 0.0.asConstant()).asAtom(),
+                parser.formula("3 / 3 + 3 == 0"))
+        assertEquals(((three div three) minus three eq 0.0.asConstant()).asAtom(),
+                parser.formula("3 / 3 - 3 == 0"))
     }
 
 }

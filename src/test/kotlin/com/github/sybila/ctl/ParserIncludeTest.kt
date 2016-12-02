@@ -12,7 +12,7 @@ class Includes {
 
     @Test fun invalidInclude() {
         assertFailsWith(FileNotFoundException::class) {
-            parser.parse("#include \"bogus.foo\" ")
+            parser.parse(":include \"bogus.foo\" ")
         }
     }
 
@@ -23,17 +23,17 @@ class Includes {
 
         i1.bufferedWriter().use {
             it.write("val = True \n")
-            it.write("#include \"${ i1.absolutePath }\"")
+            it.write(":include \"${ i1.absolutePath }\"")
         }
         i2.bufferedWriter().use {
-            it.write("#include \"${ i1.absolutePath }\" \n")
-            it.write("#include \"${ i2.absolutePath }\" \n")
+            it.write(":include \"${ i1.absolutePath }\" \n")
+            it.write(":include \"${ i2.absolutePath }\" \n")
             it.write("val2 = False")
         }
 
         val result = parser.parse(
-                "#include \"${ i2.absolutePath }\" \n" +
-                        "#include \"${ i1.absolutePath }\" "
+                ":include \"${ i2.absolutePath }\" \n" +
+                ":include \"${ i1.absolutePath }\" "
         )
 
         assertEquals(2, result.size)
@@ -54,10 +54,10 @@ class Includes {
             it.write("val = True")
         }
         i2.bufferedWriter().use {
-            it.write("#include \"${ i1.absolutePath }\"")
+            it.write(":include \"${ i1.absolutePath }\"")
         }
 
-        val result = parser.parse("#include \"${ i2.absolutePath }\"")
+        val result = parser.parse(":include \"${ i2.absolutePath }\"")
 
         assertEquals(1, result.size)
         assertEquals(True, result["val"])
@@ -77,7 +77,7 @@ class Includes {
 
         val file = File.createTempFile("simpleFile", ".ctl")
         file.bufferedWriter().use {
-            it.write("#include \"${ include.absolutePath }\"")
+            it.write(":include \"${ include.absolutePath }\"")
         }
 
         val result = parser.parse(file)
@@ -98,7 +98,7 @@ class Includes {
         }
 
         val result = parser.parse(
-                "#include \"${ file.absolutePath }\""
+                ":include \"${ file.absolutePath }\""
         )
 
         assertEquals(1, result.size)
