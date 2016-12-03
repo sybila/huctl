@@ -18,9 +18,9 @@ fun Formula.optimize(): Formula {
 private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i ->
     when (this) {
         is Not -> when (i) {
+            True -> False                                                           // !True = False
+            False -> True                                                           // !False = True
             is Formula.Atom -> when (i.proposition) {
-                is True -> ff().asAtom()                                            // !True = False
-                is False -> tt().asAtom()                                           // !False = True
                 is Comparison<*> -> i.proposition.negate().asAtom()                 // !a > 5 = a <= 5
                 else -> this.copy(i)
             }
@@ -28,11 +28,8 @@ private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i -
             else -> this.copy(i)
         }
         is EX -> when (i) {
-            is Formula.Atom -> when (i.proposition) {
-                is True -> tt().asAtom()                                            // EX True = True
-                is False -> ff().asAtom()                                           // EX False = False
-                else -> i
-            }
+            True -> True                                                            // EX True = True
+            False -> False                                                          // EX False = False
             else -> EX(i)
         }
         else -> this.copy(i)
@@ -40,24 +37,22 @@ private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i -
 }, { l, r ->
     when (this) {
         is And -> when {
-            l is Formula.Atom && l.proposition is False ||
-            r is Formula.Atom && r.proposition is False -> False                    // false && p = false
-            l is Formula.Atom && l.proposition is True -> r                         // true && p = p
-            r is Formula.Atom && r.proposition is True -> l                         // p && true = p
+            l == False || r == False -> False                                       // false && p = false
+            l == True -> r                                                          // true && p = p
+            r == True -> l                                                          // p && true = p
             l is Not && r is Not -> Not(l.inner or r.inner)                         // !a && !b = !(a || b)
             else -> l and r
         }
         is Or -> when {
-            l is Formula.Atom && l.proposition is True ||
-            r is Formula.Atom && r.proposition is True -> True                      // true || p = true
-            l is Formula.Atom && l.proposition is False -> r                        // true || p = p
-            r is Formula.Atom && r.proposition is False -> l                        // p || true = p
+            l == True || r == True -> True                                          // true || p = true
+            l == False -> r                                                         // true || p = p
+            r == False -> l                                                         // p || true = p
             l is Not && r is Not -> Not(l.inner and r.inner)                        // !a || !b = !(a && b)
             else -> l or r
         }
         is EU, is AU -> when {
-            r is Formula.Atom && r.proposition is True -> True                      // a (E/A)U True = True
-            r is Formula.Atom && r.proposition is False -> False                    // a (E/A)U False = False
+        r == True -> True                                                           // a (E/A)U True = True
+            r == False -> False                                                     // a (E/A)U False = False
             else -> this.copy(l, r)
         }
         else -> this.copy(l, r)
