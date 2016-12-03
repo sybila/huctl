@@ -7,13 +7,10 @@ root : fullStop? (statement fullStop)*;
 
 statement : ':include' STRING                               #includeStatement
           //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
-          | ':?'? assign                                    #assignStatement
+          | FLAG? VAR_NAME '=' VAR_NAME                     #assignAlias
+          | FLAG? VAR_NAME '=' formula                      #assignFormula
+          | FLAG? VAR_NAME '=' expression                   #assignExpression
           ;
-
-assign : VAR_NAME '=' VAR_NAME                              #assignAlias
-       | VAR_NAME '=' formula                               #assignFormula
-       | VAR_NAME '=' expression                            #assignExpression
-       ;
 
 fullStop : NEWLINE+ | EOF | ';';
 
@@ -59,6 +56,8 @@ OUT : 'out';
 
 PLUS : '+';
 MINUS : '-';
+
+FLAG : ':?';
 
 /** Operators **/
 

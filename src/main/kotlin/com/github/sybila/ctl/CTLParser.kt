@@ -27,11 +27,13 @@ class CTLParser() {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
-    fun parse(input: String): Map<String, Formula> = process(FileParser().process(input))
+    fun parse(input: String, onlyFlagged: Boolean = false): Map<String, Formula>
+            = process(FileParser().process(input), onlyFlagged)
 
-    fun parse(input: File): Map<String, Formula> = process(FileParser().process(input))
+    fun parse(input: File, onlyFlagged: Boolean = false): Map<String, Formula>
+            = process(FileParser().process(input), onlyFlagged)
 
-    private fun process(ctx: ParserContext): Map<String, Formula> {
+    private fun process(ctx: ParserContext, onlyFlagged: Boolean): Map<String, Formula> {
 
         //Resolve references
         //First resolve all aliases - we need to find out whether they reference formulas or expressions
@@ -51,7 +53,7 @@ class CTLParser() {
             when {
                 a !is AliasAssignment -> a
                 a.name in replaced -> throw IllegalStateException("Cyclic reference ${a.name} in ${a.location}")
-                a.alias !in references -> ExpressionAssignment(a.name, a.alias.asVariable(), a.location)
+                a.alias !in references -> ExpressionAssignment(a.name, a.alias.asVariable(), a.location, a.flagged)
                 else -> stacked(a.name) { resolveAlias(references[a.alias]!!) }
             }
 
@@ -97,12 +99,16 @@ class CTLParser() {
         }
 
         for ((name, assignment) in references) {    //resolve expressions - this way we catch errors also for unused expressions
-            if (assignment is ExpressionAssignment) references[name] = ExpressionAssignment(name, resolveExpression(assignment.expression), assignment.location)
+            if (assignment is ExpressionAssignment)
+                references[name] = ExpressionAssignment(
+                        name, resolveExpression(assignment.expression), assignment.location, assignment.flagged
+                )
         }
 
         val results = HashMap<String, Formula>()
         for ((name, assignment) in references) {
-            if (assignment is FormulaAssignment) results[name] = resolveFormula(assignment.formula)
+            if (assignment is FormulaAssignment && (!onlyFlagged || assignment.flagged))
+                results[name] = resolveFormula(assignment.formula)
         }
 
         return results
@@ -205,7 +211,8 @@ private class FileContext(val location: String) : CTLBaseListener() {
         formulas.add(FormulaAssignment(
                 ctx.VAR_NAME().text,
                 formulaTree[ctx.formula()],
-                location + ":" + ctx.start.line
+                location + ":" + ctx.start.line,
+                ctx.FLAG() != null
         ))
     }
 
@@ -213,7 +220,8 @@ private class FileContext(val location: String) : CTLBaseListener() {
         expressions.add(ExpressionAssignment(
                 ctx.VAR_NAME().text,
                 expressionTree[ctx.expression()],
-                location + ":" + ctx.start.line
+                location + ":" + ctx.start.line,
+                ctx.FLAG() != null
         ))
     }
 
@@ -221,12 +229,9 @@ private class FileContext(val location: String) : CTLBaseListener() {
         aliases.add(AliasAssignment(
                 ctx.VAR_NAME(0).text!!,
                 ctx.VAR_NAME(1).text!!,
-                location + ":" + ctx.start.line
+                location + ":" + ctx.start.line,
+                ctx.FLAG() != null
         ))
-    }
-
-    override fun visitErrorNode(node: ErrorNode) {
-        throw IllegalArgumentException("Parse error: $node")
     }
 
     /* ------ Expression Parsing ----- */
@@ -324,16 +329,17 @@ private class FileContext(val location: String) : CTLBaseListener() {
 private interface Assignment {
     val name: String
     val location: String
+    val flagged: Boolean
 }
 
 private data class FormulaAssignment(
-        override val name: String, val formula: Formula, override val location: String
+        override val name: String, val formula: Formula, override val location: String, override val flagged: Boolean
 ) : Assignment
 private data class ExpressionAssignment(
-        override val name: String, val expression: Expression, override val location: String
+        override val name: String, val expression: Expression, override val location: String, override val flagged: Boolean
 ) : Assignment
 private data class AliasAssignment(
-        override val name: String, val alias: String, override val location: String
+        override val name: String, val alias: String, override val location: String, override val flagged: Boolean
 ) : Assignment
 
 //convenience methods

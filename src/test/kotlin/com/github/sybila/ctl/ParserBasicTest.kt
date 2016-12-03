@@ -218,4 +218,25 @@ class Basic {
         }
     }
 
+    @Test
+    fun flaggedFormulasParseAll() {
+        val result = parser.parse("""
+            foo = True
+            :? goo = False
+        """, onlyFlagged = false)
+        assertEquals(2, result.size)
+        assertEquals(True, result["foo"])
+        assertEquals(False, result["goo"])
+    }
+
+    @Test
+    fun flaggedFormulas() {
+        val result = parser.parse("""
+            foo = True
+            :? goo = False
+        """, onlyFlagged = true)
+        assertEquals(1, result.size)
+        assertEquals(False, result["goo"])
+    }
+
 }
