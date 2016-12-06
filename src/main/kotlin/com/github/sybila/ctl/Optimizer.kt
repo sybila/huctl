@@ -5,14 +5,9 @@ import com.github.sybila.ctl.Formula.Unary.*
 import com.github.sybila.ctl.Proposition.Comparison
 
 fun Formula.optimize(): Formula {
-    //it's hard to optimize whole formula at once, so we just compute it as a fix point
-    var one = this.optimizeOnce()
-    var two = one.optimizeOnce()
-    while(two != one) {
-        one = two
-        two = this.optimizeOnce()
-    }
-    return two
+    //currently we have a single pass optimizer.
+    //In the future, we would like to add more complex, fix-point based optimizations.
+    return this.optimizeOnce()
 }
 
 private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i ->
