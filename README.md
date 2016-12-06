@@ -10,10 +10,10 @@ Simple parser, normalizer and optimizer for CTL temporal logic formulas.
 ###How to use
 This repo is jitpack-compatibile, so all you have to do is look up the latest version on jitpack and then integrate it into your favorite build system: [CTL Parser on Jitpack](https://jitpack.io/#sybila/ctl-parser)
 
-There is a CTLParser class you can initialize with a configuration object (or use defaults).
+There is a CTLParser class you can use to parse formulas.
 Using this class you can parse strings, files or inlined formulas (references and includes will be automatically resolved).
 
-Project also defines a convenient syntax for writing formulas directly in code.
+Project also defines a convenient syntax for writing formulas directly in code (See Extensions.kt file).
 
 For more complex usage example, see the [IntegrationTest](src/test/kotlin/com/github/sybila/ctl/IntegrationTest.kt)
 
@@ -29,7 +29,7 @@ For more complex usage example, see the [IntegrationTest](src/test/kotlin/com/gi
 
 Each CTL file contains zero or more include statements and zero or more assignment statements. Each statement is separated by a new line or semicolon (;). Multi-line formulas are not supported, use references instead.
 
-Input statement has the following form: ```#include "string"``` where ```string``` is a path to a file (can be absolute or relative) that should be included. For now, escaping quotation marks is not allowed, so make sure your path does not contain any. Each file is included at most once, so you don't have to worry about multiple includes.
+Input statement has the following form: ```:include "string"``` where ```string``` is a path to a file (can be absolute or relative) that should be included. For now, escaping quotation marks is not allowed, so make sure your path does not contain any. Each file is included at most once, so you don't have to worry about multiple includes.
 
 Assignment statement has the form of ```identifier = formula``` or ```identifier = expression```. ```identifier``` consists of numbers and upper/lowercase characters (has to start with a character). Formula can be
  - identifier (reference to formula defined elsewhere) 
@@ -52,6 +52,8 @@ Operator priority: In general, unary operators have higher priority than binary 
 
 Also note that =>, EU and AU are right associative, so that ```a EU b EU c``` is parsed as ```a EU (b EU c)```, as expected.
 
+You can use special operator `:?` to mark formulas that are in some way interesting and then use a parsing option to include only these in the results (references and includes are processed normally, it is just result filtering).
+
 Example of usage:
 
 ```
@@ -60,7 +62,7 @@ Example of usage:
   p1 = val > 3.14
   p2 = val2 < -44
   p2 = var:in+ && var:in-
-  a = EF (p1 && p2)
+  :? a = EF (p1 && p2)
   b = AF foo
   #include "other/foo.ctl"
 ```
