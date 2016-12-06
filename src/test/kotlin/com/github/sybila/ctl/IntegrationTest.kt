@@ -16,20 +16,21 @@ class Integration {
         val parser = CTLParser()
 
         f1.bufferedWriter().use {
-            it.write("c = p2 > 3.14 <=> False \n")
+            it.write(":? c = p2 > 3.14 <=> False \n")
             it.write("pop = True EU c EU a \n")
         }
 
-        val formulas = parser.parse(
-                "#include \"${ f1.absolutePath }\" \n" +
+        val input = ":include \"${ f1.absolutePath }\" \n" +
         """
             a = True && p1:out+
-            f = EF True && EG pop || AX a
-        """)
+            :? f = EF True && EG pop || AX a
+        """
+        val formulas = parser.parse(input)
+        val flagged = parser.parse(input, onlyFlagged = true)
 
-        val p1 = DirectionProposition("p1", Direction.OUT, Facet.POSITIVE)
-        val p2 = FloatProposition("p2", CompareOp.GT, 3.14)
-        val np2 = FloatProposition("p2", CompareOp.LT_EQ, 3.14)
+        val p1 = "p1".positiveOut()
+        val p2 = ("p2".asVariable() gt 3.14.asConstant())
+        val np2 =("p2".asVariable() le 3.14.asConstant())
 
         val a = True and p1
         val c = p2 equal False
@@ -41,6 +42,9 @@ class Integration {
         assertEquals(c, formulas["c"])
         assertEquals(pop, formulas["pop"])
         assertEquals(f, formulas["f"])
+        assertEquals(2, flagged.size)
+        assertEquals(f, flagged["f"])
+        assertEquals(c, flagged["c"])
 
         val normalized = f.normalize()
 

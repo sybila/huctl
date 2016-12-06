@@ -2,19 +2,22 @@ package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class Basic {
 
     val parser = CTLParser()
 
-    @Test fun parenthesis() {
+    @Test
+    fun parenthesis() {
         assertEquals(
                 True,
                 parser.formula("(True)")
         )
     }
 
-    @Test fun binaryOps() {
+    @Test
+    fun binaryOps() {
         assertEquals(
                 True EU False,
                 parser.formula("True EU False")
@@ -41,7 +44,8 @@ class Basic {
         )
     }
 
-    @Test fun unaryOps() {
+    @Test
+    fun unaryOps() {
         assertEquals(
                 not(True),
                 parser.formula("!True")
@@ -72,76 +76,84 @@ class Basic {
         )
     }
 
-    @Test fun floats() {
+    @Test
+    fun floats() {
+        val v = "var".asVariable()
         assertEquals(
-                FloatProposition("var", CompareOp.EQ, 0.0),
+                (v eq 0.0.asConstant()).asAtom(),
                 parser.formula("var == 0")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.EQ, 1.0),
+                (v eq 1.0.asConstant()).asAtom(),
                 parser.formula("var == 1")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.NEQ, -1.0),
+                (v neq (-1.0).asConstant()).asAtom(),
                 parser.formula("var != -1")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.GT, 0.158),
+                (v gt 0.158.asConstant()).asAtom(),
                 parser.formula("var > 0.158")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.GT_EQ, -0.9995),
+                (v ge (-0.9995).asConstant()).asAtom(),
                 parser.formula("var >= -0.9995")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.LT, 1040.58),
+                (v lt 1040.58.asConstant()).asAtom(),
                 parser.formula("var < 1040.58")
         )
         assertEquals(
-                FloatProposition("var", CompareOp.LT_EQ, -586.44),
+                (v le (-586.44).asConstant()).asAtom(),
                 parser.formula("var <= -586.44")
         )
     }
 
-    @Test fun directions() {
+    @Test
+    fun directions() {
         assertEquals(
-                DirectionProposition("var", Direction.IN, Facet.POSITIVE),
+                "var".positiveIn().asAtom(),
                 parser.formula("var:in+")
         )
         assertEquals(
-                DirectionProposition("var", Direction.OUT, Facet.POSITIVE),
+                "var".positiveOut().asAtom(),
                 parser.formula("var:out+")
         )
         assertEquals(
-                DirectionProposition("var", Direction.IN, Facet.NEGATIVE),
+                "var".negativeIn().asAtom(),
                 parser.formula("var:in-")
         )
         assertEquals(
-                DirectionProposition("var", Direction.OUT, Facet.NEGATIVE),
+                "var".negativeOut().asAtom(),
                 parser.formula("var:out-")
         )
     }
 
-    @Test fun floatOps() {
+    @Test
+    fun floatOps() {
+        val v = "var1".asVariable()
+        val w = "var2".asVariable()
+        val zero = 0.0.asConstant()
         assertEquals(
-                FloatProposition("var1".toVariable() plus "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                ((v plus w) eq zero).asAtom(),
                 parser.formula("var1 + var2 == 0")
         )
         assertEquals(
-                FloatProposition("var1".toVariable() minus "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                ((v minus w) eq zero).asAtom(),
                 parser.formula("var1 - var2 == 0")
         )
         assertEquals(
-                FloatProposition("var1".toVariable() times "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                ((v times w) eq zero).asAtom(),
                 parser.formula("var1 * var2 == 0")
         )
         assertEquals(
-                FloatProposition("var1".toVariable() over "var2".toVariable(), CompareOp.EQ, 0.0.toConstant()),
+                ((v div w) eq zero).asAtom(),
                 parser.formula("var1 / var2 == 0")
         )
     }
 
-    @Test fun comments() {
+    @Test
+    fun comments() {
         var result = parser.parse("""
             //f = False
             k = True
@@ -161,6 +173,15 @@ class Basic {
         assertEquals(True, result["k"])
 
         result = parser.parse("""
+            k = True
+            # Python style comment
+            f = False
+        """)
+        assertEquals(2, result.size)
+        assertEquals(True, result["k"])
+        assertEquals(False, result["f"])
+
+        result = parser.parse("""
             /* Comment f = False
                 /* With nesting */
             */
@@ -169,15 +190,53 @@ class Basic {
         """)
         assertEquals(1, result.size)
         assertEquals(True, result["k"])
+
+        result = parser.parse("""
+            k = True
+        //comment at the end of file""")
+        assertEquals(1, result.size)
+        assertEquals(True, result["k"])
     }
 
-    @Test fun booleans() {
+    @Test
+    fun booleans() {
         assertEquals(True, parser.formula("true"))
         assertEquals(True, parser.formula("True"))
         assertEquals(True, parser.formula("tt"))
         assertEquals(False, parser.formula("false"))
         assertEquals(False, parser.formula("False"))
         assertEquals(False, parser.formula("ff"))
+    }
+
+    @Test
+    fun invalidInput() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse("""
+                l = True && False
+                k = tr&ue && False
+            """)
+        }
+    }
+
+    @Test
+    fun flaggedFormulasParseAll() {
+        val result = parser.parse("""
+            foo = True
+            :? goo = False
+        """, onlyFlagged = false)
+        assertEquals(2, result.size)
+        assertEquals(True, result["foo"])
+        assertEquals(False, result["goo"])
+    }
+
+    @Test
+    fun flaggedFormulas() {
+        val result = parser.parse("""
+            foo = True
+            :? goo = False
+        """, onlyFlagged = true)
+        assertEquals(1, result.size)
+        assertEquals(False, result["goo"])
     }
 
 }

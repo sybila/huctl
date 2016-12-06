@@ -5,13 +5,13 @@ import kotlin.test.assertEquals
 
 class OptimizerTest {
 
-    private val p1 = Reference("p1")
-    private val p2 = Reference("p2")
+    private val p1 = Proposition.Reference("p1")
+    private val p2 = Proposition.Reference("p2")
 
     @Test fun complexTest() {
-        val f1 = FloatProposition("var2", CompareOp.LT_EQ, -15.3)
-        val nf1 = FloatProposition("var2", CompareOp.GT, -15.3)
-        val d1 = DirectionProposition("var1", Direction.IN, Facet.NEGATIVE)
+        val f1 = ("var2".asVariable() le (-15.3).asConstant())
+        val nf1 = ("var2".asVariable() gt (-15.3).asConstant())
+        val d1 = "var1".negativeIn()
 
         val prop = p1 AU EX(not(f1) EU not(True and ( not(d1) or (p1 AU False))))
         val optimized = prop.optimize()
@@ -30,17 +30,33 @@ class OptimizerTest {
 
     @Test fun floatNegation() {
         assertEquals(
-                FloatProposition("val", CompareOp.NEQ, 13.2),
-                not(FloatProposition("val", CompareOp.EQ, 13.2)).optimize()
+                ("val".asVariable() neq 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() eq 13.2.asConstant())).optimize()
         )
         assertEquals(
-                FloatProposition("val", CompareOp.LT_EQ, 13.2),
-                not(FloatProposition("val", CompareOp.GT, 13.2)).optimize()
+                ("val".asVariable() eq 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() neq 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() ge 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() lt 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() gt 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() le 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() le 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() gt 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() lt 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() ge 13.2.asConstant())).optimize()
         )
     }
 
     @Test fun doubleNegation() {
-        assertEquals(p1, not(not(p1)).optimize())
+        assertEquals(p1.asAtom(), not(not(p1)).optimize())
         assertEquals(not(p2), not(not(not(p2))).optimize())
     }
 
@@ -55,7 +71,7 @@ class OptimizerTest {
     }
 
     @Test fun floatPreserve() {
-        val prop = FloatProposition("val", CompareOp.GT_EQ, 32.2)
+        val prop = ("val".asVariable() ge 32.2.asConstant()).asAtom()
         assertEquals(prop, prop.optimize())
     }
 
@@ -65,7 +81,7 @@ class OptimizerTest {
     }
 
     @Test fun directionPreserve() {
-        val prop = DirectionProposition("var", Direction.IN, Facet.POSITIVE)
+        val prop = "var".positiveIn().asAtom()
         assertEquals(prop, prop.optimize())
     }
 
