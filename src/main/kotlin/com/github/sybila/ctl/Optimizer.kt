@@ -1,8 +1,8 @@
 package com.github.sybila.ctl
 
-import com.github.sybila.ctl.Formula.Unary.*
 import com.github.sybila.ctl.Formula.Binary.*
-import com.github.sybila.ctl.Proposition.*
+import com.github.sybila.ctl.Formula.Unary.*
+import com.github.sybila.ctl.Proposition.Comparison
 
 fun Formula.optimize(): Formula {
     //it's hard to optimize whole formula at once, so we just compute it as a fix point
@@ -50,9 +50,9 @@ private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i -
             l is Not && r is Not -> Not(l.inner and r.inner)                        // !a || !b = !(a && b)
             else -> l or r
         }
-        is EU, is AU -> when {
-        r == True -> True                                                           // a (E/A)U True = True
-            r == False -> False                                                     // a (E/A)U False = False
+        is EU, is AU -> when (r) {
+            True -> True                                                            // a (E/A)U True = True
+            False -> False                                                          // a (E/A)U False = False
             else -> this.copy(l, r)
         }
         else -> this.copy(l, r)
