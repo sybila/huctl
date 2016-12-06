@@ -73,7 +73,7 @@ Currently you can transform formulas into normal form that uses only operators E
 
 You can also automatically perform some simple formula optimizations (proposition negation, double negation removal, boolean propagation and some simplifications). Note that these optimizations expect the formula to be in until normal form. (Other formulas are also supported, but possible optimizations are limited)
 
-These actions can be either performed by parser automatically or accessed using extension functions on Formula object.
+These actions can be performed using extension functions on Formula object (translated to static Java functions).
 
 ###Building and using
 
