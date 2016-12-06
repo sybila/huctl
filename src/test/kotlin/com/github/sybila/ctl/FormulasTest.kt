@@ -2,6 +2,7 @@ package com.github.sybila.ctl
 
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class FoldTest {
 
@@ -102,12 +103,34 @@ class Misc {
 
     @Test
     fun floatPropositionToString() {
-        assertEquals("(prop > 5.3000)", ("prop".asVariable() gt 5.3.asConstant()).toString())
+        val prop = ("prop".asVariable() gt 5.3.asConstant())
+        assertEquals("(prop > 5.3000)", prop.toString())
     }
 
     @Test
     fun directionToString() {
         assertEquals("prop:in+", "prop".positiveIn().toString())
+    }
+
+    @Test
+    fun basicProperties() {
+        val v1 = "v1".asVariable()
+        val v2 = "v2".asVariable()
+        assertNotEquals(v1.hashCode(), v2.hashCode())
+        assertNotEquals(v1, v2)
+
+        val prop1 = ("prop1".asVariable() gt 5.3.asConstant())
+        val prop2 = ("prop2".asVariable() gt (54.3.asConstant() plus 3.2.asConstant()))
+        assertNotEquals(prop1.hashCode(), prop2.hashCode())
+        assertNotEquals(prop1, prop2)
+
+        val dir1 = "v1".positiveIn()
+        val dir2 = "v1".negativeOut()
+        assertNotEquals(dir1.hashCode(), dir2.hashCode())
+        assertNotEquals(dir1, dir2)
+        assertEquals("v1", dir1.variable)
+        assertEquals(Facet.POSITIVE, dir1.facet)
+        assertEquals(Direction.IN, dir1.direction)
     }
 
 }

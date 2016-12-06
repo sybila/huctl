@@ -34,8 +34,24 @@ class OptimizerTest {
                 not(("val".asVariable() eq 13.2.asConstant())).optimize()
         )
         assertEquals(
+                ("val".asVariable() eq 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() neq 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() ge 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() lt 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() gt 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() le 13.2.asConstant())).optimize()
+        )
+        assertEquals(
                 ("val".asVariable() le 13.2.asConstant()).asAtom(),
                 not(("val".asVariable() gt 13.2.asConstant())).optimize()
+        )
+        assertEquals(
+                ("val".asVariable() lt 13.2.asConstant()).asAtom(),
+                not(("val".asVariable() ge 13.2.asConstant())).optimize()
         )
     }
 
