@@ -7,29 +7,52 @@ root : fullStop? (statement fullStop)*;
 
 statement : ':include' STRING                               #includeStatement
           //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
-          | FLAG? VAR_NAME '=' VAR_NAME                     #assignAlias
+          | VAR_NAME '=' VAR_NAME                           #assignAlias
+          | VAR_NAME '=' expression                         #assignExpression
+          | VAR_NAME '=' dirFormula                         #assignDirFormula
           | FLAG? VAR_NAME '=' formula                      #assignFormula
-          | FLAG? VAR_NAME '=' expression                   #assignExpression
           ;
 
 fullStop : NEWLINE+ | EOF | ';';
 
 /* Formula and propositions */
 
-formula : VAR_NAME                                          #id
-        | (TRUE | FALSE)                                    #bool
-        | VAR_NAME ':' (IN | OUT) (PLUS | MINUS)            #direction
-        | expression compare expression                     #proposition
-        | '(' formula ')'                                   #parenthesis
-        | unaryOp formula                                   #unary
+formula : VAR_NAME                                                                      #id
+        | (TRUE | FALSE)                                                                #bool
+        | facetProposition                                                              #direction
+        | numericProposition                                                            #proposition
+        | '(' formula ')'                                                               #parenthesis
+        | NEG formula                                                                   #negation
+        | dirModifier? TEMPORAL_UNARY formula                                           #tempUnary
         //we list operators explicitly, becuase writing them as a subrule broke operator priority
-        | formula CON formula                               #and
-        | formula DIS formula                               #or
-        |<assoc=right> formula IMPL formula                 #implies
-        | formula EQIV formula                              #equal
-        |<assoc=right> formula EU formula                   #EU
-        |<assoc=right> formula AU formula                   #AU
+        | formula CON formula                                                           #and
+        | formula DIS formula                                                           #or
+        |<assoc=right> formula IMPL formula                                             #implies
+        | formula EQIV formula                                                          #equal
+        |<assoc=right> formula dirModifier? TEMPORAL_BINARY dirModifier? formula        #tempBinary
+        | (FORALL | EXISTS) VAR_NAME setBound? ':' formula                              #firstOrder
+        | (AT | BIND) VAR_NAME ':' formula                                              #hybrid
         ;
+
+setBound : 'in' formula;
+
+dirModifier : '{' dirFormula '}';
+
+/* Direction formula - used as an optional parameter for temporal operators */
+
+dirFormula : VAR_NAME (PLUS | MINUS)                        #dirProposition
+           | NEG dirFormula                                 #dirNegation
+           | dirFormula CON dirFormula                      #dirAnd
+           | dirFormula DIS dirFormula                      #dirOr
+           | <assoc=right> dirFormula IMPL dirFormula       #dirImplies
+           | dirFormula EQIV dirFormula                     #dirEqual
+           ;
+
+/* Numeric proposition */
+
+numericProposition : expression compare expression;
+
+compare : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
 
 expression : VAR_NAME                                       #idExpression
         | FLOAT_VAL                                         #value
@@ -41,10 +64,9 @@ expression : VAR_NAME                                       #idExpression
         | expression MINUS expression                       #subtraction
         ;
 
-/** Helper/Grouping parser rules **/
+/* Facet proposition */
 
-unaryOp : NEG | EX | EF | EG | AX | AF | AG;
-compare : EQ | NEQ | | GT | LT | GTEQ | LTEQ;
+facetProposition : VAR_NAME ':' (IN | OUT) (PLUS | MINUS);
 
 /** Terminals **/
 
@@ -59,16 +81,44 @@ MINUS : '-';
 
 FLAG : ':?';
 
-/** Operators **/
+/** Path quantifiers **/
 
-EX : 'EX';
-EF : 'EF';
-EG : 'EG';
-AX : 'AX';
-AF : 'AF';
-AG : 'AG';
-EU : 'EU';
-AU : 'AU';
+A : 'A';
+E : 'E';
+PA : 'pA';
+PE : 'pE';
+
+PATH : (A|E|PA|PE);
+
+/** Temporal operators **/
+
+X : 'X';
+F : 'F';
+G : 'G';
+U : 'U';
+
+TEMPORAL_UNARY : PATH (X|G|F);
+TEMPORAL_BINARY : PATH U;
+
+/** Logical operators **/
+
+NEG : '!';
+CON : '&&';
+DIS : '||';
+IMPL : '->';
+EQIV : '<->';
+
+/** first order operators **/
+
+FORALL : 'forall';
+EXISTS : 'exists';
+
+/** Hybrid operators **/
+
+BIND : 'bind';
+AT : 'at';
+
+/** Compare operators **/
 
 EQ : '==';
 NEQ : '!=';
@@ -77,11 +127,7 @@ LT : '<';
 GTEQ : '>=';
 LTEQ : '<=';
 
-NEG : '!';
-CON : '&&';
-DIS : '||';
-IMPL : '=>';
-EQIV : '<=>';
+/** Arithmetics **/
 
 MUL : '*';
 DIV : '/';
