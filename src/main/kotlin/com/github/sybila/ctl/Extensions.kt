@@ -1,5 +1,10 @@
 package com.github.sybila.ctl
 
+import com.github.sybila.ctl.Formula.*
+import com.github.sybila.ctl.Formula.Bool.*
+import com.github.sybila.ctl.Formula.Temporal.Simple.*
+import com.github.sybila.ctl.PathQuantifier.*
+
 // -- Catamorphism --
 
 fun <R> Expression.fold(
@@ -35,6 +40,7 @@ fun <R> Formula.fold(
                 this.left.fold(atom, unary, binary),
                 this.right.fold(atom, unary, binary)
         )
+        else -> throw IllegalStateException("Cannot fold over formula $this")
     }
 }
 
@@ -56,41 +62,77 @@ infix operator fun Expression.minus(other: Expression) = Expression.Arithmetic.S
 infix operator fun Expression.times(other: Expression) = Expression.Arithmetic.Mul(this, other)
 infix operator fun Expression.div(other: Expression) = Expression.Arithmetic.Div(this, other)
 
-infix fun Expression.gt(other: Expression): Proposition = Proposition.Comparison.GT(this, other)
-infix fun Expression.ge(other: Expression): Proposition = Proposition.Comparison.GE(this, other)
-infix fun Expression.eq(other: Expression): Proposition = Proposition.Comparison.EQ(this, other)
-infix fun Expression.neq(other: Expression): Proposition = Proposition.Comparison.NEQ(this, other)
-infix fun Expression.le(other: Expression): Proposition = Proposition.Comparison.LE(this, other)
-infix fun Expression.lt(other: Expression): Proposition = Proposition.Comparison.LT(this, other)
+infix fun Expression.gt(other: Expression): Atom.Float = Atom.Float(this, CompareOp.GT, other)
+infix fun Expression.ge(other: Expression): Atom.Float = Atom.Float(this, CompareOp.GE, other)
+infix fun Expression.eq(other: Expression): Atom.Float = Atom.Float(this, CompareOp.EQ, other)
+infix fun Expression.neq(other: Expression): Atom.Float = Atom.Float(this, CompareOp.NEQ, other)
+infix fun Expression.le(other: Expression): Atom.Float = Atom.Float(this, CompareOp.LE, other)
+infix fun Expression.lt(other: Expression): Atom.Float = Atom.Float(this, CompareOp.LT, other)
 
 // Propositions
 
-fun tt() = Proposition.True()
-fun ff() = Proposition.False()
+val True = Atom.True
+val False = Atom.False
 
-val True = tt().asAtom()
-val False = ff().asAtom()
-
-fun String.positiveIn() = Proposition.DirectionProposition(this, Direction.IN, Facet.POSITIVE)
-fun String.positiveOut() = Proposition.DirectionProposition(this, Direction.OUT, Facet.POSITIVE)
-fun String.negativeIn() = Proposition.DirectionProposition(this, Direction.IN, Facet.NEGATIVE)
-fun String.negativeOut() = Proposition.DirectionProposition(this, Direction.OUT, Facet.NEGATIVE)
-fun Proposition.asAtom(): Formula = Formula.Atom(this)
+fun String.positiveIn() = Atom.Transition(this, Direction.IN, Facet.POSITIVE)
+fun String.positiveOut() = Atom.Transition(this, Direction.OUT, Facet.POSITIVE)
+fun String.negativeIn() = Atom.Transition(this, Direction.IN, Facet.NEGATIVE)
+fun String.negativeOut() = Atom.Transition(this, Direction.OUT, Facet.NEGATIVE)
 
 // Formulas
 
-fun not(inner: (() -> Formula)): Formula = Formula.Unary.Not(inner())
-fun EF(inner: (() -> Formula)): Formula = Formula.Unary.EF(inner())
-fun AF(inner: (() -> Formula)): Formula = Formula.Unary.AF(inner())
-fun EG(inner: (() -> Formula)): Formula = Formula.Unary.EG(inner())
-fun AG(inner: (() -> Formula)): Formula = Formula.Unary.AG(inner())
-fun EX(inner: (() -> Formula)): Formula = Formula.Unary.EX(inner())
-fun AX(inner: (() -> Formula)): Formula = Formula.Unary.AX(inner())
+fun not(inner: Formula): Formula = Not(inner)
 
-infix fun (() -> Formula).EU(reach: () -> Formula): Formula = Formula.Binary.EU(this(), reach())
-infix fun (() -> Formula).AU(reach: () -> Formula): Formula = Formula.Binary.AU(this(), reach())
+//Future
+fun EF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(EXISTS, inner(), dir)
+fun pastEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(EXISTS_PAST, inner(), dir)
+fun AF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(ALL, inner(), dir)
+fun pastAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(ALL_PAST, inner(), dir)
 
-infix fun (() -> Formula).and(other: (() -> Formula)): Formula = Formula.Binary.And(this(), other())
-infix fun (() -> Formula).or(other: (() -> Formula)): Formula = Formula.Binary.Or(this(), other())
-infix fun (() -> Formula).implies(other: (() -> Formula)): Formula = Formula.Binary.Implies(this(), other())
-infix fun (() -> Formula).equal(other: (() -> Formula)): Formula = Formula.Binary.Equal(this(), other())
+//WeakFuture
+fun weakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(EXISTS, inner(), dir)
+fun weakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(ALL, inner(), dir)
+fun pastWeakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(EXISTS_PAST, inner(), dir)
+fun pastWeakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(ALL_PAST, inner(), dir)
+
+//Next
+fun EX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(EXISTS, inner(), dir)
+fun pastEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(EXISTS_PAST, inner(), dir)
+fun AX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(ALL, inner(), dir)
+fun pastAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(ALL_PAST, inner(), dir)
+
+//WeakNext
+fun weakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(EXISTS, inner(), dir)
+fun pastWeakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(EXISTS_PAST, inner(), dir)
+fun weakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(ALL, inner(), dir)
+fun pastWeakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(ALL_PAST, inner(), dir)
+
+//Globally
+fun EG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(EXISTS, inner(), dir)
+fun pastEG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(EXISTS_PAST, inner(), dir)
+fun AG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(ALL, inner(), dir)
+fun pastAG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(ALL_PAST, inner(), dir)
+
+//Until
+infix fun Formula.EU(reach: Formula): Formula
+        = Temporal.Until(EXISTS, this, reach, DirectionFormula.True)
+fun Formula.EU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
+        = Temporal.Until(EXISTS, this, reach, dir)
+infix fun Formula.AU(reach: Formula): Formula
+        = Temporal.Until(ALL, this, reach, DirectionFormula.True)
+fun Formula.AU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
+        = Temporal.Until(ALL, this, reach, dir)
+infix fun Formula.pastEU(reach: Formula): Formula
+        = Temporal.Until(EXISTS_PAST, this, reach, DirectionFormula.True)
+fun Formula.pastEU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
+        = Temporal.Until(EXISTS_PAST, this, reach, dir)
+infix fun Formula.pastAU(reach: Formula): Formula
+        = Temporal.Until(ALL_PAST, this, reach, DirectionFormula.True)
+fun Formula.pastAU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
+        = Temporal.Until(ALL_PAST, this, reach, dir)
+
+//Bool
+infix fun Formula.and(other: Formula): Formula = And(this(), other())
+infix fun Formula.or(other: Formula): Formula = Or(this(), other())
+infix fun Formula.implies(other: Formula): Formula = Implies(this(), other())
+infix fun Formula.equal(other: Formula): Formula = Equals(this(), other())

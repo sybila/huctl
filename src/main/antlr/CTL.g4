@@ -19,7 +19,7 @@ fullStop : NEWLINE+ | EOF | ';';
 
 formula : VAR_NAME                                                                      #id
         | (TRUE | FALSE)                                                                #bool
-        | facetProposition                                                              #direction
+        | transitionProposition                                                         #direction
         | numericProposition                                                            #proposition
         | '(' formula ')'                                                               #parenthesis
         | NEG formula                                                                   #negation
@@ -40,7 +40,8 @@ dirModifier : '{' dirFormula '}';
 
 /* Direction formula - used as an optional parameter for temporal operators */
 
-dirFormula : VAR_NAME (PLUS | MINUS)                        #dirProposition
+dirFormula : VAR_NAME                                       #dirId
+           | VAR_NAME (PLUS | MINUS)                        #dirProposition
            | NEG dirFormula                                 #dirNegation
            | dirFormula CON dirFormula                      #dirAnd
            | dirFormula DIS dirFormula                      #dirOr
@@ -66,7 +67,7 @@ expression : VAR_NAME                                       #idExpression
 
 /* Facet proposition */
 
-facetProposition : VAR_NAME ':' (IN | OUT) (PLUS | MINUS);
+transitionProposition : VAR_NAME ':' (IN | OUT) (PLUS | MINUS);
 
 /** Terminals **/
 
@@ -96,6 +97,8 @@ X : 'X';
 F : 'F';
 G : 'G';
 U : 'U';
+WF : 'wF';
+WX : 'wX';
 
 TEMPORAL_UNARY : PATH (X|G|F);
 TEMPORAL_BINARY : PATH U;

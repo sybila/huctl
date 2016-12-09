@@ -196,7 +196,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
     val expressions = ArrayList<ExpressionAssignment>()
     val aliases = ArrayList<AliasAssignment>()
 
-    private val formulaTree = ParseTreeProperty<Formula>()
+    private val formulaTree = ParseTreeProperty<T>()
     private val expressionTree = ParseTreeProperty<Expression>()
 
     fun toParseContext() = ParserContext(formulas + expressions + aliases)
@@ -313,7 +313,10 @@ private class FileContext(val location: String) : CTLBaseListener() {
     }
 
     override fun exitEqual(ctx: CTLParser.EqualContext) {
-        formulaTree[ctx] = formulaTree[ctx.formula(0)] equal formulaTree[ctx.formula(1)]
+        formulaTree[ctx] = object : T {
+            override fun invoke(p1: Map<String, T>): Formula = True
+        }
+        //formulaTree[ctx] = { it -> com.github.sybila.ctl.True }
     }
 
     override fun exitEU(ctx: CTLParser.EUContext) {

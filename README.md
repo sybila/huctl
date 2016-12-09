@@ -29,7 +29,7 @@ For more complex usage example, see the [IntegrationTest](src/test/kotlin/com/gi
 
 Each CTL file contains zero or more include statements and zero or more assignment statements. Each statement is separated by a new line or semicolon (;). Multi-line formulas are not supported, use references instead.
 
-Input statement has the following form: ```#include "string"``` where ```string``` is a path to a file (can be absolute or relative) that should be included. For now, escaping quotation marks is not allowed, so make sure your path does not contain any. Each file is included at most once, so you don't have to worry about multiple includes.
+Input statement has the following form: ```#include "string"``` where ```string``` is a quantifier to a file (can be absolute or relative) that should be included. For now, escaping quotation marks is not allowed, so make sure your quantifier does not contain any. Each file is included at most once, so you don't have to worry about multiple includes.
 
 Assignment statement has the form of ```identifier = formula``` or ```identifier = expression```. ```identifier``` consists of numbers and upper/lowercase characters (has to start with a character). Formula can be
  - identifier (reference to formula defined elsewhere) 

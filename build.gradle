@@ -6,7 +6,7 @@ apply plugin: 'jacoco'
 apply plugin: "com.madvay.tools.build.gitbuildinfo"
 
 buildscript {
-    ext.kotlin_version = '1.0.5'
+    ext.kotlin_version = '1.0.5-2'
 
     repositories {
         jcenter()
@@ -23,7 +23,7 @@ buildscript {
 sourceCompatibility = 1.7
 group = "com.github.sybila"
 archivesBaseName = "ctl-parser"
-version = '2.0.0'
+version = '2.1.0'
 
 //antlr config
 generateGrammarSource {
@@ -44,6 +44,7 @@ sourceSets.main.java.srcDirs += new File('src/main/gen')
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -51,32 +52,14 @@ dependencies {
     testCompile "org.jetbrains.kotlin:kotlin-test:$kotlin_version"
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
     compile 'com.intellij:annotations:5.1'
+    compile 'com.github.daemontus:kotlin-option-result:1.0.0'
     antlr "org.antlr:antlr4:4.5.1-1"
-}
-
-//create a single Jar with all dependencies
-task fullJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'CTL Parser',
-                'Implementation-Version': version
-    }
-    baseName = project.name + '-all'
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
 
 sourceSets {
     main.java.srcDirs += 'src/main/kotlin'
     test.java.srcDirs += 'src/test/kotlin'
 }
-
-/* For some esoteric reason, javadoc is broken with git build info in this repository
-You can try to enable this later - hopefully it's a bug in javadoc
-task javadocJar(type: Jar) {
-    classifier = 'javadoc'
-    from javadoc
-}
-*/
 
 task sourcesJar(type: Jar) {
     classifier = 'sources'
@@ -86,10 +69,6 @@ task sourcesJar(type: Jar) {
 artifacts {
     //archives javadocJar, sourcesJar
     archives sourcesJar
-}
-
-jacoco {
-    toolVersion = "0.7.5.201505241946"
 }
 
 jacocoTestReport {
@@ -103,8 +82,8 @@ check.dependsOn jacocoTestReport
 
 buildStamp {
     // The git commit SHA will be appended to this url to generate the final url.
-    repoBaseUrl "https://github.com/sybila/ctl-parser/tree/"
+    repoBaseUrl "https://github.com/sybila/ctl-parser"
     // BuildInfo.java will be added under this package, in a
     // generated build/ directory.
-    packageName "com.github.sybila.ctl"
+    packageName group
 }
