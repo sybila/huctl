@@ -41,73 +41,107 @@ class CTLParser() {
         val references = HashMap(ctx.toMap())  //mutable copy
         val replaced = Stack<String>()  //processing stack for cycle detection
 
-        fun <R> stacked(name: String, action: () -> R): R {
-            replaced.push(name)
+        fun <R> String.stacked(action: () -> R): R {
+            replaced.push(this)
             val result = action()
             replaced.pop()
             return result
         }
 
-        fun resolveAlias(a: Assignment): Assignment =
-            when {
-                a !is AliasAssignment -> a
-                a.name in replaced -> throw IllegalStateException("Cyclic reference ${a.name} in ${a.location}")
-                a.alias !in references -> ExpressionAssignment(a.name, a.alias.asVariable(), a.location, a.flagged)
-                else -> stacked(a.name) { resolveAlias(references[a.alias]!!) }
+        fun resolveAlias(name: String): Any =
+            if (name in replaced) {
+                throw IllegalStateException("Cyclic reference: $name")
+            } else {
+                references[name]?.run {
+                    if (this.item is String) resolveAlias(this.name)
+                    else this.item
+                } ?: throw IllegalStateException("Undefined alias $name")
             }
 
         fun resolveExpression(e: Expression): Expression = e.mapLeafs({it}) { e ->
             val name = e.name
-            when (name) {
-                in replaced -> throw IllegalStateException("Cyclic reference: $name")
-                in references -> stacked(name) {
-                    val assignment = references[name]!!
-                    if (assignment is ExpressionAssignment) resolveExpression(assignment.expression)
-                    else throw IllegalStateException("$name is a formula. Expression needed.")
-                }
-                else -> e   //This is a valid variable, not a reference
+            if (name in replaced) {
+                throw IllegalStateException("Cyclic reference: $name")
+            } else name.stacked {
+                references[name]?.run {
+                    if (this.item is Expression) resolveExpression(this.item)
+                    else throw IllegalStateException("Expected type of $name is an expression.")
+                } ?: e  //e is just a model variable
             }
         }
 
-        fun resolveFormula(f: Formula): Formula = f.mapLeafs {
-            when (it.proposition) {
-                is Proposition.Reference -> {
-                    val name = it.proposition.value
-                    when (name) {
-                        in replaced -> throw IllegalStateException("Cyclic reference: $name")
-                        !in references -> throw IllegalStateException("Undefined reference: $name")
-                        else -> stacked(name) {
-                            val assignment = references[name]!!
-                            if (assignment is FormulaAssignment) resolveFormula(assignment.formula)
-                            else throw IllegalStateException("$name is an expression. Formula needed.")
-                        }
+        fun resolveDirectionFormula(f: DirectionFormula): DirectionFormula = f.mapLeafs {
+            if (it is DirectionFormula.Atom.Reference) {
+                val name = it.name
+                if (name in replaced) {
+                    throw IllegalStateException("Cyclic reference: $name")
+                } else name.stacked {
+                    references[name]?.run {
+                        if (this.item is DirectionFormula) resolveDirectionFormula(this.item)
+                        else throw IllegalStateException("Expected type of $name is a formula.")
+                    } ?: throw IllegalStateException("Undefined reference $name")
+                }
+            } else it //True, False, Proposition
+        }
+
+        fun resolveFormula(f: Formula): Formula = f.fold({
+            when (this) {
+                is Formula.Atom.Reference -> {
+                    val name = this.name
+                    if (name in replaced) {
+                        throw IllegalStateException("Cyclic reference: $name")
+                    } else name.stacked {
+                        references[name]?.run {
+                            if (this.item is Formula) resolveFormula(this.item)
+                            else throw IllegalStateException("Expected type of $name is a formula.")
+                        } ?: throw IllegalStateException("Undefined reference $name")
                     }
                 }
                 //dive into the expressions
-                is Proposition.Comparison<*> -> it.proposition.copy(
-                        resolveExpression(it.proposition.left),
-                        resolveExpression(it.proposition.right)
-                ).asAtom()
-                //True, False, Direction
-                else -> it
+                is Formula.Atom.Float -> this.copy(
+                        left = resolveExpression(this.left),
+                        right = resolveExpression(this.right)
+                )
+                //True, False, Transition
+                else -> this
+            }
+        }, { inner ->
+            when (this) {   //resolve direction
+                is Formula.Simple -> this.copy(
+                        inner = inner, direction = resolveDirectionFormula(this.direction)
+                )
+                else -> this.copy(inner)
+            }
+        }, { left, right ->
+            when (this) {   //resolve direction
+                is Formula.Until -> this.copy(
+                        path = left, reach = right, direction = resolveDirectionFormula(this.direction)
+                )
+                else -> this.copy(left, right)
+            }
+        })
+
+        //aliases need to go first, because all other resolve procedures need can depend on them
+        for ((name, assignment) in references) {
+            if (assignment.item is String) {
+                references[name] = assignment.copy(item = resolveAlias(assignment.item))
             }
         }
 
-        for ((name, assignment) in references) {    //resolve aliases
-            references[name] = resolveAlias(assignment)
-        }
-
-        for ((name, assignment) in references) {    //resolve expressions - this way we catch errors also for unused expressions
-            if (assignment is ExpressionAssignment)
-                references[name] = ExpressionAssignment(
-                        name, resolveExpression(assignment.expression), assignment.location, assignment.flagged
-                )
+        //the rest can run "in parallel"
+        for ((name, assignment) in references) {
+            references[name] = when (assignment.item) {
+                is Expression -> assignment.copy(item = resolveExpression(assignment.item))
+                is DirectionFormula -> assignment.copy(item = resolveDirectionFormula(assignment.item))
+                is Formula -> assignment.copy(item = resolveFormula(assignment.item))
+                else -> throw IllegalStateException("WTF?!")
+            }
         }
 
         val results = HashMap<String, Formula>()
         for ((name, assignment) in references) {
-            if (assignment is FormulaAssignment && (!onlyFlagged || assignment.flagged))
-                results[name] = resolveFormula(assignment.formula)
+            if (assignment.item is Formula && (!onlyFlagged || assignment.flagged))
+                results[name] = resolveFormula(assignment.item)
         }
 
         return results
@@ -164,7 +198,7 @@ private class FileParser {
 }
 
 private data class ParserContext(
-        private val assignments: List<Assignment>
+        private val assignments: List<Assignment<*>>
 ) {
 
     fun toMap() = assignments.associateBy({ it.name }, { it })
@@ -192,112 +226,89 @@ private data class ParserContext(
 private class FileContext(val location: String) : CTLBaseListener() {
 
     val includes = ArrayList<File>()
-    val formulas = ArrayList<FormulaAssignment>()
-    val expressions = ArrayList<ExpressionAssignment>()
-    val aliases = ArrayList<AliasAssignment>()
+    val formulas = ArrayList<Assignment<Formula>>()
+    val dirFormulas = ArrayList<Assignment<DirectionFormula>>()
+    val expressions = ArrayList<Assignment<Expression>>()
+    val aliases = ArrayList<Assignment<String>>()
 
-    private val formulaTree = ParseTreeProperty<T>()
+    private val formulaTree = ParseTreeProperty<Formula>()
     private val expressionTree = ParseTreeProperty<Expression>()
+    private val dirFormulaTree = ParseTreeProperty<DirectionFormula>()
 
     fun toParseContext() = ParserContext(formulas + expressions + aliases)
+
+    /* ----- Basic control flow ------ */
 
     override fun exitIncludeStatement(ctx: CTLParser.IncludeStatementContext) {
         val string = ctx.STRING().text!!
         includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
 
-    override fun exitAssignFormula(ctx: CTLParser.AssignFormulaContext) {
-        formulas.add(FormulaAssignment(
-                ctx.VAR_NAME().text,
-                formulaTree[ctx.formula()],
-                location + ":" + ctx.start.line,
-                ctx.FLAG() != null
-        ))
-    }
-
-    override fun exitAssignExpression(ctx: CTLParser.AssignExpressionContext) {
-        expressions.add(ExpressionAssignment(
-                ctx.VAR_NAME().text,
-                expressionTree[ctx.expression()],
-                location + ":" + ctx.start.line,
-                ctx.FLAG() != null
-        ))
-    }
-
-    override fun exitAssignAlias(ctx: CTLParser.AssignAliasContext) {
-        aliases.add(AliasAssignment(
-                ctx.VAR_NAME(0).text!!,
-                ctx.VAR_NAME(1).text!!,
-                location + ":" + ctx.start.line,
-                ctx.FLAG() != null
-        ))
-    }
-
-    /* ------ Expression Parsing ----- */
-
-    override fun exitIdExpression(ctx: CTLParser.IdExpressionContext) {
-        expressionTree[ctx] = Expression.Variable(ctx.text)
-    }
-
-    override fun exitValue(ctx: CTLParser.ValueContext) {
-        expressionTree[ctx] = Expression.Constant(ctx.FLOAT_VAL().text.toDouble())
-    }
-
-    override fun exitParenthesisExpression(ctx: CTLParser.ParenthesisExpressionContext) {
-        expressionTree[ctx] = expressionTree[ctx.expression()]
-    }
-
-    override fun exitMultiplication(ctx: CTLParser.MultiplicationContext) {
-        expressionTree[ctx] = expressionTree[ctx.expression(0)] times expressionTree[ctx.expression(1)]
-    }
-
-    override fun exitDivision(ctx: CTLParser.DivisionContext) {
-        expressionTree[ctx] = expressionTree[ctx.expression(0)] div expressionTree[ctx.expression(1)]
-    }
-
-    override fun exitAddition(ctx: CTLParser.AdditionContext) {
-        expressionTree[ctx] = expressionTree[ctx.expression(0)] plus expressionTree[ctx.expression(1)]
-    }
-
-    override fun exitSubtraction(ctx: CTLParser.SubtractionContext) {
-        expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
+    override fun exitAssignStatement(ctx: CTLParser.AssignStatementContext) {
+        fun <T: Any> put(data: MutableList<Assignment<T>>, item: T) {
+            data.add(Assignment(ctx.VAR_NAME(0).text, item, "$location:${ctx.start.line}", ctx.FLAG() != null))
+        }
+        when {
+            ctx.formula() != null -> put(formulas, formulaTree[ctx.formula()])
+            ctx.dirFormula() != null -> put(dirFormulas, dirFormulaTree[ctx.dirFormula()])
+            ctx.expression() != null -> put(expressions, expressionTree[ctx.expression()])
+            else -> put(aliases, ctx.VAR_NAME(1).text)
+        }
     }
 
     /* ------ Formula Parsing ------ */
 
     override fun exitId(ctx: CTLParser.IdContext) {
-        formulaTree[ctx] = Proposition.Reference(ctx.text!!).asAtom()
+        formulaTree[ctx] = Formula.Atom.Reference(ctx.text)
     }
 
     override fun exitBool(ctx: CTLParser.BoolContext) {
-        formulaTree[ctx] = (if (ctx.TRUE() != null) tt() else ff()).asAtom()
+        formulaTree[ctx] = if (ctx.TRUE() != null) True else False
     }
 
-    override fun exitDirection(ctx: CTLParser.DirectionContext) {
-        formulaTree[ctx] = Proposition.DirectionProposition(
-                variable = ctx.VAR_NAME().text!!,
+    override fun exitTransition(ctx: CTLParser.TransitionContext) {
+        formulaTree[ctx] = Formula.Atom.Transition(
+                name = ctx.VAR_NAME().text,
                 direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
                 facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
-        ).asAtom()
+        )
     }
 
     override fun exitProposition(ctx: CTLParser.PropositionContext) {
-        val constructor = compareConstructors.first {
-            it.first.invoke(ctx.compare()) != null
-        }.second
-        formulaTree[ctx] = constructor(expressionTree[ctx.expression(0)], expressionTree[ctx.expression(1)]).asAtom()
-
+        val left = expressionTree[ctx.expression(0)]
+        val right = expressionTree[ctx.expression(1)]
+        val cmp = ctx.compare()
+        formulaTree[ctx] = when {
+            cmp.EQ() != null -> left eq right
+            cmp.NEQ() != null -> left neq right
+            cmp.LT() != null -> left lt right
+            cmp.LTEQ() != null -> left le right
+            cmp.GT() != null -> left gt right
+            else -> left ge right
+        }
     }
 
     override fun exitParenthesis(ctx: CTLParser.ParenthesisContext) {
         formulaTree[ctx] = formulaTree[ctx.formula()]
     }
 
-    override fun exitUnary(ctx: CTLParser.UnaryContext) {
-        val constructor = unaryOpConstructors.first {
-            it.first.invoke(ctx.unaryOp()) != null
-        }.second
-        formulaTree[ctx] = constructor(formulaTree[ctx.formula()])
+    override fun exitNegation(ctx: CTLParser.NegationContext) {
+        formulaTree[ctx] = not(formulaTree[ctx.formula()])
+    }
+
+    private fun splitOperator(operator: String): Pair<PathQuantifier, String> {
+        return if (operator.startsWith("p")) {
+            PathQuantifier.valueOf(operator.take(2)) to operator.drop(2)
+        } else (PathQuantifier.valueOf(operator.take(1)) to operator.drop(1))
+    }
+
+    override fun exitUnaryTemporal(ctx: CTLParser.UnaryTemporalContext) {
+        val (path, state) = splitOperator(ctx.TEMPORAL_UNARY().text)
+        val dir = ctx.dirModifier()?.let { dirFormulaTree[it.dirFormula()] } ?: DirectionFormula.Atom.True
+        fun put(constructor: (PathQuantifier, Formula, DirectionFormula) -> Formula) {
+            formulaTree[ctx] = constructor(path, formulaTree[ctx.formula()], dir)
+        }
+        put(unaryTemporalConstructors[state]!!)
     }
 
     override fun exitOr(ctx: CTLParser.OrContext) {
@@ -313,56 +324,124 @@ private class FileContext(val location: String) : CTLBaseListener() {
     }
 
     override fun exitEqual(ctx: CTLParser.EqualContext) {
-        formulaTree[ctx] = object : T {
-            override fun invoke(p1: Map<String, T>): Formula = True
+        formulaTree[ctx] = formulaTree[ctx.formula(0)] equal formulaTree[ctx.formula(1)]
+    }
+
+    override fun exitBinaryTemporal(ctx: CTLParser.BinaryTemporalContext) {
+        val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
+        val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
+        val left = formulaTree[ctx.formula(0)]
+        val right = formulaTree[ctx.formula(1)]
+        val (path, state) = splitOperator(ctx.TEMPORAL_BINARY().text)
+        assert(state == "U")
+        if (dirR != DirectionFormula.Atom.True) {
+            //rewrite using U X
+            val next = Formula.Simple.Next(path, right, dirR)
+            formulaTree[ctx] = Formula.Until(path, left, next, dirL)
+        } else {
+            formulaTree[ctx] = Formula.Until(path, left, right, dirL)
         }
-        //formulaTree[ctx] = { it -> com.github.sybila.ctl.True }
     }
 
-    override fun exitEU(ctx: CTLParser.EUContext) {
-        formulaTree[ctx] = formulaTree[ctx.formula(0)] EU formulaTree[ctx.formula(1)]
+    override fun exitFirstOrder(ctx: CTLParser.FirstOrderContext) {
+        val bound = ctx.setBound().formula()?.let { formulaTree[it] } ?: True
+        val name = ctx.VAR_NAME().text
+        val inner = formulaTree[ctx.formula()]
+        formulaTree[ctx] =
+                if (ctx.FORALL() != null) Formula.FirstOrder.ForAll(name, bound, inner)
+                else Formula.FirstOrder.Exists(name, bound, inner)
     }
 
-    override fun exitAU(ctx: CTLParser.AUContext) {
-        formulaTree[ctx] = formulaTree[ctx.formula(0)] AU formulaTree[ctx.formula(1)]
+    override fun exitHybrid(ctx: CTLParser.HybridContext) {
+        val name = ctx.VAR_NAME().text
+        val inner = formulaTree[ctx.formula()]
+        formulaTree[ctx] =
+                if (ctx.BIND() != null) Formula.Hybrid.Bind(name, inner)
+                else Formula.Hybrid.At(name, inner)
     }
+
+    /* ------ Direction formula parsing ------ */
+
+    override fun exitDirId(ctx: CTLParser.DirIdContext) {
+        dirFormulaTree[ctx] = DirectionFormula.Atom.Reference(ctx.text)
+    }
+
+    override fun exitDirProposition(ctx: CTLParser.DirPropositionContext) {
+        dirFormulaTree[ctx] = DirectionFormula.Atom.Proposition(
+                ctx.VAR_NAME().text, if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
+        )
+    }
+
+    override fun exitDirParenthesis(ctx: CTLParser.DirParenthesisContext) {
+        dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula()]
+    }
+
+    override fun exitDirNegation(ctx: CTLParser.DirNegationContext) {
+        dirFormulaTree[ctx] = not(dirFormulaTree[ctx.dirFormula()])
+    }
+
+    override fun exitDirAnd(ctx: CTLParser.DirAndContext) {
+        dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] and dirFormulaTree[ctx.dirFormula(1)]
+    }
+
+    override fun exitDirOr(ctx: CTLParser.DirOrContext) {
+        dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] or dirFormulaTree[ctx.dirFormula(1)]
+    }
+
+    override fun exitDirImplies(ctx: CTLParser.DirImpliesContext) {
+        dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] implies dirFormulaTree[ctx.dirFormula(1)]
+    }
+
+    override fun exitDirEqual(ctx: CTLParser.DirEqualContext) {
+        dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] equal dirFormulaTree[ctx.dirFormula(1)]
+    }
+
+
+    /* ------ Expression Parsing ----- */
+
+    override fun exitExpId(ctx: CTLParser.ExpIdContext) {
+        expressionTree[ctx] = ctx.text.asVariable()
+    }
+
+    override fun exitExpValue(ctx: CTLParser.ExpValueContext) {
+        expressionTree[ctx] = Expression.Constant(ctx.FLOAT_VAL().text.toDouble())
+    }
+
+    override fun exitExpParenthesis(ctx: CTLParser.ExpParenthesisContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression()]
+    }
+
+    override fun exitExpMultiply(ctx: CTLParser.ExpMultiplyContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] times expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitExpDivide(ctx: CTLParser.ExpDivideContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] div expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitExpAdd(ctx: CTLParser.ExpAddContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] plus expressionTree[ctx.expression(1)]
+    }
+
+    override fun exitExpSubtract(ctx: CTLParser.ExpSubtractContext) {
+        expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
+    }
+
 }
 
-private interface Assignment {
-    val name: String
-    val location: String
-    val flagged: Boolean
-}
-
-private data class FormulaAssignment(
-        override val name: String, val formula: Formula, override val location: String, override val flagged: Boolean
-) : Assignment
-private data class ExpressionAssignment(
-        override val name: String, val expression: Expression, override val location: String, override val flagged: Boolean
-) : Assignment
-private data class AliasAssignment(
-        override val name: String, val alias: String, override val location: String, override val flagged: Boolean
-) : Assignment
-
-//convenience methods
-
-private val unaryOpConstructors = listOf(
-        (CTLParser.UnaryOpContext::EX to ::EX),
-        (CTLParser.UnaryOpContext::AX to ::AX),
-        (CTLParser.UnaryOpContext::EG to ::EG),
-        (CTLParser.UnaryOpContext::AG to ::AG),
-        (CTLParser.UnaryOpContext::EF to ::EF),
-        (CTLParser.UnaryOpContext::AF to ::AF),
-        (CTLParser.UnaryOpContext::NEG to ::not)
+private val unaryTemporalConstructors = mapOf<String, (PathQuantifier, Formula, DirectionFormula) -> Formula>(
+        "X" to { a,b,c -> Formula.Simple.Next(a,b,c) },
+        "wX" to { a,b,c -> Formula.Simple.WeakNext(a,b,c) },
+        "F" to { a,b,c -> Formula.Simple.Future(a,b,c) },
+        "wF" to { a,b,c -> Formula.Simple.WeakFuture(a,b,c) },
+        "G" to { a,b,c -> Formula.Simple.Globally(a,b,c) }
 )
 
-private val compareConstructors = listOf(
-        (CTLParser.CompareContext::EQ to Expression::eq),
-        (CTLParser.CompareContext::NEQ to Expression::neq),
-        (CTLParser.CompareContext::LT to Expression::lt),
-        (CTLParser.CompareContext::LTEQ to Expression::le),
-        (CTLParser.CompareContext::GT to Expression::gt),
-        (CTLParser.CompareContext::GTEQ to Expression::ge)
+private data class Assignment<out T: Any>(
+        val name: String,
+        val item: T,
+        val location: String,
+        val flagged: Boolean
 )
 
 operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)

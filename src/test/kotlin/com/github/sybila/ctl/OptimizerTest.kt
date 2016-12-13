@@ -5,8 +5,8 @@ import kotlin.test.assertEquals
 
 class OptimizerTest {
 
-    private val p1 = Proposition.Reference("p1")
-    private val p2 = Proposition.Reference("p2")
+    private val p1 = Formula.Atom.Reference("p1")
+    private val p2 = Formula.Atom.Reference("p2")
 
     @Test fun complexTest() {
         val f1 = ("var2".asVariable() le (-15.3).asConstant())
@@ -30,33 +30,33 @@ class OptimizerTest {
 
     @Test fun floatNegation() {
         assertEquals(
-                ("val".asVariable() neq 13.2.asConstant()).asAtom(),
+                ("val".asVariable() neq 13.2.asConstant()),
                 not(("val".asVariable() eq 13.2.asConstant())).optimize()
         )
         assertEquals(
-                ("val".asVariable() eq 13.2.asConstant()).asAtom(),
+                ("val".asVariable() eq 13.2.asConstant()),
                 not(("val".asVariable() neq 13.2.asConstant())).optimize()
         )
         assertEquals(
-                ("val".asVariable() ge 13.2.asConstant()).asAtom(),
+                ("val".asVariable() ge 13.2.asConstant()),
                 not(("val".asVariable() lt 13.2.asConstant())).optimize()
         )
         assertEquals(
-                ("val".asVariable() gt 13.2.asConstant()).asAtom(),
+                ("val".asVariable() gt 13.2.asConstant()),
                 not(("val".asVariable() le 13.2.asConstant())).optimize()
         )
         assertEquals(
-                ("val".asVariable() le 13.2.asConstant()).asAtom(),
+                ("val".asVariable() le 13.2.asConstant()),
                 not(("val".asVariable() gt 13.2.asConstant())).optimize()
         )
         assertEquals(
-                ("val".asVariable() lt 13.2.asConstant()).asAtom(),
+                ("val".asVariable() lt 13.2.asConstant()),
                 not(("val".asVariable() ge 13.2.asConstant())).optimize()
         )
     }
 
     @Test fun doubleNegation() {
-        assertEquals(p1.asAtom(), not(not(p1)).optimize())
+        assertEquals(p1, not(not(p1)).optimize())
         assertEquals(not(p2), not(not(not(p2))).optimize())
     }
 
@@ -71,7 +71,7 @@ class OptimizerTest {
     }
 
     @Test fun floatPreserve() {
-        val prop = ("val".asVariable() ge 32.2.asConstant()).asAtom()
+        val prop = ("val".asVariable() ge 32.2.asConstant())
         assertEquals(prop, prop.optimize())
     }
 
@@ -81,7 +81,7 @@ class OptimizerTest {
     }
 
     @Test fun directionPreserve() {
-        val prop = "var".positiveIn().asAtom()
+        val prop = "var".positiveIn()
         assertEquals(prop, prop.optimize())
     }
 

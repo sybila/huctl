@@ -56,23 +56,9 @@ sealed class Formula : () -> Formula {
         fun copy(left: Formula = this.left, right: Formula = this.right): T
     }
 
-    internal class Reference(val name: String) : Formula() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Reference
-
-            if (name != other.name) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return name.hashCode()
-        }
-
-        override fun toString(): String = name
+    interface Temporal {
+        val quantifier: PathQuantifier
+        val direction: DirectionFormula
     }
 
     sealed class Atom : Formula() {
@@ -128,6 +114,24 @@ sealed class Formula : () -> Formula {
             }
 
             override fun toString(): String = "$name:$direction$facet"
+        }
+        internal class Reference(val name: String) : Atom() {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other?.javaClass != javaClass) return false
+
+                other as Reference
+
+                if (name != other.name) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                return name.hashCode()
+            }
+
+            override fun toString(): String = name
         }
     }
 
@@ -205,103 +209,100 @@ sealed class Formula : () -> Formula {
         }
     }
 
-    sealed class Temporal(val quantifier: PathQuantifier) : Formula() {
+    sealed class Simple<T: Simple<T>>(override val quantifier: PathQuantifier,
+                                      override val inner: Formula, override val direction: DirectionFormula,
+                                      private val op: String
+    ) : Formula(), Temporal, Formula.Unary<T> {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other?.javaClass != javaClass) return false
 
-        sealed class Simple<T: Simple<T>>(quantifier: PathQuantifier,
-                                          override val inner: Formula, val direction: DirectionFormula,
-                                          private val op: String
-        ) : Temporal(quantifier), Formula.Unary<T> {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
+            other as Simple<*>
 
-                other as Simple<*>
+            if (quantifier != other.quantifier) return false
+            if (inner != other.inner) return false
+            if (direction != other.direction) return false
 
-                if (quantifier != other.quantifier) return false
-                if (inner != other.inner) return false
-                if (direction != other.direction) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = inner.hashCode()
-                result = 31 * result + direction.hashCode()
-                result = 31 * result + quantifier.hashCode()
-                return result
-            }
-
-            override fun toString(): String = "{$direction}$quantifier$op $inner"
-
-            abstract fun copy(quantifier: PathQuantifier = this.quantifier,
-                              inner: Formula = this.inner,
-                              direction: DirectionFormula = this.direction
-            ) : T
-
-            override fun copy(inner: Formula): T = copy(inner = inner)
-
-            class Next(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "X") {
-                override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
-            }
-            class Future(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Future>(quantifier, inner, direction,"F") {
-                override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Future = Future(quantifier, inner, direction)
-            }
-            class Globally(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Globally>(quantifier, inner, direction,"G") {
-                override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Globally = Globally(quantifier, inner, direction)
-            }
-            class WeakNext(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "wX") {
-                override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
-            }
-            class WeakFuture(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Future>(quantifier, inner, direction,"wF") {
-                override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Future = Future(quantifier, inner, direction)
-            }
+            return true
         }
 
-        class Until(
-                quantifier: PathQuantifier,
-                val path: Formula,
-                val reach: Formula,
-                val direction: DirectionFormula
-        ) : Temporal(quantifier), Binary<Until> {
-
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
-
-                other as Until
-
-                if (quantifier != other.quantifier) return false
-                if (path != other.path) return false
-                if (reach != other.reach) return false
-                if (direction != other.direction) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = path.hashCode()
-                result = 31 * result + reach.hashCode()
-                result = 31 * result + direction.hashCode()
-                result = 31 * result + quantifier.hashCode()
-                return result
-            }
-
-            override fun toString(): String = "($path {$direction}${quantifier}U $reach)"
-
-            override val left: Formula = path
-            override val right: Formula = reach
-            override fun copy(left: Formula, right: Formula): Until = copy(path = left, reach = right)
-
-            fun copy(
-                    quantifier: PathQuantifier = this.quantifier,
-                    path: Formula = this.path,
-                    reach: Formula = this.path,
-                    direction: DirectionFormula = this.direction
-            ) = Until(quantifier, path, reach, direction)
-
+        override fun hashCode(): Int {
+            var result = inner.hashCode()
+            result = 31 * result + direction.hashCode()
+            result = 31 * result + quantifier.hashCode()
+            return result
         }
+
+        override fun toString(): String = "{$direction}$quantifier$op $inner"
+
+        abstract fun copy(quantifier: PathQuantifier = this.quantifier,
+                          inner: Formula = this.inner,
+                          direction: DirectionFormula = this.direction
+        ) : T
+
+        override fun copy(inner: Formula): T = copy(inner = inner)
+
+        class Next(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "X") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
+        }
+        class Future(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Future>(quantifier, inner, direction,"F") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Future = Future(quantifier, inner, direction)
+        }
+        class Globally(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Globally>(quantifier, inner, direction,"G") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Globally = Globally(quantifier, inner, direction)
+        }
+        class WeakNext(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "wX") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
+        }
+        class WeakFuture(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Future>(quantifier, inner, direction,"wF") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Future = Future(quantifier, inner, direction)
+        }
+    }
+
+    class Until(
+            override val quantifier: PathQuantifier,
+            val path: Formula,
+            val reach: Formula,
+            override val direction: DirectionFormula
+    ) : Formula(), Temporal, Binary<Until> {
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other?.javaClass != javaClass) return false
+
+            other as Until
+
+            if (quantifier != other.quantifier) return false
+            if (path != other.path) return false
+            if (reach != other.reach) return false
+            if (direction != other.direction) return false
+
+            return true
+        }
+
+        override fun hashCode(): Int {
+            var result = path.hashCode()
+            result = 31 * result + reach.hashCode()
+            result = 31 * result + direction.hashCode()
+            result = 31 * result + quantifier.hashCode()
+            return result
+        }
+
+        override fun toString(): String = "($path {$direction}${quantifier}U $reach)"
+
+        override val left: Formula = path
+        override val right: Formula = reach
+        override fun copy(left: Formula, right: Formula): Until = copy(path = left, reach = right)
+
+        fun copy(
+                quantifier: PathQuantifier = this.quantifier,
+                path: Formula = this.path,
+                reach: Formula = this.path,
+                direction: DirectionFormula = this.direction
+        ) = Until(quantifier, path, reach, direction)
 
     }
+
 
     class Not(override val inner: Formula) : Formula(), Unary<Not> {
         override fun equals(other: Any?): Boolean {
@@ -365,9 +366,8 @@ sealed class Formula : () -> Formula {
     override fun invoke(): Formula = this
 }
 
-enum class PathQuantifier(private val str: String) {
-    ALL("A"), EXISTS("E"), ALL_PAST("pA"), EXISTS_PAST("pE");
-    override fun toString(): String = str
+enum class PathQuantifier {
+    A, E, pA, pE;
 }
 
 enum class CompareOp(private val str: String) {

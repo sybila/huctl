@@ -3,51 +3,74 @@ package com.github.sybila.ctl
 
 sealed class DirectionFormula {
 
-    object True : DirectionFormula()
-    object False : DirectionFormula()
-
-    internal class Reference(val name: String) : DirectionFormula() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Reference
-
-            if (name != other.name) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return name.hashCode()
-        }
-
-        override fun toString(): String = name
+    interface Unary<T> where T : DirectionFormula, T : Unary<T> {
+        val inner: DirectionFormula
+        fun copy(inner: DirectionFormula = this.inner): T
     }
 
-    class Atom(val name: String, val facet: Facet) : DirectionFormula() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Atom
-
-            if (name != other.name) return false
-            if (facet != other.facet) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = name.hashCode()
-            result = 31 * result + facet.hashCode()
-            return result
-        }
-
-        override fun toString(): String = "$name$facet"
+    interface Binary<T> where T : DirectionFormula, T : Binary<T> {
+        val left: DirectionFormula
+        val right: DirectionFormula
+        fun copy(left: DirectionFormula = this.left, right: DirectionFormula = this.right): T
     }
 
-    class Not(val inner: DirectionFormula) : DirectionFormula() {
+    sealed class Atom : DirectionFormula() {
+
+        object True : Atom() {
+            override fun toString(): String = "True"
+        }
+        object False : Atom() {
+            override fun toString(): String = "False"
+        }
+
+        class Proposition(val name: String, val facet: Facet) : Atom() {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other?.javaClass != javaClass) return false
+
+                other as Proposition
+
+                if (name != other.name) return false
+                if (facet != other.facet) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = name.hashCode()
+                result = 31 * result + facet.hashCode()
+                return result
+            }
+
+            override fun toString(): String = "$name$facet"
+        }
+
+        internal class Reference(val name: String) : Atom() {
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (other?.javaClass != javaClass) return false
+
+                other as Reference
+
+                if (name != other.name) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                return name.hashCode()
+            }
+
+            override fun toString(): String = name
+        }
+
+    }
+
+
+    class Not(override val inner: DirectionFormula) : DirectionFormula(), Unary<Not> {
+
+        override fun copy(inner: DirectionFormula): Not = Not(inner)
+
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other?.javaClass != javaClass) return false
@@ -67,9 +90,9 @@ sealed class DirectionFormula {
     }
 
     sealed class Bool<T: Bool<T>>(
-            val left: DirectionFormula, val right: DirectionFormula,
+            override val left: DirectionFormula, override val right: DirectionFormula,
             private val op: String
-    ) : DirectionFormula() {
+    ) : DirectionFormula(), Binary<T> {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other?.javaClass != javaClass) return false
@@ -89,8 +112,6 @@ sealed class DirectionFormula {
         }
 
         override fun toString(): String = "($left $op $right)"
-
-        abstract fun copy(left: DirectionFormula, right: DirectionFormula) : T
 
         class And(left: DirectionFormula, right: DirectionFormula) : Bool<And>(left, right, "&&") {
             override fun copy(left: DirectionFormula, right: DirectionFormula): And = And(left, right)

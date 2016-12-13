@@ -69,7 +69,7 @@ class Complex {
             b = EX z/1.3 + 2 < (-3.14 + x) * 2 EU a
             a = (p1 == 4) && p2:in-
             d = AG AX c
-            c = b <=> b
+            c = b <-> b
             e = c && True || False && b
         """)
 
@@ -119,15 +119,15 @@ class Complex {
         )
         assertEquals(
                 (True or False) implies (False or True),
-                parser.formula("True || False => False || True")
+                parser.formula("True || False -> False || True")
         )
         assertEquals(
                 (True implies False) equal (False implies True),
-                parser.formula("True => False <=> False => True")
+                parser.formula("True -> False <-> False -> True")
         )
         assertEquals(
                 (True equal False) EU (False equal True),
-                parser.formula("True <=> False EU False <=> True")
+                parser.formula("True <-> False EU False <-> True")
         )
         assertEquals(
                 (True EU False) AU (False EU True),
@@ -138,13 +138,13 @@ class Complex {
     @Test fun expressionOperatorPriority() {
         //We don't care about priority of * vs. / and + vs. -
         val three = 3.0.asConstant()
-        assertEquals(((three times three) plus three eq 0.0.asConstant()).asAtom(),
+        assertEquals(((three times three) plus three eq 0.0.asConstant()),
                 parser.formula("3 * 3 + 3 == 0"))
-        assertEquals(((three times three) minus three eq 0.0.asConstant()).asAtom(),
+        assertEquals(((three times three) minus three eq 0.0.asConstant()),
                 parser.formula("3 * 3 - 3 == 0"))
-        assertEquals(((three div three) plus three eq 0.0.asConstant()).asAtom(),
+        assertEquals(((three div three) plus three eq 0.0.asConstant()),
                 parser.formula("3 / 3 + 3 == 0"))
-        assertEquals(((three div three) minus three eq 0.0.asConstant()).asAtom(),
+        assertEquals(((three div three) minus three eq 0.0.asConstant()),
                 parser.formula("3 / 3 - 3 == 0"))
     }
 

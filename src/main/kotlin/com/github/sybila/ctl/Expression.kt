@@ -1,24 +1,6 @@
 package com.github.sybila.ctl
 
 sealed class Expression {
-    internal class Reference(val name: String) : Expression() {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Reference
-
-            if (name != other.name) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return name.hashCode()
-        }
-
-        override fun toString(): String = name
-    }
     class Variable(val name: String) : Expression() {
         override fun equals(other: Any?): Boolean = other is Variable && other.name == this.name
         override fun hashCode(): Int = this.name.hashCode()

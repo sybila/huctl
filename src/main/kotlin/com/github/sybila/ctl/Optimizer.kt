@@ -1,9 +1,5 @@
 package com.github.sybila.ctl
 
-import com.github.sybila.ctl.Formula.Binary.*
-import com.github.sybila.ctl.Formula.Unary.*
-import com.github.sybila.ctl.Proposition.Comparison
-
 fun Formula.optimize(): Formula {
     //currently we have a single pass optimizer.
     //In the future, we would like to add more complex, fix-point based optimizations.
@@ -12,7 +8,7 @@ fun Formula.optimize(): Formula {
 
 private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i ->
     when (this) {
-        is Not -> when (i) {
+        /*is Not -> when (i) {
             True -> False                                                           // !True = False
             False -> True                                                           // !False = True
             is Formula.Atom -> when (i.proposition) {
@@ -26,12 +22,12 @@ private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i -
             True -> True                                                            // EX True = True
             False -> False                                                          // EX False = False
             else -> EX(i)
-        }
+        }*/
         else -> this.copy(i)
     }
 }, { l, r ->
     when (this) {
-        is And -> when {
+        /*is And -> when {
             l == False || r == False -> False                                       // false && p = false
             l == True -> r                                                          // true && p = p
             r == True -> l                                                          // p && true = p
@@ -49,7 +45,7 @@ private fun Formula.optimizeOnce(): Formula = this.fold<Formula>({ this }, { i -
             True -> True                                                            // a (E/A)U True = True
             False -> False                                                          // a (E/A)U False = False
             else -> this.copy(l, r)
-        }
+        }*/
         else -> this.copy(l, r)
     }
 })

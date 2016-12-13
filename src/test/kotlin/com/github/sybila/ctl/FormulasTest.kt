@@ -6,7 +6,7 @@ import kotlin.test.assertNotEquals
 
 class FoldTest {
 
-    val formula = EX(tt() EU (
+    val formula = EX(True EU (
             "var".asVariable() eq 13.3.asConstant()
                 or
             "val".negativeIn()
@@ -27,12 +27,10 @@ class FoldTest {
                     ("val".asVariable() neq 10.3.asConstant())
                 )
             ), formula.mapLeafs {
-                when (it.proposition) {
-                    is Proposition.True -> False
-                    is Proposition.Comparison.EQ ->
-                        "var".positiveOut().asAtom()
-                    is Proposition.DirectionProposition ->
-                        ("val".asVariable() neq 10.3.asConstant()).asAtom()
+                when (it) {
+                    is Formula.Atom.True -> False
+                    is Formula.Atom.Float -> "var".positiveOut()
+                    is Formula.Atom.Transition -> ("val".asVariable() neq 10.3.asConstant())
                     else -> it
                 }
             }
@@ -48,13 +46,13 @@ class FoldTest {
                     "val".negativeIn()
                 )
             ), formula.fold<Formula>({this}, {
-                if (this is Formula.Unary.EX) {
+                if (this is Formula.Simple.Next) {
                     AX(it)
                 } else this.copy(it)
             }, { l,r ->
-                if (this is Formula.Binary.EU) {
+                if (this is Formula.Until) {
                     l AU r
-                } else if (this is Formula.Binary.Or) {
+                } else if (this is Formula.Bool.Or) {
                     l and r
                 } else this.copy(l, r)
             })
@@ -128,7 +126,7 @@ class Misc {
         val dir2 = "v1".negativeOut()
         assertNotEquals(dir1.hashCode(), dir2.hashCode())
         assertNotEquals(dir1, dir2)
-        assertEquals("v1", dir1.variable)
+        assertEquals("v1", dir1.name)
         assertEquals(Facet.POSITIVE, dir1.facet)
         assertEquals(Direction.IN, dir1.direction)
     }

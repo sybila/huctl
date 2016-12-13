@@ -5,10 +5,10 @@ import kotlin.test.assertEquals
 
 class UntilNormalFormTest {
 
-    private val p1 = Proposition.Reference("p1")
-    private val p2 = Proposition.Reference("p2")
-    private val p3 = Proposition.Reference("p3")
-    private val p4 = Proposition.Reference("p4")
+    private val p1 = Formula.Atom.Reference("p1")
+    private val p2 = Formula.Atom.Reference("p2")
+    private val p3 = Formula.Atom.Reference("p3")
+    private val p4 = Formula.Atom.Reference("p4")
 
     @Test fun complexTest() {
 
@@ -122,7 +122,7 @@ class UntilNormalFormTest {
     }
 
     @Test fun floatPreserve() {
-        val prop = ("val".asVariable() ge 32.2.asConstant()).asAtom()
+        val prop = ("val".asVariable() ge 32.2.asConstant())
         assertEquals(prop, prop.normalize())
     }
 
@@ -132,7 +132,7 @@ class UntilNormalFormTest {
     }
 
     @Test fun directionPreserve() {
-        val prop = "var".positiveIn().asAtom()
+        val prop = "var".positiveIn()
         assertEquals(prop, prop.normalize())
     }
 

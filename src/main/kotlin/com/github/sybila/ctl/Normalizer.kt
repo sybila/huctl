@@ -1,21 +1,18 @@
 package com.github.sybila.ctl
 
-import com.github.sybila.ctl.Formula.Unary.*
-import com.github.sybila.ctl.Formula.Binary.*
-
 val unaryEqualities = mapOf<Class<out Formula.Unary<*>>, (Formula) -> Formula>(
-        AX::class.java to { i -> not(EX(not(i))) },     // AX p = ! EX ! p
+        /*AX::class.java to { i -> not(EX(not(i))) },     // AX p = ! EX ! p
         EF::class.java to { i -> tt() EU i },           // EF p = true EU p
         AF::class.java to { i -> tt() AU i },           // AF p = true AU p
         EG::class.java to { i -> not(tt() AU not(i)) }, // EG p = ! (true AU ! p)
-        AG::class.java to { i -> not(tt() EU not(i)) }  // AG p = ! (true EU ! p)
+        AG::class.java to { i -> not(tt() EU not(i)) }  // AG p = ! (true EU ! p)*/
 )
 
 val binaryEqualities = mapOf<Class<out Formula.Binary<*>>, (Formula, Formula) -> Formula>(
-        Implies::class.java to { l, r -> not(l) or r }, // a => b = !a || b
+       /* Implies::class.java to { l, r -> not(l) or r }, // a => b = !a || b
         Equal::class.java to { l, r ->                  // a <=> b = (a && b) || (!a && !b)
             (l and r) or (not(l) and not(r))
-        }
+        }*/
 )
 
 

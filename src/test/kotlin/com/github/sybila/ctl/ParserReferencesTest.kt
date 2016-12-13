@@ -186,7 +186,7 @@ class References {
             l = k / 2 == 0
         """)
         assertEquals(1, result.size)
-        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()).asAtom(),
+        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()),
                 result["l"])
     }
 
@@ -212,7 +212,7 @@ class References {
             n = m > 0
         """)
         assertEquals(1, result.size)
-        assertEquals(("name".asVariable() gt 0.0.asConstant()).asAtom(), result["n"])
+        assertEquals(("name".asVariable() gt 0.0.asConstant()), result["n"])
     }
 
 }

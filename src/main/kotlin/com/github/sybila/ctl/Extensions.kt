@@ -2,7 +2,7 @@ package com.github.sybila.ctl
 
 import com.github.sybila.ctl.Formula.*
 import com.github.sybila.ctl.Formula.Bool.*
-import com.github.sybila.ctl.Formula.Temporal.Simple.*
+import com.github.sybila.ctl.Formula.Simple.*
 import com.github.sybila.ctl.PathQuantifier.*
 
 // -- Catamorphism --
@@ -26,6 +26,28 @@ fun Expression.mapLeafs(
         variable: (Expression.Variable) -> Expression
 ): Expression {
     return this.fold(constant, variable, Expression.Arithmetic<*>::copy)
+}
+
+fun <R> DirectionFormula.fold(
+        atom: DirectionFormula.Atom.() -> R,
+        unary: DirectionFormula.Unary<*>.(R) -> R,
+        binary: DirectionFormula.Binary<*>.(R, R) -> R
+) : R {
+    return when (this) {
+        is DirectionFormula.Atom -> atom(this)
+        is DirectionFormula.Unary<*> -> unary(this, this.inner.fold(atom, unary, binary))
+        is DirectionFormula.Binary<*> -> binary(this,
+                this.left.fold(atom, unary, binary),
+                this.right.fold(atom, unary, binary)
+        )
+        else -> throw IllegalStateException("Cannot fold over formula $this")
+    }
+}
+
+fun DirectionFormula.mapLeafs(
+        atom: (DirectionFormula.Atom) -> DirectionFormula
+): DirectionFormula {
+    return this.fold(atom, DirectionFormula.Unary<*>::copy, DirectionFormula.Binary<*>::copy)
 }
 
 fun <R> Formula.fold(
@@ -79,57 +101,72 @@ fun String.positiveOut() = Atom.Transition(this, Direction.OUT, Facet.POSITIVE)
 fun String.negativeIn() = Atom.Transition(this, Direction.IN, Facet.NEGATIVE)
 fun String.negativeOut() = Atom.Transition(this, Direction.OUT, Facet.NEGATIVE)
 
+// Direction propositions
+
+fun String.increase(): DirectionFormula = DirectionFormula.Atom.Proposition(this, Facet.POSITIVE)
+fun String.decrease(): DirectionFormula = DirectionFormula.Atom.Proposition(this, Facet.NEGATIVE)
+
+// Direction formulas
+
+fun not(inner: DirectionFormula): DirectionFormula = DirectionFormula.Not(inner)
+
+infix fun DirectionFormula.and(right: DirectionFormula): DirectionFormula = DirectionFormula.Bool.And(this, right)
+infix fun DirectionFormula.or(right: DirectionFormula): DirectionFormula = DirectionFormula.Bool.Or(this, right)
+infix fun DirectionFormula.implies(right: DirectionFormula): DirectionFormula = DirectionFormula.Bool.Implies(this, right)
+infix fun DirectionFormula.equal(right: DirectionFormula): DirectionFormula = DirectionFormula.Bool.Equals(this, right)
+
+
 // Formulas
 
 fun not(inner: Formula): Formula = Not(inner)
 
 //Future
-fun EF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(EXISTS, inner(), dir)
-fun pastEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(EXISTS_PAST, inner(), dir)
-fun AF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(ALL, inner(), dir)
-fun pastAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Future(ALL_PAST, inner(), dir)
+fun EF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(E, inner(), dir)
+fun pastEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pE, inner(), dir)
+fun AF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(A, inner(), dir)
+fun pastAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pA, inner(), dir)
 
 //WeakFuture
-fun weakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(EXISTS, inner(), dir)
-fun weakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(ALL, inner(), dir)
-fun pastWeakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(EXISTS_PAST, inner(), dir)
-fun pastWeakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakFuture(ALL_PAST, inner(), dir)
+fun weakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(E, inner(), dir)
+fun weakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(A, inner(), dir)
+fun pastWeakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pE, inner(), dir)
+fun pastWeakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pA, inner(), dir)
 
 //Next
-fun EX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(EXISTS, inner(), dir)
-fun pastEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(EXISTS_PAST, inner(), dir)
-fun AX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(ALL, inner(), dir)
-fun pastAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Next(ALL_PAST, inner(), dir)
+fun EX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(E, inner(), dir)
+fun pastEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pE, inner(), dir)
+fun AX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(A, inner(), dir)
+fun pastAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pA, inner(), dir)
 
 //WeakNext
-fun weakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(EXISTS, inner(), dir)
-fun pastWeakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(EXISTS_PAST, inner(), dir)
-fun weakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(ALL, inner(), dir)
-fun pastWeakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = WeakNext(ALL_PAST, inner(), dir)
+fun weakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(E, inner(), dir)
+fun pastWeakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pE, inner(), dir)
+fun weakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(A, inner(), dir)
+fun pastWeakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pA, inner(), dir)
 
 //Globally
-fun EG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(EXISTS, inner(), dir)
-fun pastEG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(EXISTS_PAST, inner(), dir)
-fun AG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(ALL, inner(), dir)
-fun pastAG(inner: Formula, dir: DirectionFormula = DirectionFormula.True): Formula = Globally(ALL_PAST, inner(), dir)
+fun EG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(E, inner(), dir)
+fun pastEG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pE, inner(), dir)
+fun AG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(A, inner(), dir)
+fun pastAG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pA, inner(), dir)
 
 //Until
 infix fun Formula.EU(reach: Formula): Formula
-        = Temporal.Until(EXISTS, this, reach, DirectionFormula.True)
-fun Formula.EU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
-        = Temporal.Until(EXISTS, this, reach, dir)
+        = Until(E, this, reach, DirectionFormula.Atom.True)
+fun Formula.EU(reach: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula
+        = Until(E, this, reach, dir)
 infix fun Formula.AU(reach: Formula): Formula
-        = Temporal.Until(ALL, this, reach, DirectionFormula.True)
-fun Formula.AU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
-        = Temporal.Until(ALL, this, reach, dir)
+        = Until(A, this, reach, DirectionFormula.Atom.True)
+fun Formula.AU(reach: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula
+        = Until(A, this, reach, dir)
 infix fun Formula.pastEU(reach: Formula): Formula
-        = Temporal.Until(EXISTS_PAST, this, reach, DirectionFormula.True)
-fun Formula.pastEU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
-        = Temporal.Until(EXISTS_PAST, this, reach, dir)
+        = Until(pE, this, reach, DirectionFormula.Atom.True)
+fun Formula.pastEU(reach: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula
+        = Until(pE, this, reach, dir)
 infix fun Formula.pastAU(reach: Formula): Formula
-        = Temporal.Until(ALL_PAST, this, reach, DirectionFormula.True)
-fun Formula.pastAU(reach: Formula, dir: DirectionFormula = DirectionFormula.True): Formula
-        = Temporal.Until(ALL_PAST, this, reach, dir)
+        = Until(pA, this, reach, DirectionFormula.Atom.True)
+fun Formula.pastAU(reach: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula
+        = Until(pA, this, reach, dir)
 
 //Bool
 infix fun Formula.and(other: Formula): Formula = And(this(), other())

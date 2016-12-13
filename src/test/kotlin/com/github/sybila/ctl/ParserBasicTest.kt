@@ -36,12 +36,14 @@ class Basic {
         )
         assertEquals(
                 True implies False,
-                parser.formula("True => False")
+                parser.formula("True -> False")
         )
         assertEquals(
                 True equal False,
-                parser.formula("True <=> False")
+                parser.formula("True <-> False")
         )
+
+        //TODO True => False should be a failing error!
     }
 
     @Test
@@ -80,31 +82,31 @@ class Basic {
     fun floats() {
         val v = "var".asVariable()
         assertEquals(
-                (v eq 0.0.asConstant()).asAtom(),
+                (v eq 0.0.asConstant()),
                 parser.formula("var == 0")
         )
         assertEquals(
-                (v eq 1.0.asConstant()).asAtom(),
+                (v eq 1.0.asConstant()),
                 parser.formula("var == 1")
         )
         assertEquals(
-                (v neq (-1.0).asConstant()).asAtom(),
+                (v neq (-1.0).asConstant()),
                 parser.formula("var != -1")
         )
         assertEquals(
-                (v gt 0.158.asConstant()).asAtom(),
+                (v gt 0.158.asConstant()),
                 parser.formula("var > 0.158")
         )
         assertEquals(
-                (v ge (-0.9995).asConstant()).asAtom(),
+                (v ge (-0.9995).asConstant()),
                 parser.formula("var >= -0.9995")
         )
         assertEquals(
-                (v lt 1040.58.asConstant()).asAtom(),
+                (v lt 1040.58.asConstant()),
                 parser.formula("var < 1040.58")
         )
         assertEquals(
-                (v le (-586.44).asConstant()).asAtom(),
+                (v le (-586.44).asConstant()),
                 parser.formula("var <= -586.44")
         )
     }
@@ -112,19 +114,19 @@ class Basic {
     @Test
     fun directions() {
         assertEquals(
-                "var".positiveIn().asAtom(),
+                "var".positiveIn(),
                 parser.formula("var:in+")
         )
         assertEquals(
-                "var".positiveOut().asAtom(),
+                "var".positiveOut(),
                 parser.formula("var:out+")
         )
         assertEquals(
-                "var".negativeIn().asAtom(),
+                "var".negativeIn(),
                 parser.formula("var:in-")
         )
         assertEquals(
-                "var".negativeOut().asAtom(),
+                "var".negativeOut(),
                 parser.formula("var:out-")
         )
     }
@@ -135,19 +137,19 @@ class Basic {
         val w = "var2".asVariable()
         val zero = 0.0.asConstant()
         assertEquals(
-                ((v plus w) eq zero).asAtom(),
+                ((v plus w) eq zero),
                 parser.formula("var1 + var2 == 0")
         )
         assertEquals(
-                ((v minus w) eq zero).asAtom(),
+                ((v minus w) eq zero),
                 parser.formula("var1 - var2 == 0")
         )
         assertEquals(
-                ((v times w) eq zero).asAtom(),
+                ((v times w) eq zero),
                 parser.formula("var1 * var2 == 0")
         )
         assertEquals(
-                ((v div w) eq zero).asAtom(),
+                ((v div w) eq zero),
                 parser.formula("var1 / var2 == 0")
         )
     }
