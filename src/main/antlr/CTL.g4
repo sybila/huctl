@@ -7,7 +7,7 @@ root : fullStop? (statement fullStop)*;
 
 statement : ':include' STRING                                                           #includeStatement
           //aliases are ambiguous - we can't decide whether they are formulas or expressions until they are resolved
-          | FLAG? VAR_NAME '=' (formula | dirFormula | expression | VAR_NAME)           #assignStatement
+          | FLAG? VAR_NAME '=' (VAR_NAME | formula | dirFormula | expression)           #assignStatement
           ;
 
 fullStop : NEWLINE+ | EOF | ';';
@@ -26,7 +26,8 @@ formula : VAR_NAME                                                              
         | formula DIS formula                                                           #or
         |<assoc=right> formula IMPL formula                                             #implies
         | formula EQIV formula                                                          #equal
-        |<assoc=right> formula dirModifierL? TEMPORAL_BINARY dirModifierR? formula      #binaryTemporal
+        |<assoc=right> formula dirModifierL? E_U dirModifierR? formula                  #existUntil
+        |<assoc=right> formula dirModifierL? A_U dirModifierR? formula                  #allUntil
         | (FORALL | EXISTS) VAR_NAME setBound? ':' formula                              #firstOrder
         | (AT | BIND) VAR_NAME ':' formula                                              #hybrid
         ;
@@ -40,6 +41,7 @@ dirModifierR : dirModifier;
 /* Direction formula - used as an optional parameter for temporal operators */
 
 dirFormula : VAR_NAME                                       #dirId
+           | (TRUE | FALSE)                                 #dirBool
            | VAR_NAME (PLUS | MINUS)                        #dirProposition
            | '(' dirFormula ')'                             #dirParenthesis
            | NEG dirFormula                                 #dirNegation
@@ -95,7 +97,8 @@ WF : 'wF';
 WX : 'wX';
 
 TEMPORAL_UNARY : PATH (X|G|F);
-TEMPORAL_BINARY : PATH U;
+E_U : (E|PE) U;
+A_U : (A|PA) U;
 
 /** Logical operators **/
 

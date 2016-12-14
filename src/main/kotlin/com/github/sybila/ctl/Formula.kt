@@ -45,6 +45,8 @@ package com.github.sybila.ctl
  */
 sealed class Formula : () -> Formula {
 
+    abstract fun asDirectionFormula(): DirectionFormula?
+
     interface Unary<T> where T : Formula, T : Unary<T> {
         val inner: Formula
         fun copy(inner: Formula = this.inner): T
@@ -63,10 +65,12 @@ sealed class Formula : () -> Formula {
 
     sealed class Atom : Formula() {
         object True : Atom() {
-            override fun toString(): String = "True"
+            override fun toString(): String = "true"
+            override fun asDirectionFormula(): DirectionFormula? = DirectionFormula.Atom.True
         }
         object False : Atom() {
-            override fun toString(): String = "False"
+            override fun toString(): String = "false"
+            override fun asDirectionFormula(): DirectionFormula? = DirectionFormula.Atom.False
         }
         class Float(val left: Expression, val cmp: CompareOp, val right: Expression) : Atom() {
             override fun equals(other: Any?): Boolean {
@@ -93,6 +97,8 @@ sealed class Formula : () -> Formula {
 
             fun copy(left: Expression = this.left, cmp: CompareOp = this.cmp, right: Expression = this.right): Float
                     = Float(left, cmp, right)
+
+            override fun asDirectionFormula(): DirectionFormula? = null
         }
         class Transition(val name: String, val direction: Direction, val facet: Facet) : Atom() {
             override fun equals(other: Any?): Boolean {
@@ -114,6 +120,7 @@ sealed class Formula : () -> Formula {
             }
 
             override fun toString(): String = "$name:$direction$facet"
+            override fun asDirectionFormula(): DirectionFormula? = null
         }
         internal class Reference(val name: String) : Atom() {
             override fun equals(other: Any?): Boolean {
@@ -132,6 +139,7 @@ sealed class Formula : () -> Formula {
             }
 
             override fun toString(): String = name
+            override fun asDirectionFormula(): DirectionFormula? = DirectionFormula.Atom.Reference(this.name)
         }
     }
 
@@ -165,6 +173,7 @@ sealed class Formula : () -> Formula {
         override val left: Formula = bound
         override val right: Formula = target
         override fun copy(left: Formula, right: Formula): T = copy(bound = left, target = right)
+        override fun asDirectionFormula(): DirectionFormula? = null
 
         class ForAll(name: String, bound: Formula, target: Formula) : FirstOrder<ForAll>(name, bound, target, "forall") {
             override fun copy(name: String, bound: Formula, target: Formula) = ForAll(name, bound, target)
@@ -199,6 +208,7 @@ sealed class Formula : () -> Formula {
 
         override val inner: Formula = target
         override fun copy(inner: Formula): T = copy(target = inner)
+        override fun asDirectionFormula(): DirectionFormula? = null
 
         class Bind(name: String, target: Formula) : Hybrid<Bind>(name, target, "bind") {
             override fun copy(name: String, target: Formula): Bind = Bind(name, target)
@@ -240,7 +250,8 @@ sealed class Formula : () -> Formula {
                           direction: DirectionFormula = this.direction
         ) : T
 
-        override fun copy(inner: Formula): T = copy(inner = inner)
+        override fun copy(inner: Formula): T = copy(this.quantifier, inner, this.direction)
+        override fun asDirectionFormula(): DirectionFormula? = null
 
         class Next(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "X") {
             override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
@@ -293,6 +304,7 @@ sealed class Formula : () -> Formula {
         override val left: Formula = path
         override val right: Formula = reach
         override fun copy(left: Formula, right: Formula): Until = copy(path = left, reach = right)
+        override fun asDirectionFormula(): DirectionFormula? = null
 
         fun copy(
                 quantifier: PathQuantifier = this.quantifier,
@@ -323,6 +335,9 @@ sealed class Formula : () -> Formula {
         override fun toString(): String = "!$inner"
 
         override fun copy(inner: Formula) = Not(inner)
+        override fun asDirectionFormula(): DirectionFormula? = inner.asDirectionFormula()?.let {
+            DirectionFormula.Not(it)
+        }
     }
 
     sealed class Bool<T: Bool<T>>(
@@ -351,15 +366,35 @@ sealed class Formula : () -> Formula {
 
         class And(left: Formula, right: Formula) : Bool<And>(left, right, "&&") {
             override fun copy(left: Formula, right: Formula): And = And(left, right)
+            override fun asDirectionFormula(): DirectionFormula?
+                    =   left.asDirectionFormula()?.let { l ->
+                        right.asDirectionFormula()?.let { r ->
+                            DirectionFormula.Bool.And(l, r)
+                        }}
         }
         class Or(left: Formula, right: Formula) : Bool<Or>(left, right, "||") {
             override fun copy(left: Formula, right: Formula): Or = Or(left, right)
+            override fun asDirectionFormula(): DirectionFormula?
+                    =   left.asDirectionFormula()?.let { l ->
+                right.asDirectionFormula()?.let { r ->
+                    DirectionFormula.Bool.Or(l, r)
+                }}
         }
         class Implies(left: Formula, right: Formula) : Bool<Implies>(left, right, "->") {
             override fun copy(left: Formula, right: Formula): Implies = Implies(left, right)
+            override fun asDirectionFormula(): DirectionFormula?
+                    =   left.asDirectionFormula()?.let { l ->
+                right.asDirectionFormula()?.let { r ->
+                    DirectionFormula.Bool.Implies(l, r)
+                }}
         }
         class Equals(left: Formula, right: Formula) : Bool<Equals>(left, right, "<->") {
             override fun copy(left: Formula, right: Formula): Equals = Equals(left, right)
+            override fun asDirectionFormula(): DirectionFormula?
+                    =   left.asDirectionFormula()?.let { l ->
+                right.asDirectionFormula()?.let { r ->
+                    DirectionFormula.Bool.Equals(l, r)
+                }}
         }
     }
 

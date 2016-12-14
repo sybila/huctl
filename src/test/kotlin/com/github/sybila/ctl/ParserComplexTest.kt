@@ -27,8 +27,8 @@ class Complex {
 
         f2.bufferedWriter().use {
             it.write(":include \"${ f1.absolutePath }\" \n")
-            it.write("b = EX c <=> True \n")
-            it.write("d = e => e \n")
+            it.write("b = EX c <-> True \n")
+            it.write("d = e -> e \n")
             it.write("q = 12 - f \n")
             it.write("x = -3.14 + q \n")
         }
@@ -103,7 +103,7 @@ class Complex {
         )
         assertEquals(
                 True implies (False implies True),
-                parser.formula("True => False => True")
+                parser.formula("True -> False -> True")
         )
     }
 

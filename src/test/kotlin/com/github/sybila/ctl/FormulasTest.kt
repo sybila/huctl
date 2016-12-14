@@ -96,7 +96,7 @@ class Misc {
 
     @Test
     fun formulaToString() {
-        assertEquals("(true && EX (false EU true))", (True and EX(False EU True)).toString())
+        assertEquals("(true && {true}EX (false {true}EU true))", (True and EX(False EU True)).toString())
     }
 
     @Test

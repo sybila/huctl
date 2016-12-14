@@ -16,7 +16,7 @@ class Integration {
         val parser = CTLParser()
 
         f1.bufferedWriter().use {
-            it.write(":? c = p2 > 3.14 <=> False \n")
+            it.write(":? c = p2 > 3.14 <-> False \n")
             it.write("pop = True EU c EU a \n")
         }
 

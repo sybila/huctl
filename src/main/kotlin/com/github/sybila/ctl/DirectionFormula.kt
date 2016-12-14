@@ -17,10 +17,10 @@ sealed class DirectionFormula {
     sealed class Atom : DirectionFormula() {
 
         object True : Atom() {
-            override fun toString(): String = "True"
+            override fun toString(): String = "true"
         }
         object False : Atom() {
-            override fun toString(): String = "False"
+            override fun toString(): String = "false"
         }
 
         class Proposition(val name: String, val facet: Facet) : Atom() {

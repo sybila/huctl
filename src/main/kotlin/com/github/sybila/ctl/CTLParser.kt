@@ -34,9 +34,12 @@ class CTLParser() {
 
     private fun process(ctx: ParserContext, onlyFlagged: Boolean): Map<String, Formula> {
 
-        //Resolve references
-        //First resolve all aliases - we need to find out whether they reference formulas or expressions
-        //Only formulas are returned.
+        //Resolve references and finalize type checking.
+        //However, some formulas are also valid as direction formulas. (Bool only)
+        //In such cases, default to normal formulas and if needed, perform typecast.
+        //
+        //First resolve all aliases - this will assign some definite types to them.
+        //(with Formulas being possibly later up-casted to DirectionFormulas)
 
         val references = HashMap(ctx.toMap())  //mutable copy
         val replaced = Stack<String>()  //processing stack for cycle detection
@@ -48,6 +51,7 @@ class CTLParser() {
             return result
         }
 
+        //resolve a string alias to a specific type (Formula|DirectionFormula|Expression)
         fun resolveAlias(name: String): Any =
             if (name in replaced) {
                 throw IllegalStateException("Cyclic reference: $name")
@@ -55,9 +59,10 @@ class CTLParser() {
                 references[name]?.run {
                     if (this.item is String) resolveAlias(this.name)
                     else this.item
-                } ?: throw IllegalStateException("Undefined alias $name")
+                } ?: Expression.Variable(name)  //a = k and k is not defined, it defaults to variable name
             }
 
+        //resolve references in an expression
         fun resolveExpression(e: Expression): Expression = e.mapLeafs({it}) { e ->
             val name = e.name
             if (name in replaced) {
@@ -65,11 +70,14 @@ class CTLParser() {
             } else name.stacked {
                 references[name]?.run {
                     if (this.item is Expression) resolveExpression(this.item)
-                    else throw IllegalStateException("Expected type of $name is an expression.")
+                    else throw IllegalStateException(
+                            "Expected type of $name is an Expression, not ${this.item.javaClass.simpleName}."
+                    )
                 } ?: e  //e is just a model variable
             }
         }
 
+        //resolve references in a direction formula
         fun resolveDirectionFormula(f: DirectionFormula): DirectionFormula = f.mapLeafs {
             if (it is DirectionFormula.Atom.Reference) {
                 val name = it.name
@@ -78,12 +86,18 @@ class CTLParser() {
                 } else name.stacked {
                     references[name]?.run {
                         if (this.item is DirectionFormula) resolveDirectionFormula(this.item)
-                        else throw IllegalStateException("Expected type of $name is a formula.")
+                        else if (this.item is Formula)  //try up-casting
+                            this.item.asDirectionFormula()?.let(::resolveDirectionFormula)
+                            ?: throw IllegalStateException("$name cannot be cast to direction formula.")
+                        else throw IllegalStateException(
+                                "Expected type of $name is a direction formula, not ${this.item.javaClass.simpleName}."
+                        )
                     } ?: throw IllegalStateException("Undefined reference $name")
                 }
             } else it //True, False, Proposition
         }
 
+        //Resolve references in a formula.
         fun resolveFormula(f: Formula): Formula = f.fold({
             when (this) {
                 is Formula.Atom.Reference -> {
@@ -93,7 +107,7 @@ class CTLParser() {
                     } else name.stacked {
                         references[name]?.run {
                             if (this.item is Formula) resolveFormula(this.item)
-                            else throw IllegalStateException("Expected type of $name is a formula.")
+                            else throw IllegalStateException("Expected type of $name is a formula, not ${this.item.javaClass.simpleName}.")
                         } ?: throw IllegalStateException("Undefined reference $name")
                     }
                 }
@@ -125,6 +139,10 @@ class CTLParser() {
         for ((name, assignment) in references) {
             if (assignment.item is String) {
                 references[name] = assignment.copy(item = resolveAlias(assignment.item))
+            } else if (assignment.item is Formula.Atom.Reference && assignment.item.name !in references) {
+                references[name] = assignment.copy(item = assignment.item.name.asVariable())
+            } else if (assignment.item is DirectionFormula.Atom.Reference && assignment.item.name !in references) {
+                references[name] = assignment.copy(item = assignment.item.name.asVariable())
             }
         }
 
@@ -327,13 +345,31 @@ private class FileContext(val location: String) : CTLBaseListener() {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] equal formulaTree[ctx.formula(1)]
     }
 
-    override fun exitBinaryTemporal(ctx: CTLParser.BinaryTemporalContext) {
+    override fun exitExistUntil(ctx: CTLParser.ExistUntilContext) {
         val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val left = formulaTree[ctx.formula(0)]
         val right = formulaTree[ctx.formula(1)]
-        val (path, state) = splitOperator(ctx.TEMPORAL_BINARY().text)
+        val (path, state) = splitOperator(ctx.E_U().text)
         assert(state == "U")
+        assert(path == PathQuantifier.E || path == PathQuantifier.pE)
+        if (dirR != DirectionFormula.Atom.True) {
+            //rewrite using U X
+            val next = Formula.Simple.Next(path, right, dirR)
+            formulaTree[ctx] = Formula.Until(path, left, next, dirL)
+        } else {
+            formulaTree[ctx] = Formula.Until(path, left, right, dirL)
+        }
+    }
+
+    override fun exitAllUntil(ctx: CTLParser.AllUntilContext) {
+        val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
+        val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
+        val left = formulaTree[ctx.formula(0)]
+        val right = formulaTree[ctx.formula(1)]
+        val (path, state) = splitOperator(ctx.A_U().text)
+        assert(state == "U")
+        assert(path == PathQuantifier.A || path == PathQuantifier.pA)
         if (dirR != DirectionFormula.Atom.True) {
             //rewrite using U X
             val next = Formula.Simple.Next(path, right, dirR)
@@ -364,6 +400,10 @@ private class FileContext(val location: String) : CTLBaseListener() {
 
     override fun exitDirId(ctx: CTLParser.DirIdContext) {
         dirFormulaTree[ctx] = DirectionFormula.Atom.Reference(ctx.text)
+    }
+
+    override fun exitDirBool(ctx: CTLParser.DirBoolContext) {
+        dirFormulaTree[ctx] = if (ctx.TRUE() != null) DirectionFormula.Atom.True else DirectionFormula.Atom.False
     }
 
     override fun exitDirProposition(ctx: CTLParser.DirPropositionContext) {
