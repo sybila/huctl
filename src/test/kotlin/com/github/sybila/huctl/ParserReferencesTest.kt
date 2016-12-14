@@ -198,12 +198,12 @@ class References {
             m = l
             n = m
         """)
+            assertEquals(4, result.size)
+            assertEquals(True, result["k"])
+            assertEquals(True, result["l"])
+            assertEquals(True, result["m"])
+            assertEquals(True, result["n"])
         } catch (e: IllegalStateException) { e.printStackTrace() }
-        assertEquals(4, result.size)
-        assertEquals(True, result["k"])
-        assertEquals(True, result["l"])
-        assertEquals(True, result["m"])
-        assertEquals(True, result["n"])
     }
 
     @Test fun expressionAlias() {
