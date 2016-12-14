@@ -191,12 +191,14 @@ class References {
     }
 
     @Test fun aliasInString() {
-        val result = parser.parse("""
+        try {
+            val result = parser.parse("""
             k = True
             l = k
             m = l
             n = m
         """)
+        } catch (e: IllegalStateException) { e.printStackTrace() }
         assertEquals(4, result.size)
         assertEquals(True, result["k"])
         assertEquals(True, result["l"])
