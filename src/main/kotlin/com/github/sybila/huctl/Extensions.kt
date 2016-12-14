@@ -1,9 +1,9 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
-import com.github.sybila.ctl.Formula.*
-import com.github.sybila.ctl.Formula.Bool.*
-import com.github.sybila.ctl.Formula.Simple.*
-import com.github.sybila.ctl.PathQuantifier.*
+import com.github.sybila.huctl.Formula.*
+import com.github.sybila.huctl.Formula.Bool.*
+import com.github.sybila.huctl.Formula.Simple.*
+import com.github.sybila.huctl.PathQuantifier.*
 
 // -- Catamorphism --
 
@@ -51,14 +51,14 @@ fun DirectionFormula.mapLeafs(
 }
 
 fun <R> Formula.fold(
-        atom: Formula.Atom.() -> R,
-        unary: Formula.Unary<*>.(R) -> R,
-        binary: Formula.Binary<*>.(R, R) -> R
+        atom: Atom.() -> R,
+        unary: Unary<*>.(R) -> R,
+        binary: Binary<*>.(R, R) -> R
 ): R {
     return when (this) {
-        is Formula.Atom -> atom(this)
-        is Formula.Unary<*> -> unary(this, this.inner.fold(atom, unary, binary))
-        is Formula.Binary<*> -> binary(this,
+        is Atom -> atom(this)
+        is Unary<*> -> unary(this, this.inner.fold(atom, unary, binary))
+        is Binary<*> -> binary(this,
                 this.left.fold(atom, unary, binary),
                 this.right.fold(atom, unary, binary)
         )
@@ -67,9 +67,9 @@ fun <R> Formula.fold(
 }
 
 fun Formula.mapLeafs(
-        atom: (Formula.Atom) -> Formula
+        atom: (Atom) -> Formula
 ): Formula {
-    return this.fold(atom, Formula.Unary<*>::copy, Formula.Binary<*>::copy)
+    return this.fold(atom, Unary<*>::copy, Binary<*>::copy)
 }
 
 // -- Construction Utils --

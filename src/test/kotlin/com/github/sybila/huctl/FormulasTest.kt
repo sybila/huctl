@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 import org.junit.Test
 import kotlin.test.assertEquals

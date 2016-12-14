@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 sealed class Expression {
     class Variable(val name: String) : Expression() {

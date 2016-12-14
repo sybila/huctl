@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 /**
  * Algebraic data type representing a HUCTL formula:
@@ -222,7 +222,7 @@ sealed class Formula : () -> Formula {
     sealed class Simple<T: Simple<T>>(override val quantifier: PathQuantifier,
                                       override val inner: Formula, override val direction: DirectionFormula,
                                       private val op: String
-    ) : Formula(), Temporal, Formula.Unary<T> {
+    ) : Formula(), Temporal, Unary<T> {
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (other?.javaClass != javaClass) return false

@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 val unaryEqualities = mapOf<Class<out Formula.Unary<*>>, (Formula) -> Formula>(
         /*AX::class.java to { i -> not(EX(not(i))) },     // AX p = ! EX ! p

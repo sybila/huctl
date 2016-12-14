@@ -1,12 +1,13 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
+import com.github.sybila.huctl.*
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class Basic {
 
-    val parser = CTLParser()
+    val parser = HUCTLParser()
 
     @Test
     fun parenthesis() {

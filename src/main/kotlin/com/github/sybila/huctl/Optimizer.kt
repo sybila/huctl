@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 fun Formula.optimize(): Formula {
     //currently we have a single pass optimizer.

@@ -1,5 +1,6 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
+import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -7,7 +8,7 @@ import kotlin.test.assertFailsWith
 
 class References {
 
-    val parser = CTLParser()
+    val parser = HUCTLParser()
 
     @Test fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")

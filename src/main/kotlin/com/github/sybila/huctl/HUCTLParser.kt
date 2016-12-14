@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 import com.github.sybila.ctl.antlr.CTLBaseListener
 import com.github.sybila.ctl.antlr.CTLLexer
@@ -22,7 +22,7 @@ import java.util.*
  * and returns a final map of valid formula assignments
  */
 
-class CTLParser() {
+class HUCTLParser() {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
@@ -470,11 +470,11 @@ private class FileContext(val location: String) : CTLBaseListener() {
 }
 
 private val unaryTemporalConstructors = mapOf<String, (PathQuantifier, Formula, DirectionFormula) -> Formula>(
-        "X" to { a,b,c -> Formula.Simple.Next(a,b,c) },
-        "wX" to { a,b,c -> Formula.Simple.WeakNext(a,b,c) },
-        "F" to { a,b,c -> Formula.Simple.Future(a,b,c) },
-        "wF" to { a,b,c -> Formula.Simple.WeakFuture(a,b,c) },
-        "G" to { a,b,c -> Formula.Simple.Globally(a,b,c) }
+        "X" to { a,b,c -> Formula.Simple.Next(a, b, c) },
+        "wX" to { a,b,c -> Formula.Simple.WeakNext(a, b, c) },
+        "F" to { a,b,c -> Formula.Simple.Future(a, b, c) },
+        "wF" to { a,b,c -> Formula.Simple.WeakFuture(a, b, c) },
+        "G" to { a,b,c -> Formula.Simple.Globally(a, b, c) }
 )
 
 private data class Assignment<out T: Any>(

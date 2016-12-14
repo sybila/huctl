@@ -1,12 +1,13 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
+import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 
 class Complex {
 
-    val parser = CTLParser()
+    val parser = HUCTLParser()
 
 
     val p1 = ("p1".asVariable() eq 4.0.asConstant())

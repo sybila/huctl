@@ -1,5 +1,6 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
+import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -13,7 +14,7 @@ class Integration {
 
         val f1 = File.createTempFile("file", ".ctl")
 
-        val parser = CTLParser()
+        val parser = HUCTLParser()
 
         f1.bufferedWriter().use {
             it.write(":? c = p2 > 3.14 <-> False \n")
