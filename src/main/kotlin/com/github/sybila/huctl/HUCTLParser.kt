@@ -1,8 +1,8 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.ctl.antlr.CTLBaseListener
-import com.github.sybila.ctl.antlr.CTLLexer
-import com.github.sybila.ctl.antlr.CTLParser
+import com.github.sybila.huctl.antlr.HUCTLBaseListener
+import com.github.sybila.huctl.antlr.HUCTLLexer
+import com.github.sybila.huctl.antlr.HUCTLParser
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
@@ -192,8 +192,8 @@ private class FileParser {
             input.inputStream().use { processStream(ANTLRInputStream(it), input.absolutePath) }
 
     private fun processStream(input: ANTLRInputStream, location: String): FileContext {
-        val lexer = CTLLexer(input)
-        val parser = CTLParser(CommonTokenStream(lexer))
+        val lexer = HUCTLLexer(input)
+        val parser = HUCTLParser(CommonTokenStream(lexer))
         lexer.removeErrorListeners()
         lexer.addErrorListener(errorListener)
         parser.removeErrorListeners()
@@ -241,7 +241,7 @@ private data class ParserContext(
 
 }
 
-private class FileContext(val location: String) : CTLBaseListener() {
+private class FileContext(val location: String) : HUCTLBaseListener() {
 
     val includes = ArrayList<File>()
     val formulas = ArrayList<Assignment<Formula>>()
@@ -257,12 +257,12 @@ private class FileContext(val location: String) : CTLBaseListener() {
 
     /* ----- Basic control flow ------ */
 
-    override fun exitIncludeStatement(ctx: CTLParser.IncludeStatementContext) {
+    override fun exitIncludeStatement(ctx: HUCTLParser.IncludeStatementContext) {
         val string = ctx.STRING().text!!
         includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
 
-    override fun exitAssignStatement(ctx: CTLParser.AssignStatementContext) {
+    override fun exitAssignStatement(ctx: HUCTLParser.AssignStatementContext) {
         fun <T: Any> put(data: MutableList<Assignment<T>>, item: T) {
             data.add(Assignment(ctx.VAR_NAME(0).text, item, "$location:${ctx.start.line}", ctx.FLAG() != null))
         }
@@ -276,15 +276,15 @@ private class FileContext(val location: String) : CTLBaseListener() {
 
     /* ------ Formula Parsing ------ */
 
-    override fun exitId(ctx: CTLParser.IdContext) {
+    override fun exitId(ctx: HUCTLParser.IdContext) {
         formulaTree[ctx] = Formula.Atom.Reference(ctx.text)
     }
 
-    override fun exitBool(ctx: CTLParser.BoolContext) {
+    override fun exitBool(ctx: HUCTLParser.BoolContext) {
         formulaTree[ctx] = if (ctx.TRUE() != null) True else False
     }
 
-    override fun exitTransition(ctx: CTLParser.TransitionContext) {
+    override fun exitTransition(ctx: HUCTLParser.TransitionContext) {
         formulaTree[ctx] = Formula.Atom.Transition(
                 name = ctx.VAR_NAME().text,
                 direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
@@ -292,7 +292,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         )
     }
 
-    override fun exitProposition(ctx: CTLParser.PropositionContext) {
+    override fun exitProposition(ctx: HUCTLParser.PropositionContext) {
         val left = expressionTree[ctx.expression(0)]
         val right = expressionTree[ctx.expression(1)]
         val cmp = ctx.compare()
@@ -306,11 +306,11 @@ private class FileContext(val location: String) : CTLBaseListener() {
         }
     }
 
-    override fun exitParenthesis(ctx: CTLParser.ParenthesisContext) {
+    override fun exitParenthesis(ctx: HUCTLParser.ParenthesisContext) {
         formulaTree[ctx] = formulaTree[ctx.formula()]
     }
 
-    override fun exitNegation(ctx: CTLParser.NegationContext) {
+    override fun exitNegation(ctx: HUCTLParser.NegationContext) {
         formulaTree[ctx] = not(formulaTree[ctx.formula()])
     }
 
@@ -320,7 +320,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         } else (PathQuantifier.valueOf(operator.take(1)) to operator.drop(1))
     }
 
-    override fun exitUnaryTemporal(ctx: CTLParser.UnaryTemporalContext) {
+    override fun exitUnaryTemporal(ctx: HUCTLParser.UnaryTemporalContext) {
         val (path, state) = splitOperator(ctx.TEMPORAL_UNARY().text)
         val dir = ctx.dirModifier()?.let { dirFormulaTree[it.dirFormula()] } ?: DirectionFormula.Atom.True
         fun put(constructor: (PathQuantifier, Formula, DirectionFormula) -> Formula) {
@@ -329,23 +329,23 @@ private class FileContext(val location: String) : CTLBaseListener() {
         put(unaryTemporalConstructors[state]!!)
     }
 
-    override fun exitOr(ctx: CTLParser.OrContext) {
+    override fun exitOr(ctx: HUCTLParser.OrContext) {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] or formulaTree[ctx.formula(1)]
     }
 
-    override fun exitAnd(ctx: CTLParser.AndContext) {
+    override fun exitAnd(ctx: HUCTLParser.AndContext) {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] and formulaTree[ctx.formula(1)]
     }
 
-    override fun exitImplies(ctx: CTLParser.ImpliesContext) {
+    override fun exitImplies(ctx: HUCTLParser.ImpliesContext) {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] implies formulaTree[ctx.formula(1)]
     }
 
-    override fun exitEqual(ctx: CTLParser.EqualContext) {
+    override fun exitEqual(ctx: HUCTLParser.EqualContext) {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] equal formulaTree[ctx.formula(1)]
     }
 
-    override fun exitExistUntil(ctx: CTLParser.ExistUntilContext) {
+    override fun exitExistUntil(ctx: HUCTLParser.ExistUntilContext) {
         val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val left = formulaTree[ctx.formula(0)]
@@ -362,7 +362,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         }
     }
 
-    override fun exitAllUntil(ctx: CTLParser.AllUntilContext) {
+    override fun exitAllUntil(ctx: HUCTLParser.AllUntilContext) {
         val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
         val left = formulaTree[ctx.formula(0)]
@@ -379,7 +379,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
         }
     }
 
-    override fun exitFirstOrder(ctx: CTLParser.FirstOrderContext) {
+    override fun exitFirstOrder(ctx: HUCTLParser.FirstOrderContext) {
         val bound = ctx.setBound().formula()?.let { formulaTree[it] } ?: True
         val name = ctx.VAR_NAME().text
         val inner = formulaTree[ctx.formula()]
@@ -388,7 +388,7 @@ private class FileContext(val location: String) : CTLBaseListener() {
                 else Formula.FirstOrder.Exists(name, bound, inner)
     }
 
-    override fun exitHybrid(ctx: CTLParser.HybridContext) {
+    override fun exitHybrid(ctx: HUCTLParser.HybridContext) {
         val name = ctx.VAR_NAME().text
         val inner = formulaTree[ctx.formula()]
         formulaTree[ctx] =
@@ -398,72 +398,72 @@ private class FileContext(val location: String) : CTLBaseListener() {
 
     /* ------ Direction formula parsing ------ */
 
-    override fun exitDirId(ctx: CTLParser.DirIdContext) {
+    override fun exitDirId(ctx: HUCTLParser.DirIdContext) {
         dirFormulaTree[ctx] = DirectionFormula.Atom.Reference(ctx.text)
     }
 
-    override fun exitDirBool(ctx: CTLParser.DirBoolContext) {
+    override fun exitDirBool(ctx: HUCTLParser.DirBoolContext) {
         dirFormulaTree[ctx] = if (ctx.TRUE() != null) DirectionFormula.Atom.True else DirectionFormula.Atom.False
     }
 
-    override fun exitDirProposition(ctx: CTLParser.DirPropositionContext) {
+    override fun exitDirProposition(ctx: HUCTLParser.DirPropositionContext) {
         dirFormulaTree[ctx] = DirectionFormula.Atom.Proposition(
                 ctx.VAR_NAME().text, if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
         )
     }
 
-    override fun exitDirParenthesis(ctx: CTLParser.DirParenthesisContext) {
+    override fun exitDirParenthesis(ctx: HUCTLParser.DirParenthesisContext) {
         dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula()]
     }
 
-    override fun exitDirNegation(ctx: CTLParser.DirNegationContext) {
+    override fun exitDirNegation(ctx: HUCTLParser.DirNegationContext) {
         dirFormulaTree[ctx] = not(dirFormulaTree[ctx.dirFormula()])
     }
 
-    override fun exitDirAnd(ctx: CTLParser.DirAndContext) {
+    override fun exitDirAnd(ctx: HUCTLParser.DirAndContext) {
         dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] and dirFormulaTree[ctx.dirFormula(1)]
     }
 
-    override fun exitDirOr(ctx: CTLParser.DirOrContext) {
+    override fun exitDirOr(ctx: HUCTLParser.DirOrContext) {
         dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] or dirFormulaTree[ctx.dirFormula(1)]
     }
 
-    override fun exitDirImplies(ctx: CTLParser.DirImpliesContext) {
+    override fun exitDirImplies(ctx: HUCTLParser.DirImpliesContext) {
         dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] implies dirFormulaTree[ctx.dirFormula(1)]
     }
 
-    override fun exitDirEqual(ctx: CTLParser.DirEqualContext) {
+    override fun exitDirEqual(ctx: HUCTLParser.DirEqualContext) {
         dirFormulaTree[ctx] = dirFormulaTree[ctx.dirFormula(0)] equal dirFormulaTree[ctx.dirFormula(1)]
     }
 
 
     /* ------ Expression Parsing ----- */
 
-    override fun exitExpId(ctx: CTLParser.ExpIdContext) {
+    override fun exitExpId(ctx: HUCTLParser.ExpIdContext) {
         expressionTree[ctx] = ctx.text.asVariable()
     }
 
-    override fun exitExpValue(ctx: CTLParser.ExpValueContext) {
+    override fun exitExpValue(ctx: HUCTLParser.ExpValueContext) {
         expressionTree[ctx] = Expression.Constant(ctx.FLOAT_VAL().text.toDouble())
     }
 
-    override fun exitExpParenthesis(ctx: CTLParser.ExpParenthesisContext) {
+    override fun exitExpParenthesis(ctx: HUCTLParser.ExpParenthesisContext) {
         expressionTree[ctx] = expressionTree[ctx.expression()]
     }
 
-    override fun exitExpMultiply(ctx: CTLParser.ExpMultiplyContext) {
+    override fun exitExpMultiply(ctx: HUCTLParser.ExpMultiplyContext) {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] times expressionTree[ctx.expression(1)]
     }
 
-    override fun exitExpDivide(ctx: CTLParser.ExpDivideContext) {
+    override fun exitExpDivide(ctx: HUCTLParser.ExpDivideContext) {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] div expressionTree[ctx.expression(1)]
     }
 
-    override fun exitExpAdd(ctx: CTLParser.ExpAddContext) {
+    override fun exitExpAdd(ctx: HUCTLParser.ExpAddContext) {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] plus expressionTree[ctx.expression(1)]
     }
 
-    override fun exitExpSubtract(ctx: CTLParser.ExpSubtractContext) {
+    override fun exitExpSubtract(ctx: HUCTLParser.ExpSubtractContext) {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
     }
 

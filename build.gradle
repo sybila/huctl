@@ -29,10 +29,9 @@ version = '2.1.0'
 generateGrammarSource {
     arguments += [
             "-no-visitor",
-            "-listener",
-            "-package", "com.github.sybila.ctl.antlr"
+            "-listener"
     ]
-    outputDirectory = new File('src/main/gen/com/github/sybila/ctl/antlr')
+    outputDirectory = new File('src/main/gen/')
 }
 
 // make the Java compile task depend on the antlr4 task

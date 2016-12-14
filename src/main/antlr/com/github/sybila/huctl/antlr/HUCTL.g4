@@ -1,5 +1,8 @@
+grammar HUCTL;
 
-grammar CTL;
+@header {
+package com.github.sybila.huctl.antlr;
+}
 
 /* Main format structure */
 
