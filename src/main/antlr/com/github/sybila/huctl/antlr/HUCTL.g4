@@ -99,7 +99,7 @@ U : 'U';
 WF : 'wF';
 WX : 'wX';
 
-TEMPORAL_UNARY : PATH (X|G|F);
+TEMPORAL_UNARY : PATH (X|G|F|WF|WX);
 E_U : (E|PE) U;
 A_U : (A|PA) U;
 

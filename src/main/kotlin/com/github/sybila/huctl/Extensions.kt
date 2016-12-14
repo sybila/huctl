@@ -168,6 +168,13 @@ infix fun Formula.pastAU(reach: Formula): Formula
 fun Formula.pastAU(reach: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula
         = Until(pA, this, reach, dir)
 
+//Hybrid and first order
+
+fun at(name: String, inner: Formula) : Formula = Formula.Hybrid.At(name, inner)
+fun bind(name: String, inner: Formula) : Formula = Formula.Hybrid.Bind(name, inner)
+fun forall(name: String, bound: Formula, inner: Formula) : Formula = Formula.FirstOrder.ForAll(name, bound, inner)
+fun exists(name: String, bound: Formula, inner: Formula) : Formula = Formula.FirstOrder.Exists(name, bound, inner)
+
 //Bool
 infix fun Formula.and(other: Formula): Formula = And(this(), other())
 infix fun Formula.or(other: Formula): Formula = Or(this(), other())

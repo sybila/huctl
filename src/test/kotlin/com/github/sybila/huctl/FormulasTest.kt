@@ -6,16 +6,17 @@ import kotlin.test.assertNotEquals
 
 class FoldTest {
 
-    val formula = EX(True EU (
+    val formula = EX((True EU (
             "var".asVariable() eq 13.3.asConstant()
                 or
-            "val".negativeIn()
-        )
+            "val".negativeIn()))
+        , dir = "x".increase()
     )
+
 
     @Test
     fun foldIdentity() {
-        assertEquals(formula, formula.fold<Formula>({this},{this.copy(it)},{ l, r -> this.copy(l,r) }))
+        assertEquals(formula, formula.fold({this}, Formula.Unary<*>::copy, Formula.Binary<*>::copy))
     }
 
     @Test
@@ -25,7 +26,7 @@ class FoldTest {
                     "var".positiveOut()
                         or
                     ("val".asVariable() neq 10.3.asConstant())
-                )
+                ), dir = "x".increase()
             ), formula.mapLeafs {
                 when (it) {
                     is Formula.Atom.True -> False
@@ -44,10 +45,10 @@ class FoldTest {
                     "var".asVariable() eq 13.3.asConstant()
                         and
                     "val".negativeIn()
-                )
+                ), dir = "y".decrease()
             ), formula.fold<Formula>({this}, {
                 if (this is Formula.Simple.Next) {
-                    AX(it)
+                    AX(it, dir = "y".decrease())
                 } else this.copy(it)
             }, { l,r ->
                 if (this is Formula.Until) {
@@ -95,8 +96,21 @@ class Misc {
     }
 
     @Test
-    fun formulaToString() {
-        assertEquals("(true && {true}EX (false {true}EU true))", (True and EX(False EU True)).toString())
+    fun ctlFormulaToString() {
+        assertEquals("(true && {true}pEwX (false {true}EU true))", (True and pastWeakEX(False EU True)).toString())
+    }
+
+    @Test
+    fun hybridFormulaToString() {
+        assertEquals("(at x : (bind y : true))", at("x", bind("y", True)).toString())
+    }
+
+    @Test
+    fun firstOrderFormulaToString() {
+        assertEquals(
+                "(forall x in false : (exists y in true : false))",
+                forall("x", False, exists("y", True, False)).toString()
+        )
     }
 
     @Test

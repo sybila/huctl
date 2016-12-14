@@ -262,11 +262,11 @@ sealed class Formula : () -> Formula {
         class Globally(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Globally>(quantifier, inner, direction,"G") {
             override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Globally = Globally(quantifier, inner, direction)
         }
-        class WeakNext(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Next>(quantifier, inner, direction, "wX") {
-            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Next = Next(quantifier, inner, direction)
+        class WeakNext(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<WeakNext>(quantifier, inner, direction, "wX") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): WeakNext = WeakNext(quantifier, inner, direction)
         }
-        class WeakFuture(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<Future>(quantifier, inner, direction,"wF") {
-            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): Future = Future(quantifier, inner, direction)
+        class WeakFuture(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula) : Simple<WeakFuture>(quantifier, inner, direction,"wF") {
+            override fun copy(quantifier: PathQuantifier, inner: Formula, direction: DirectionFormula): WeakFuture = WeakFuture(quantifier, inner, direction)
         }
     }
 
@@ -407,16 +407,6 @@ enum class PathQuantifier {
 
 enum class CompareOp(private val str: String) {
     GT(">"), GE(">="), EQ("=="), NEQ("!="), LE("<="), LT("<");
-
-    val negation: CompareOp
-            get() = when (this) {
-                GT -> LE
-                GE -> LT
-                EQ -> NEQ
-                NEQ -> EQ
-                LE -> GT
-                LT -> GE
-            }
 
     override fun toString(): String = str
 }

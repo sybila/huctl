@@ -1,6 +1,5 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.*
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -18,14 +17,10 @@ class Basic {
     }
 
     @Test
-    fun binaryOps() {
+    fun boolOps() {
         assertEquals(
-                True EU False,
-                parser.formula("True EU False")
-        )
-        assertEquals(
-                True AU False,
-                parser.formula("True AU False")
+                not(True),
+                parser.formula("!True")
         )
         assertEquals(
                 True and False,
@@ -43,16 +38,67 @@ class Basic {
                 True equal False,
                 parser.formula("True <-> False")
         )
+    }
 
-        //TODO True => False should be a failing error!
+    @Test
+    fun untilOps() {
+        //basic
+        assertEquals(
+                True EU False,
+                parser.formula("True EU False")
+        )
+        assertEquals(
+                True AU False,
+                parser.formula("True AU False")
+        )
+        //path direction
+        assertEquals(
+                True.pastEU(False, True.asDirectionFormula()!!),
+                parser.formula("True {True}pEU False")
+        )
+        assertEquals(
+                True.pastAU(False, True.asDirectionFormula()!!),
+                parser.formula("True {True}pAU False")
+        )
+        //reach direction
+        assertEquals(
+                True EU (EX(False, False.asDirectionFormula()!!)),
+                parser.formula("True EU{False} False")
+        )
+        assertEquals(
+                True pastEU (pastEX(False, False.asDirectionFormula()!!)),
+                parser.formula("True pEU{False} False")
+        )
+        assertEquals(
+                True AU (AX(False, False.asDirectionFormula()!!)),
+                parser.formula("True AU{False} False")
+        )
+        assertEquals(
+                True pastAU (pastAX(False, False.asDirectionFormula()!!)),
+                parser.formula("True pAU{False} False")
+        )
+        //both
+        assertEquals(
+                True.pastEU(pastEX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
+                parser.formula("True {True}pEU{False} False")
+        )
+        assertEquals(
+                True.EU(EX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
+                parser.formula("True {True}EU{False} False")
+        )
+        assertEquals(
+                True.pastAU(pastAX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
+                parser.formula("True {True}pAU{False} False")
+        )
+        assertEquals(
+                True.AU(AX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
+                parser.formula("True {True}AU{False} False")
+        )
     }
 
     @Test
     fun unaryOps() {
-        assertEquals(
-                not(True),
-                parser.formula("!True")
-        )
+        //basic
         assertEquals(
                 EX(True),
                 parser.formula("EX True")
@@ -76,6 +122,68 @@ class Basic {
         assertEquals(
                 AG(True),
                 parser.formula("AG True")
+        )
+        assertEquals(
+                weakEX(True),
+                parser.formula("EwX True")
+        )
+        assertEquals(
+                weakAX(True),
+                parser.formula("AwX True")
+        )
+        assertEquals(
+                weakEF(True),
+                parser.formula("EwF True")
+        )
+        assertEquals(
+                weakAF(True),
+                parser.formula("AwF True")
+        )
+        //past
+        assertEquals(
+                pastEX(True),
+                parser.formula("pEX True")
+        )
+        assertEquals(
+                pastAX(True),
+                parser.formula("pAX True")
+        )
+        assertEquals(
+                pastEF(True),
+                parser.formula("pEF True")
+        )
+        assertEquals(
+                pastAF(True),
+                parser.formula("pAF True")
+        )
+        assertEquals(
+                pastEG(True),
+                parser.formula("pEG True")
+        )
+        assertEquals(
+                pastAG(True),
+                parser.formula("pAG True")
+        )
+        assertEquals(
+                pastWeakEX(True),
+                parser.formula("pEwX True")
+        )
+        assertEquals(
+                pastWeakAX(True),
+                parser.formula("pAwX True")
+        )
+        assertEquals(
+                pastWeakEF(True),
+                parser.formula("pEwF True")
+        )
+        assertEquals(
+                pastWeakAF(True),
+                parser.formula("pAwF True")
+        )
+        //transitions
+        assertEquals(
+                pastWeakAF(True, False.asDirectionFormula()!!),
+                parser.formula("{False}pAwF True")
         )
     }
 
@@ -113,7 +221,50 @@ class Basic {
     }
 
     @Test
-    fun directions() {
+    fun firstOrder() {
+        assertEquals(
+                forall("x", True, False), parser.formula("forall x: False")
+        )
+        assertEquals(
+                forall("x", False, False), parser.formula("forall x in False: False")
+        )
+        assertEquals(
+                exists("x", True, False), parser.formula("exists x: False")
+        )
+        assertEquals(
+                exists("x", False, False), parser.formula("exists x in False: False")
+        )
+    }
+
+    @Test
+    fun hybrid() {
+        assertEquals(
+                at("x", True), parser.formula("at x: True")
+        )
+        assertEquals(
+                bind("x", True), parser.formula("bind x: True")
+        )
+    }
+
+    @Test
+    fun directionProposition() {
+        assertEquals(EX(True, "x".increase()), parser.formula("{x+}EX True"))
+        assertEquals(EX(True, "x".decrease()), parser.formula("{x-}EX True"))
+        assertEquals(EX(True, True.asDirectionFormula()!!), parser.formula("{True}EX True"))
+        assertEquals(EX(True, False.asDirectionFormula()!!), parser.formula("{False}EX True"))
+    }
+
+    @Test
+    fun directionBool() {
+        assertEquals(EX(True, not("x".increase())), parser.formula("{!x+}EX True"))
+        assertEquals(EX(True, "x".increase() and "y".decrease()), parser.formula("{x+ && y-}EX True"))
+        assertEquals(EX(True, "x".increase() or "y".decrease()), parser.formula("{x+ || y-}EX True"))
+        assertEquals(EX(True, "x".increase() implies "y".decrease()), parser.formula("{x+ -> y-}EX True"))
+        assertEquals(EX(True, "x".increase() equal "y".decrease()), parser.formula("{x+ <-> y-}EX True"))
+    }
+
+    @Test
+    fun transitions() {
         assertEquals(
                 "var".positiveIn(),
                 parser.formula("var:in+")

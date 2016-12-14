@@ -1,6 +1,5 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -16,7 +15,8 @@ class Complex {
             (((-3.14).asConstant() plus (12.0.asConstant() minus "f".asVariable())) times 2.0.asConstant())
     )
 
-    @Test fun complexFiles() {
+    @Test
+    fun complexFiles() {
 
         val f1 = File.createTempFile("file", ".ctl")
         val f2 = File.createTempFile("file2", ".ctl")
@@ -62,23 +62,26 @@ class Complex {
 
     }
 
-    @Test fun complexString() {
+    @Test
+    fun complexString() {
 
         val result = parser.parse("""
+            dir = true || x+
             z = p3
             x = 12 - f
             b = EX z/1.3 + 2 < (-3.14 + x) * 2 EU a
             a = (p1 == 4) && p2:in-
-            d = AG AX c
+            d = {(y-) -> dir}AG {dir}AX c
             c = b <-> b
-            e = c && True || False && b
+            e = c && (forall x: True) || (exists y in d: False) && b
         """)
 
+        val dir = DirectionFormula.Atom.True or "x".increase()
         val a = p1 and p2
         val b = EX(p3) EU a
         val c = b equal b
-        val d = AG(AX(c))
-        val e = (c and True) or (False and b)
+        val d = AG(AX(c, dir), "y".decrease() implies dir)
+        val e = (c and forall("x", True, True)) or (exists("y", d, False) and b)
 
         assertEquals(5, result.size)
         assertEquals(a, result["a"])
@@ -89,7 +92,8 @@ class Complex {
 
     }
 
-    @Test fun operatorAssociativity() {
+    @Test
+    fun operatorAssociativity() {
         //These binary operators are by convention right-associative
         //Other binary operators, such as &&, ||, <=> are associative,
         //so it doesn't matter if we resolve them left to right or right to left
@@ -108,7 +112,17 @@ class Complex {
         )
     }
 
-    @Test fun operatorPriority() {
+    @Test
+    fun directionOperatorAssociativity() {
+        //Implication is right associative!
+        assertEquals(
+                EX(True, ("z".increase() implies ("x".increase() implies "y".decrease()))),
+                parser.formula("{z+ -> x+ -> y-}EX True")
+        )
+    }
+
+    @Test
+    fun operatorPriority() {
         //we do not test every combination, since priority should be transitive
         assertEquals(
                 not(False) and not(True),
@@ -133,6 +147,33 @@ class Complex {
         assertEquals(
                 (True EU False) AU (False EU True),
                 parser.formula("True EU False AU False EU True")
+        )
+        assertEquals(
+                forall("x", False, (True or False) AU (True and exists("y", True, False))),
+                parser.formula("forall x in False: True || False AU True && exists y in True: False")
+        )
+    }
+
+    @Test
+    fun directionOperatorPriority() {
+        //we do not test every combination, since priority should be transitive
+        val xp = "x".increase()
+        val yd = "y".decrease()
+        assertEquals(
+                EX(True, not(xp) and not(yd)),
+                parser.formula("{!x+ && !y-} EX true")
+        )
+        assertEquals(
+                EX(True, (xp and yd) or (yd and xp)),
+                parser.formula("{x+ && y- || y- && x+} EX True")
+        )
+        assertEquals(
+                EX(True, (xp or yd) implies (yd or xp)),
+                parser.formula("{x+ || y- -> y- || x+} EX True")
+        )
+        assertEquals(
+                EX(True, (xp implies yd) equal (yd implies xp)),
+                parser.formula("{x+ -> y- <-> y- -> x+} EX True")
         )
     }
 

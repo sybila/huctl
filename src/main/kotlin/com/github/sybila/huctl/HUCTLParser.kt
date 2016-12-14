@@ -6,6 +6,7 @@ import com.github.sybila.huctl.antlr.HUCTLParser
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA
+import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
 import org.antlr.v4.runtime.tree.ParseTreeWalker
@@ -139,10 +140,6 @@ class HUCTLParser() {
         for ((name, assignment) in references) {
             if (assignment.item is String) {
                 references[name] = assignment.copy(item = resolveAlias(assignment.item))
-            } else if (assignment.item is Formula.Atom.Reference && assignment.item.name !in references) {
-                references[name] = assignment.copy(item = assignment.item.name.asVariable())
-            } else if (assignment.item is DirectionFormula.Atom.Reference && assignment.item.name !in references) {
-                references[name] = assignment.copy(item = assignment.item.name.asVariable())
             }
         }
 
@@ -186,7 +183,7 @@ private class FileParser {
     }
 
     private fun processString(input: String): FileContext =
-            processStream(ANTLRInputStream(input.toCharArray(), input.length), "input string")
+            processStream(ANTLRInputStream(input.toCharArray(), input.length), "input_string")
 
     private fun processFile(input: File): FileContext =
             input.inputStream().use { processStream(ANTLRInputStream(it), input.absolutePath) }
@@ -253,7 +250,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     private val expressionTree = ParseTreeProperty<Expression>()
     private val dirFormulaTree = ParseTreeProperty<DirectionFormula>()
 
-    fun toParseContext() = ParserContext(formulas + expressions + aliases)
+    fun toParseContext() = ParserContext(formulas + expressions + aliases + dirFormulas)
 
     /* ----- Basic control flow ------ */
 
@@ -272,6 +269,10 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
             ctx.expression() != null -> put(expressions, expressionTree[ctx.expression()])
             else -> put(aliases, ctx.VAR_NAME(1).text)
         }
+    }
+
+    override fun visitErrorNode(node: ErrorNode) {
+        throw IllegalStateException("Syntax error at '${node.text}' in $location:${node.symbol.line}")
     }
 
     /* ------ Formula Parsing ------ */
@@ -380,7 +381,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     }
 
     override fun exitFirstOrder(ctx: HUCTLParser.FirstOrderContext) {
-        val bound = ctx.setBound().formula()?.let { formulaTree[it] } ?: True
+        val bound = ctx.setBound()?.formula()?.let { formulaTree[it] } ?: True
         val name = ctx.VAR_NAME().text
         val inner = formulaTree[ctx.formula()]
         formulaTree[ctx] =
@@ -485,4 +486,4 @@ private data class Assignment<out T: Any>(
 )
 
 operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)
-operator fun <T> ParseTreeProperty<T>.get(k: ParseTree): T = this.get(k)
+//operator fun <T> ParseTreeProperty<T>.get(k: ParseTree): T = this.get(k)

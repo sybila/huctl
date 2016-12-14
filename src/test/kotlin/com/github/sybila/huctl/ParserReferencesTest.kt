@@ -1,6 +1,5 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
