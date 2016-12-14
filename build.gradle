@@ -21,7 +21,7 @@ buildscript {
 }
 
 sourceCompatibility = 1.7
-group = "com.github.sybila"
+group = "com.github.sybila.ctl"
 archivesBaseName = "ctl-parser"
 version = '2.1.0'
 
@@ -84,5 +84,5 @@ buildStamp {
     repoBaseUrl "https://github.com/sybila/ctl-parser"
     // BuildInfo.java will be added under this package, in a
     // generated build/ directory.
-    packageName group
+    packageName "com.github.sybila.ctl"
 }
