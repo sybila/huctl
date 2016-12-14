@@ -86,3 +86,9 @@ buildStamp {
     // generated build/ directory.
     packageName "com.github.sybila.ctl"
 }
+
+test {
+    testLogging {
+        exceptionFormat = 'full'
+    }
+}
