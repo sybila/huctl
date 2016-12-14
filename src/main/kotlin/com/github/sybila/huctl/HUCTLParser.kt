@@ -58,7 +58,7 @@ class HUCTLParser() {
                 throw IllegalStateException("Cyclic reference: $name")
             } else name.stacked {
                 references[name]?.run {
-                    if (this.item is String) resolveAlias(this.name)
+                    if (this.item is String) resolveAlias(this.item)
                     else this.item
                 } ?: Expression.Variable(name)  //a = k and k is not defined, it defaults to variable name
             }
