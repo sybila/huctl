@@ -89,6 +89,6 @@ buildStamp {
 
 test {
     testLogging {
-        exceptionFormat = 'full'
+        events "full", "passed", "skipped", "failed", "standardOut", "standardError"
     }
 }

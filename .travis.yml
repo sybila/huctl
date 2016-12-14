@@ -1,8 +1,6 @@
 language: java
 sudo: false
 
-script: ./gradlew check --info
-
 before_script:
   - pip install --user codecov
 
