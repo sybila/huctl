@@ -56,7 +56,7 @@ class HUCTLParser() {
         fun resolveAlias(name: String): Any =
             if (name in replaced) {
                 throw IllegalStateException("Cyclic reference: $name")
-            } else {
+            } else name.stacked {
                 references[name]?.run {
                     if (this.item is String) resolveAlias(this.name)
                     else this.item

@@ -191,21 +191,17 @@ class References {
     }
 
     @Test fun aliasInString() {
-        try {
-            val result = parser.parse("""
+        val result = parser.parse("""
             k = True
             l = k
             m = l
             n = m
         """)
-            assertEquals(4, result.size)
-            assertEquals(True, result["k"])
-            assertEquals(True, result["l"])
-            assertEquals(True, result["m"])
-            assertEquals(True, result["n"])
-        } catch (e: StackOverflowError) {
-            e.printStackTrace()
-        }
+        assertEquals(4, result.size)
+        assertEquals(True, result["k"])
+        assertEquals(True, result["l"])
+        assertEquals(True, result["m"])
+        assertEquals(True, result["n"])
     }
 
     @Test fun expressionAlias() {
