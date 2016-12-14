@@ -1,6 +1,5 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.*
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
@@ -46,39 +45,6 @@ class Integration {
         assertEquals(2, flagged.size)
         assertEquals(f, flagged["f"])
         assertEquals(c, flagged["c"])
-
-        val normalized = f.normalize()
-
-        assertEquals(
-                (
-                        (True EU True)  //EF
-                                and
-                                not(True AU not(//EG
-                                        True
-                                                EU
-                                                (
-                                                        ((p2 and False) or (not(p2) and not(False)))    //<=>
-                                                                EU
-                                                                (True and p1)
-                                                        )
-                                ))
-                        )
-                        or
-                        not(EX(not(True and p1))), //AX
-                normalized
-        )
-
-        val optimized = normalized.optimize()
-
-        assertEquals(
-                not(
-                        True AU not(True EU (np2 EU p1))
-                                and
-                                EX(not(p1))
-                ),
-                optimized
-        )
-
     }
 
 }
