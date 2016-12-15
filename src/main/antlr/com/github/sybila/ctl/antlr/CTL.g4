@@ -1,5 +1,8 @@
-
 grammar CTL;
+
+@header {
+package com.github.sybila.ctl.antlr;
+}
 
 /* Main format structure */
 
