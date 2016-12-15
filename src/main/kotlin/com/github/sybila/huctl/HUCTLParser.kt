@@ -72,7 +72,7 @@ class HUCTLParser() {
                 references[name]?.run {
                     if (this.item is Expression) resolveExpression(this.item)
                     else throw IllegalStateException(
-                            "Expected type of $name is an Expression, not ${this.item.javaClass.simpleName}."
+                            "Expected type of $name is an Expression."
                     )
                 } ?: e  //e is just a model variable
             }
@@ -91,7 +91,7 @@ class HUCTLParser() {
                             this.item.asDirectionFormula()?.let(::resolveDirectionFormula)
                             ?: throw IllegalStateException("$name cannot be cast to direction formula.")
                         else throw IllegalStateException(
-                                "Expected type of $name is a direction formula, not ${this.item.javaClass.simpleName}."
+                                "Expected type of $name is a direction formula."
                         )
                     } ?: throw IllegalStateException("Undefined reference $name")
                 }
@@ -108,7 +108,7 @@ class HUCTLParser() {
                     } else name.stacked {
                         references[name]?.run {
                             if (this.item is Formula) resolveFormula(this.item)
-                            else throw IllegalStateException("Expected type of $name is a formula, not ${this.item.javaClass.simpleName}.")
+                            else throw IllegalStateException("Expected type of $name is a formula.")
                         } ?: throw IllegalStateException("Undefined reference $name")
                     }
                 }
@@ -346,37 +346,38 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
         formulaTree[ctx] = formulaTree[ctx.formula(0)] equal formulaTree[ctx.formula(1)]
     }
 
-    override fun exitExistUntil(ctx: HUCTLParser.ExistUntilContext) {
-        val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
-        val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
-        val left = formulaTree[ctx.formula(0)]
-        val right = formulaTree[ctx.formula(1)]
-        val (path, state) = splitOperator(ctx.E_U().text)
-        assert(state == "U")
-        assert(path == PathQuantifier.E || path == PathQuantifier.pE)
-        if (dirR != DirectionFormula.Atom.True) {
-            //rewrite using U X
-            val next = Formula.Simple.Next(path, right, dirR)
-            formulaTree[ctx] = Formula.Until(path, left, next, dirL)
-        } else {
-            formulaTree[ctx] = Formula.Until(path, left, right, dirL)
-        }
+    override fun exitAllUntil(ctx: HUCTLParser.AllUntilContext) {
+        ctx.makeUntil(ctx.A_U().text, ctx.formula(0), ctx.formula(1),
+                ctx.dirModifierL()?.dirModifier()?.dirFormula(),
+                ctx.dirModifierR()?.dirModifier()?.dirFormula()
+        )
     }
 
-    override fun exitAllUntil(ctx: HUCTLParser.AllUntilContext) {
-        val dirL = ctx.dirModifierL()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
-        val dirR = ctx.dirModifierR()?.let { dirFormulaTree[it.dirModifier().dirFormula()] } ?: DirectionFormula.Atom.True
-        val left = formulaTree[ctx.formula(0)]
-        val right = formulaTree[ctx.formula(1)]
-        val (path, state) = splitOperator(ctx.A_U().text)
+    override fun exitExistUntil(ctx: HUCTLParser.ExistUntilContext) {
+        ctx.makeUntil(ctx.E_U().text, ctx.formula(0), ctx.formula(1),
+                ctx.dirModifierL()?.dirModifier()?.dirFormula(),
+                ctx.dirModifierR()?.dirModifier()?.dirFormula()
+        )
+    }
+
+    private fun HUCTLParser.FormulaContext.makeUntil(op: String,
+                                                     pathC: HUCTLParser.FormulaContext,
+                                                     reachC: HUCTLParser.FormulaContext,
+                                                     dirLC: HUCTLParser.DirFormulaContext?,
+                                                     dirRC: HUCTLParser.DirFormulaContext?
+    ) {
+        val (path, state) = splitOperator(op)
         assert(state == "U")
-        assert(path == PathQuantifier.A || path == PathQuantifier.pA)
+        val left = formulaTree[pathC]
+        val right = formulaTree[reachC]
+        val dirL = dirFormulaTree[dirLC] ?: DirectionFormula.Atom.True
+        val dirR = dirFormulaTree[dirRC] ?: DirectionFormula.Atom.True
         if (dirR != DirectionFormula.Atom.True) {
             //rewrite using U X
             val next = Formula.Simple.Next(path, right, dirR)
-            formulaTree[ctx] = Formula.Until(path, left, next, dirL)
+            formulaTree[this] = Formula.Until(path, left, next, dirL)
         } else {
-            formulaTree[ctx] = Formula.Until(path, left, right, dirL)
+            formulaTree[this] = Formula.Until(path, left, right, dirL)
         }
     }
 

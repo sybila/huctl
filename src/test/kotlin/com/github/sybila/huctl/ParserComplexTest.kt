@@ -3,6 +3,7 @@ package com.github.sybila.huctl
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class Complex {
 
@@ -177,7 +178,8 @@ class Complex {
         )
     }
 
-    @Test fun expressionOperatorPriority() {
+    @Test
+    fun expressionOperatorPriority() {
         //We don't care about priority of * vs. / and + vs. -
         val three = 3.0.asConstant()
         assertEquals(((three times three) plus three eq 0.0.asConstant()),
@@ -188,6 +190,44 @@ class Complex {
                 parser.formula("3 / 3 + 3 == 0"))
         assertEquals(((three div three) minus three eq 0.0.asConstant()),
                 parser.formula("3 / 3 - 3 == 0"))
+    }
+
+    @Test
+    fun ambiguousFormulas() {
+        val r = parser.parse("""
+            k = True && False
+            l = {k}EX True
+            m = k || False
+        """)
+        assertEquals(3, r.size)
+        assertEquals(True and False, r["k"])
+        assertEquals(EX(True, True.asDirectionFormula()!! and False.asDirectionFormula()!!), r["l"])
+        assertEquals((True and False) or False, r["m"])
+    }
+
+    @Test
+    fun formulaCastError() {
+        //direction to formula
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                k = x+ || y-
+                l = EX k
+            """)
+        }
+        //formula to direction
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                k = EX True
+                l = {k}EF False
+            """)
+        }
+        //expression to formula
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                k = a + b
+                l = EX k
+            """)
+        }
     }
 
 }
