@@ -43,7 +43,7 @@ package com.github.sybila.huctl
  *      }
  * }
  */
-sealed class Formula : () -> Formula {
+sealed class Formula {
 
     abstract fun asDirectionFormula(): DirectionFormula?
 
@@ -73,27 +73,12 @@ sealed class Formula : () -> Formula {
             override fun asDirectionFormula(): DirectionFormula? = DirectionFormula.Atom.False
         }
         class Float(val left: Expression, val cmp: CompareOp, val right: Expression) : Atom() {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
-
-                other as Float
-
-                if (left != other.left) return false
-                if (cmp != other.cmp) return false
-                if (right != other.right) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = left.hashCode()
-                result = 31 * result + cmp.hashCode()
-                result = 31 * result + right.hashCode()
-                return result
-            }
-
-            override fun toString(): String = "($left $cmp $right)"
+            override fun equals(other: Any?): Boolean
+                    = other is Float && other.left == this.left && other.right == this.right && other.cmp == this.cmp
+            override fun hashCode(): Int
+                    = (31 * (31 * left.hashCode() + cmp.hashCode()) + right.hashCode())
+            override fun toString(): String
+                    = "($left $cmp $right)"
 
             fun copy(left: Expression = this.left, cmp: CompareOp = this.cmp, right: Expression = this.right): Float
                     = Float(left, cmp, right)
@@ -101,43 +86,15 @@ sealed class Formula : () -> Formula {
             override fun asDirectionFormula(): DirectionFormula? = null
         }
         class Transition(val name: String, val direction: Direction, val facet: Facet) : Atom() {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
-
-                other as Transition
-
-                if (name != other.name) return false
-                if (direction != other.direction) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = name.hashCode()
-                result = 31 * result + direction.hashCode()
-                return result
-            }
-
+            override fun equals(other: Any?): Boolean
+                    = other is Transition && other.name == this.name && other.direction == this.direction && other.facet == this.facet
+            override fun hashCode(): Int = 31 * name.hashCode() + direction.hashCode()
             override fun toString(): String = "$name:$direction$facet"
             override fun asDirectionFormula(): DirectionFormula? = null
         }
         internal class Reference(val name: String) : Atom() {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
-
-                other as Reference
-
-                if (name != other.name) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                return name.hashCode()
-            }
-
+            override fun equals(other: Any?): Boolean = other is Reference && other.name == this.name
+            override fun hashCode(): Int = name.hashCode()
             override fun toString(): String = name
             override fun asDirectionFormula(): DirectionFormula? = DirectionFormula.Atom.Reference(this.name)
         }
@@ -147,31 +104,19 @@ sealed class Formula : () -> Formula {
             val name: String, val bound: Formula, val target: Formula, private val op: String
     ) : Formula(), Binary<T> {
 
-        override fun toString(): String = "($op $name in $bound : $target)"
+        override fun toString(): String
+                = "($op $name in $bound : $target)"
 
-        abstract fun copy(name: String = this.name, bound: Formula = this.bound, target: Formula = this.target): T
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
+        override fun equals(other: Any?): Boolean
+                = other is FirstOrder<*> && other.javaClass == this.javaClass &&
+                other.name == this.name && other.target == this.target && other.bound == this.bound
 
-            other as FirstOrder<*>
-
-            if (name != other.name) return false
-            if (bound != other.bound) return false
-            if (target != other.target) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = name.hashCode()
-            result = 31 * result + bound.hashCode()
-            result = 31 * result + target.hashCode()
-            return result
-        }
+        override fun hashCode(): Int
+                = 31 * (31 * (31 * name.hashCode() + bound.hashCode()) + target.hashCode()) + op.hashCode()
 
         override val left: Formula = bound
         override val right: Formula = target
+        abstract fun copy(name: String = this.name, bound: Formula = this.bound, target: Formula = this.target): T
         override fun copy(left: Formula, right: Formula): T = copy(bound = left, target = right)
         override fun asDirectionFormula(): DirectionFormula? = null
 
@@ -184,25 +129,16 @@ sealed class Formula : () -> Formula {
     }
 
     sealed class Hybrid<T: Hybrid<T>>(val name: String, val target: Formula, private val op: String) : Formula(), Unary<T> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
 
-            other as Hybrid<*>
+        override fun equals(other: Any?): Boolean
+                = other is Hybrid<*> && this.javaClass == other.javaClass &&
+                other.name == this.name && other.target == this.target
 
-            if (name != other.name) return false
-            if (target != other.target) return false
+        override fun hashCode(): Int
+                = 31 * (31 * name.hashCode() + target.hashCode()) + op.hashCode()
 
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = name.hashCode()
-            result = 31 * result + target.hashCode()
-            return result
-        }
-
-        override fun toString(): String = "($op $name : $target)"
+        override fun toString(): String
+                = "($op $name : $target)"
 
         abstract fun copy(name: String = this.name, target: Formula = this.target): T
 
@@ -223,27 +159,19 @@ sealed class Formula : () -> Formula {
                                       override val inner: Formula, override val direction: DirectionFormula,
                                       private val op: String
     ) : Formula(), Temporal, Unary<T> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
 
-            other as Simple<*>
+        override fun equals(other: Any?): Boolean
+                = other is Simple<*> &&
+                other.javaClass == this.javaClass &&
+                this.quantifier == other.quantifier &&
+                this.inner == other.inner &&
+                this.direction == other.direction
 
-            if (quantifier != other.quantifier) return false
-            if (inner != other.inner) return false
-            if (direction != other.direction) return false
+        override fun hashCode(): Int
+                = 31 * (31 * (31 * inner.hashCode() + direction.hashCode()) + quantifier.hashCode()) + op.hashCode()
 
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = inner.hashCode()
-            result = 31 * result + direction.hashCode()
-            result = 31 * result + quantifier.hashCode()
-            return result
-        }
-
-        override fun toString(): String = "{$direction}$quantifier$op $inner"
+        override fun toString(): String
+                = "{$direction}$quantifier$op $inner"
 
         abstract fun copy(quantifier: PathQuantifier = this.quantifier,
                           inner: Formula = this.inner,
@@ -276,30 +204,16 @@ sealed class Formula : () -> Formula {
             val reach: Formula,
             override val direction: DirectionFormula
     ) : Formula(), Temporal, Binary<Until> {
-
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Until
-
-            if (quantifier != other.quantifier) return false
-            if (path != other.path) return false
-            if (reach != other.reach) return false
-            if (direction != other.direction) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = path.hashCode()
-            result = 31 * result + reach.hashCode()
-            result = 31 * result + direction.hashCode()
-            result = 31 * result + quantifier.hashCode()
-            return result
-        }
-
-        override fun toString(): String = "($path {$direction}${quantifier}U $reach)"
+        override fun equals(other: Any?): Boolean
+                = other is Until &&
+                other.quantifier == this.quantifier &&
+                other.path == this.path &&
+                other.reach == this.reach &&
+                other.direction == this.direction
+        override fun hashCode(): Int
+                = (31 * (31 * (31 * path.hashCode() + reach.hashCode()) + direction.hashCode()) + quantifier.hashCode())
+        override fun toString(): String
+                = "($path {$direction}${quantifier}U $reach)"
 
         override val left: Formula = path
         override val right: Formula = reach
@@ -317,52 +231,32 @@ sealed class Formula : () -> Formula {
 
 
     class Not(override val inner: Formula) : Formula(), Unary<Not> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
-
-            other as Not
-
-            if (inner != other.inner) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return inner.hashCode()
-        }
-
-        override fun toString(): String = "!$inner"
-
-        override fun copy(inner: Formula) = Not(inner)
-        override fun asDirectionFormula(): DirectionFormula? = inner.asDirectionFormula()?.let {
-            DirectionFormula.Not(it)
-        }
+        override fun equals(other: Any?): Boolean
+                = other is Not && this.inner == other.inner
+        override fun hashCode(): Int
+                = inner.hashCode()
+        override fun toString(): String
+                = "!$inner"
+        override fun copy(inner: Formula)
+                = Not(inner)
+        override fun asDirectionFormula(): DirectionFormula?
+                = inner.asDirectionFormula()?.let { DirectionFormula.Not(it) }
     }
 
     sealed class Bool<T: Bool<T>>(
             override val left: Formula, override val right: Formula,
             private val op: String
     ) : Formula(), Binary<T> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
 
-            other as Bool<*>
+        override fun equals(other: Any?): Boolean
+                = other is Bool<*> && other.javaClass == this.javaClass &&
+                this.left == other.left && this.right == other.right
 
-            if (left != other.left) return false
-            if (right != other.right) return false
+        override fun hashCode(): Int
+                = 31 * (left.hashCode() + 31 * right.hashCode()) + op.hashCode()
 
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = left.hashCode()
-            result = 31 * result + right.hashCode()
-            return result
-        }
-
-        override fun toString(): String = "($left $op $right)"
+        override fun toString(): String
+                = "($left $op $right)"
 
         class And(left: Formula, right: Formula) : Bool<And>(left, right, "&&") {
             override fun copy(left: Formula, right: Formula): And = And(left, right)
@@ -398,7 +292,6 @@ sealed class Formula : () -> Formula {
         }
     }
 
-    override fun invoke(): Formula = this
 }
 
 enum class PathQuantifier {

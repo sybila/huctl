@@ -24,42 +24,20 @@ sealed class DirectionFormula {
         }
 
         class Proposition(val name: String, val facet: Facet) : Atom() {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
+            override fun equals(other: Any?): Boolean
+                    = other is Proposition && other.name == this.name && other.facet == this.facet
 
-                other as Proposition
+            override fun hashCode(): Int
+                    = (31 * name.hashCode() + facet.hashCode())
 
-                if (name != other.name) return false
-                if (facet != other.facet) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                var result = name.hashCode()
-                result = 31 * result + facet.hashCode()
-                return result
-            }
-
-            override fun toString(): String = "$name$facet"
+            override fun toString(): String
+                    = "$name$facet"
         }
 
         internal class Reference(val name: String) : Atom() {
-            override fun equals(other: Any?): Boolean {
-                if (this === other) return true
-                if (other?.javaClass != javaClass) return false
+            override fun equals(other: Any?): Boolean = other is Reference && other.name == this.name
 
-                other as Reference
-
-                if (name != other.name) return false
-
-                return true
-            }
-
-            override fun hashCode(): Int {
-                return name.hashCode()
-            }
+            override fun hashCode(): Int = name.hashCode()
 
             override fun toString(): String = name
         }
@@ -71,20 +49,9 @@ sealed class DirectionFormula {
 
         override fun copy(inner: DirectionFormula): Not = Not(inner)
 
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
+        override fun equals(other: Any?): Boolean = other is Not && this.inner == other.inner
 
-            other as Not
-
-            if (inner != other.inner) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            return inner.hashCode()
-        }
+        override fun hashCode(): Int = inner.hashCode()
 
         override fun toString(): String = "!$inner"
     }
@@ -93,23 +60,12 @@ sealed class DirectionFormula {
             override val left: DirectionFormula, override val right: DirectionFormula,
             private val op: String
     ) : DirectionFormula(), Binary<T> {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other?.javaClass != javaClass) return false
 
-            other as Bool<*>
+        override fun equals(other: Any?): Boolean
+                = other is Bool<*> && this.javaClass == other.javaClass &&
+                this.right == other.right && this.left == other.left
 
-            if (left != other.left) return false
-            if (right != other.right) return false
-
-            return true
-        }
-
-        override fun hashCode(): Int {
-            var result = left.hashCode()
-            result = 31 * result + right.hashCode()
-            return result
-        }
+        override fun hashCode(): Int = 31 * (31 * left.hashCode() + right.hashCode()) + op.hashCode()
 
         override fun toString(): String = "($left $op $right)"
 

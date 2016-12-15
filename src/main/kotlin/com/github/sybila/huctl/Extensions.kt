@@ -121,34 +121,34 @@ infix fun DirectionFormula.equal(right: DirectionFormula): DirectionFormula = Di
 fun not(inner: Formula): Formula = Not(inner)
 
 //Future
-fun EF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(E, inner(), dir)
-fun pastEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pE, inner(), dir)
-fun AF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(A, inner(), dir)
-fun pastAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pA, inner(), dir)
+fun EF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(E, inner, dir)
+fun pastEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pE, inner, dir)
+fun AF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(A, inner, dir)
+fun pastAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Future(pA, inner, dir)
 
 //WeakFuture
-fun weakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(E, inner(), dir)
-fun weakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(A, inner(), dir)
-fun pastWeakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pE, inner(), dir)
-fun pastWeakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pA, inner(), dir)
+fun weakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(E, inner, dir)
+fun weakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(A, inner, dir)
+fun pastWeakEF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pE, inner, dir)
+fun pastWeakAF(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakFuture(pA, inner, dir)
 
 //Next
-fun EX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(E, inner(), dir)
-fun pastEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pE, inner(), dir)
-fun AX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(A, inner(), dir)
-fun pastAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pA, inner(), dir)
+fun EX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(E, inner, dir)
+fun pastEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pE, inner, dir)
+fun AX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(A, inner, dir)
+fun pastAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Next(pA, inner, dir)
 
 //WeakNext
-fun weakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(E, inner(), dir)
-fun pastWeakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pE, inner(), dir)
-fun weakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(A, inner(), dir)
-fun pastWeakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pA, inner(), dir)
+fun weakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(E, inner, dir)
+fun pastWeakEX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pE, inner, dir)
+fun weakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(A, inner, dir)
+fun pastWeakAX(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = WeakNext(pA, inner, dir)
 
 //Globally
-fun EG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(E, inner(), dir)
-fun pastEG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pE, inner(), dir)
-fun AG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(A, inner(), dir)
-fun pastAG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pA, inner(), dir)
+fun EG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(E, inner, dir)
+fun pastEG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pE, inner, dir)
+fun AG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(A, inner, dir)
+fun pastAG(inner: Formula, dir: DirectionFormula = DirectionFormula.Atom.True): Formula = Globally(pA, inner, dir)
 
 //Until
 infix fun Formula.EU(reach: Formula): Formula
@@ -176,7 +176,7 @@ fun forall(name: String, bound: Formula, inner: Formula) : Formula = Formula.Fir
 fun exists(name: String, bound: Formula, inner: Formula) : Formula = Formula.FirstOrder.Exists(name, bound, inner)
 
 //Bool
-infix fun Formula.and(other: Formula): Formula = And(this(), other())
-infix fun Formula.or(other: Formula): Formula = Or(this(), other())
-infix fun Formula.implies(other: Formula): Formula = Implies(this(), other())
-infix fun Formula.equal(other: Formula): Formula = Equals(this(), other())
+infix fun Formula.and(other: Formula): Formula = And(this, other)
+infix fun Formula.or(other: Formula): Formula = Or(this, other)
+infix fun Formula.implies(other: Formula): Formula = Implies(this, other)
+infix fun Formula.equal(other: Formula): Formula = Equals(this, other)
