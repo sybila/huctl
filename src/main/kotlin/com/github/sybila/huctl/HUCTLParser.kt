@@ -255,7 +255,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     /* ----- Basic control flow ------ */
 
     override fun exitIncludeStatement(ctx: HUCTLParser.IncludeStatementContext) {
-        val string = ctx.STRING().text!!
+        val string = ctx.STRING().text
         includes.add(File(string.substring(1, string.length - 1)))    //remove quotes
     }
 

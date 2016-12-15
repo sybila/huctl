@@ -42,11 +42,21 @@ class References {
     }
 
     @Test fun simpleCyclicReference() {
-        assertFailsWith(IllegalStateException::class) {
+        //formula
+        assertFailsWith<IllegalStateException> {
             parser.parse("k = !k")
         }
-        assertFailsWith(IllegalStateException::class) {
+        //expression
+        assertFailsWith<IllegalStateException> {
             parser.parse("a = a + a")
+        }
+        //direction formula
+        assertFailsWith<IllegalStateException> {
+            parser.parse("a = b+ || a")
+        }
+        //alias
+        assertFailsWith<IllegalStateException> {
+            parser.parse("a = a")
         }
     }
 

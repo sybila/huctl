@@ -221,11 +221,25 @@ class Complex {
                 l = {k}EF False
             """)
         }
+        //expression to direction formula
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                k = 1 + 2
+                l = {k} EX False
+            """)
+        }
         //expression to formula
         assertFailsWith<IllegalStateException> {
             parser.parse("""
                 k = a + b
                 l = EX k
+            """)
+        }
+        //formula to expression
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                k = EX True
+                a = k + 2
             """)
         }
     }

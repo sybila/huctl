@@ -3,6 +3,7 @@ package com.github.sybila.huctl
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 class FoldTest {
 
@@ -97,7 +98,7 @@ class Misc {
 
     @Test
     fun ctlFormulaToString() {
-        assertEquals("(true && {true}pEwX (false {true}EU true))", (True and pastWeakEX(False EU True)).toString())
+        assertEquals("(!true && {true}pEwX (false {true}EU true))", (not(True) and pastWeakEX(False EU True)).toString())
     }
 
     @Test
@@ -143,6 +144,45 @@ class Misc {
         assertEquals("v1", dir1.name)
         assertEquals(Facet.POSITIVE, dir1.facet)
         assertEquals(Direction.IN, dir1.direction)
+
+        val u = (prop1 EU prop2) as Formula.Until
+        assertEquals(prop1, u.path)
+        assertEquals(prop2, u.reach)
+    }
+
+    @Test
+    fun directionCast() {
+        val tt = Formula.Atom.True
+        val ff = Formula.Atom.False
+        val dTT = DirectionFormula.Atom.True
+        val dFF = DirectionFormula.Atom.False
+
+        //simple invalid
+        assertNull(("a".asVariable() gt "b".asVariable()).asDirectionFormula())
+        assertNull("a".positiveIn().asDirectionFormula())
+        assertNull(EX(tt).asDirectionFormula())
+        assertNull((tt EU ff).asDirectionFormula())
+        assertNull(forall("x", tt, tt).asDirectionFormula())
+        assertNull(bind("x", tt).asDirectionFormula())
+
+        //simple valid
+        assertEquals(dTT, tt.asDirectionFormula())
+        assertEquals(dFF, ff.asDirectionFormula())
+        assertEquals(not(dTT), not(tt).asDirectionFormula())
+        assertEquals(dTT and dFF, (tt and ff).asDirectionFormula())
+        assertEquals(dTT or dFF, (tt or ff).asDirectionFormula())
+        assertEquals(dTT implies dFF, (tt implies ff).asDirectionFormula())
+        assertEquals(dTT equal dFF, (tt equal ff).asDirectionFormula())
+
+        //complex invalid
+        assertNull((tt and "a".positiveIn()).asDirectionFormula())
+        assertNull(("a".positiveIn() and ff).asDirectionFormula())
+        assertNull((tt or "a".positiveIn()).asDirectionFormula())
+        assertNull(("a".positiveIn() or ff).asDirectionFormula())
+        assertNull((tt implies "a".positiveIn()).asDirectionFormula())
+        assertNull(("a".positiveIn() implies ff).asDirectionFormula())
+        assertNull((tt equal "a".positiveIn()).asDirectionFormula())
+        assertNull(("a".positiveIn() equal ff).asDirectionFormula())
     }
 
 }
