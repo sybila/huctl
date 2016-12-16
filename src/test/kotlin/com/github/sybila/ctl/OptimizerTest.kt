@@ -85,4 +85,12 @@ class OptimizerTest {
         assertEquals(prop, prop.optimize())
     }
 
+    @Test
+    fun cannotOptimize() {
+        val p = "val".negativeIn()
+        val q = "var".positiveIn()
+        val prop = (p and q) or (p and not(q))
+        assertEquals(prop, prop.optimize())
+    }
+
 }

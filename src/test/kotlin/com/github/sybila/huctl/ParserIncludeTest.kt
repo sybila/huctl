@@ -1,5 +1,8 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
+import com.github.sybila.huctl.HUCTLParser
+import com.github.sybila.huctl.False
+import com.github.sybila.huctl.True
 import org.junit.Test
 import java.io.File
 import java.io.FileNotFoundException
@@ -8,7 +11,7 @@ import kotlin.test.assertFailsWith
 
 class Includes {
 
-    val parser = CTLParser()
+    val parser = HUCTLParser()
 
     @Test fun invalidInclude() {
         assertFailsWith(FileNotFoundException::class) {

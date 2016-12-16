@@ -22,7 +22,7 @@ Using this class you can parse strings, files or inlined formulas
 Additional operations such as normalization and optimization are provided as 
 extension (static) functions. 
 
-Project also defines a convenient syntax for writing formulas directly in code.
+Project also defines a convenient syntax for writing formulas directly in code (See Extensions.kt file).
 
 For more complex usage example, see the
  [IntegrationTest](src/test/kotlin/com/github/sybila/ctl/IntegrationTest.kt)
@@ -72,8 +72,9 @@ Expression can be
  - two expressions joined by +,-,*,/
  
 Finally, you can use special flag  ```:?``` in front of an assignment to indicate formulas that
- are in some way interesting/important. The exact semantics of this flag depend on what you
- plan to use the input for.
+are in some way interesting/important. You can then configure the parser to only include
+these formulas in the result. The exact semantics of this flag depend on what you
+plan to use the input for. 
 
 Forward declaration, even across files is supported, so that you can define your formulas in 
 whatever order you choose. For obvious reasons, cyclic references are not allowed.

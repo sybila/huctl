@@ -1,4 +1,4 @@
-package com.github.sybila.ctl
+package com.github.sybila.huctl
 
 import org.junit.Test
 import java.io.File
@@ -7,7 +7,7 @@ import kotlin.test.assertFailsWith
 
 class References {
 
-    val parser = CTLParser()
+    val parser = HUCTLParser()
 
     @Test fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")
@@ -42,11 +42,21 @@ class References {
     }
 
     @Test fun simpleCyclicReference() {
-        assertFailsWith(IllegalStateException::class) {
+        //formula
+        assertFailsWith<IllegalStateException> {
             parser.parse("k = !k")
         }
-        assertFailsWith(IllegalStateException::class) {
+        //expression
+        assertFailsWith<IllegalStateException> {
             parser.parse("a = a + a")
+        }
+        //direction formula
+        assertFailsWith<IllegalStateException> {
+            parser.parse("a = b+ || a")
+        }
+        //alias
+        assertFailsWith<IllegalStateException> {
+            parser.parse("a = a")
         }
     }
 
@@ -186,22 +196,24 @@ class References {
             l = k / 2 == 0
         """)
         assertEquals(1, result.size)
-        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()).asAtom(),
+        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()),
                 result["l"])
     }
 
     @Test fun aliasInString() {
-        val result = parser.parse("""
+        try {
+            val result = parser.parse("""
             k = True
             l = k
             m = l
             n = m
         """)
-        assertEquals(4, result.size)
-        assertEquals(True, result["k"])
-        assertEquals(True, result["l"])
-        assertEquals(True, result["m"])
-        assertEquals(True, result["n"])
+            assertEquals(4, result.size)
+            assertEquals(True, result["k"])
+            assertEquals(True, result["l"])
+            assertEquals(True, result["m"])
+            assertEquals(True, result["n"])
+        } catch (e: IllegalStateException) { e.printStackTrace() }
     }
 
     @Test fun expressionAlias() {
@@ -212,7 +224,7 @@ class References {
             n = m > 0
         """)
         assertEquals(1, result.size)
-        assertEquals(("name".asVariable() gt 0.0.asConstant()).asAtom(), result["n"])
+        assertEquals(("name".asVariable() gt 0.0.asConstant()), result["n"])
     }
 
 }
