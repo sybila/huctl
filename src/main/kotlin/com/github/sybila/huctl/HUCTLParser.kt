@@ -45,7 +45,7 @@ class HUCTLParser() {
         val references = HashMap(ctx.toMap())  //mutable copy
         val replaced = Stack<String>()  //processing stack for cycle detection
 
-        fun <R> String.stacked(action: () -> R): R {
+        fun <R> String.resolved(action: () -> R): R {
             replaced.push(this)
             val result = action()
             replaced.pop()
@@ -56,7 +56,7 @@ class HUCTLParser() {
         fun resolveAlias(name: String): Any =
             if (name in replaced) {
                 throw IllegalStateException("Cyclic reference: $name")
-            } else name.stacked {
+            } else name.resolved {
                 references[name]?.run {
                     if (this.item is String) resolveAlias(this.item)
                     else this.item
@@ -68,7 +68,7 @@ class HUCTLParser() {
             val name = e.name
             if (name in replaced) {
                 throw IllegalStateException("Cyclic reference: $name")
-            } else name.stacked {
+            } else name.resolved {
                 references[name]?.run {
                     if (this.item is Expression) resolveExpression(this.item)
                     else throw IllegalStateException(
@@ -84,7 +84,7 @@ class HUCTLParser() {
                 val name = it.name
                 if (name in replaced) {
                     throw IllegalStateException("Cyclic reference: $name")
-                } else name.stacked {
+                } else name.resolved {
                     references[name]?.run {
                         if (this.item is DirectionFormula) resolveDirectionFormula(this.item)
                         else if (this.item is Formula)  //try up-casting
@@ -105,11 +105,11 @@ class HUCTLParser() {
                     val name = this.name
                     if (name in replaced) {
                         throw IllegalStateException("Cyclic reference: $name")
-                    } else name.stacked {
+                    } else name.resolved {
                         references[name]?.run {
                             if (this.item is Formula) resolveFormula(this.item)
                             else throw IllegalStateException("Expected type of $name is a formula.")
-                        } ?: throw IllegalStateException("Undefined reference $name")
+                        } ?: this   //this is a bound name
                     }
                 }
                 //dive into the expressions
@@ -136,6 +136,18 @@ class HUCTLParser() {
             }
         })
 
+        fun unboundNames(f: Formula): List<String> = f.fold({
+            if (this is Formula.Atom.Reference) listOf(this.name) else listOf()
+        }, { inner ->
+            if (this is Formula.Hybrid.At) inner + listOf(this.name)
+            else if (this is Formula.Hybrid.Bind) inner - listOf(this.name)
+            else inner
+        }, { l, r ->
+            if (this is Formula.FirstOrder) l + (r - listOf(this.name))
+            else l + r
+        })
+
+
         //aliases need to go first, because all other resolve procedures need can depend on them
         for ((name, assignment) in references) {
             if (assignment.item is String) {
@@ -150,6 +162,16 @@ class HUCTLParser() {
                 is DirectionFormula -> assignment.copy(item = resolveDirectionFormula(assignment.item))
                 is Formula -> assignment.copy(item = resolveFormula(assignment.item))
                 else -> throw IllegalStateException("WTF?!")
+            }
+        }
+
+        //check name bounds
+        for ((name, assignment) in references) {
+            if (assignment.item is Formula) {
+                val unboundNames = unboundNames(assignment.item)
+                if (unboundNames.isNotEmpty()) {
+                    throw IllegalStateException("Unbound occurrence of $unboundNames in ${assignment.item}")
+                }
             }
         }
 

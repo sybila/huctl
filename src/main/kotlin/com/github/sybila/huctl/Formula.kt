@@ -92,7 +92,7 @@ sealed class Formula {
             override fun toString(): String = "$name:$direction$facet"
             override fun asDirectionFormula(): DirectionFormula? = null
         }
-        internal class Reference(val name: String) : Atom() {
+        class Reference(val name: String) : Atom() {
             override fun equals(other: Any?): Boolean = other is Reference && other.name == this.name
             override fun hashCode(): Int = name.hashCode()
             override fun toString(): String = name

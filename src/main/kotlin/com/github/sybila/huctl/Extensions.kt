@@ -100,6 +100,7 @@ fun String.positiveIn() = Atom.Transition(this, Direction.IN, Facet.POSITIVE)
 fun String.positiveOut() = Atom.Transition(this, Direction.OUT, Facet.POSITIVE)
 fun String.negativeIn() = Atom.Transition(this, Direction.IN, Facet.NEGATIVE)
 fun String.negativeOut() = Atom.Transition(this, Direction.OUT, Facet.NEGATIVE)
+fun String.asReference() = Atom.Reference(this)
 
 // Direction propositions
 

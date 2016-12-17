@@ -9,7 +9,8 @@ class References {
 
     val parser = HUCTLParser()
 
-    @Test fun cyclicReferenceThroughFiles() {
+    @Test
+    fun cyclicReferenceThroughFiles() {
         val file = File.createTempFile("file", ".ctx")
 
         file.bufferedWriter().use {
@@ -24,7 +25,8 @@ class References {
         file.delete()
     }
 
-    @Test fun transitiveCyclicReference() {
+    @Test
+    fun transitiveCyclicReference() {
         assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 k = EX l
@@ -41,7 +43,8 @@ class References {
         }
     }
 
-    @Test fun simpleCyclicReference() {
+    @Test
+    fun simpleCyclicReference() {
         //formula
         assertFailsWith<IllegalStateException> {
             parser.parse("k = !k")
@@ -60,13 +63,15 @@ class References {
         }
     }
 
-    @Test fun undefinedReference() {
+    @Test
+    fun undefinedReference() {
         assertFailsWith(IllegalStateException::class) {
             parser.parse("k = EF m")
         }
     }
 
-    @Test fun declarationOrderIndependence() {
+    @Test
+    fun declarationOrderIndependence() {
 
         val result = parser.parse("""
             k = ! m
@@ -79,7 +84,8 @@ class References {
 
     }
 
-    @Test fun duplicateDeclarationInFiles() {
+    @Test
+    fun duplicateDeclarationInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
 
@@ -97,7 +103,8 @@ class References {
         i1.delete()
     }
 
-    @Test fun duplicateDeclarationInString() {
+    @Test
+    fun duplicateDeclarationInString() {
         assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 k = True
@@ -107,7 +114,8 @@ class References {
         }
     }
 
-    @Test fun duplicateDeclarationExpression() {
+    @Test
+    fun duplicateDeclarationExpression() {
         assertFailsWith(IllegalStateException::class) {
             parser.parse("""
                 k = 1
@@ -117,7 +125,8 @@ class References {
         }
     }
 
-    @Test fun transitiveResolveInFiles() {
+    @Test
+    fun transitiveResolveInFiles() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
@@ -142,7 +151,8 @@ class References {
 
     }
 
-    @Test fun transitiveResolveInString() {
+    @Test
+    fun transitiveResolveInString() {
 
         val result = parser.parse("""
                 j = True
@@ -159,7 +169,8 @@ class References {
 
     }
 
-    @Test fun simpleResolveInInclude() {
+    @Test
+    fun simpleResolveInInclude() {
 
         val i = File.createTempFile("include", ".ctl")
 
@@ -180,7 +191,8 @@ class References {
 
     }
 
-    @Test fun simpleResolveInString() {
+    @Test
+    fun simpleResolveInString() {
         val result = parser.parse("""
             k = True
             l = !k
@@ -190,7 +202,8 @@ class References {
         assertEquals(not(True), result["l"])
     }
 
-    @Test fun simpleResolveExpression() {
+    @Test
+    fun simpleResolveExpression() {
         val result = parser.parse("""
             k = a + b
             l = k / 2 == 0
@@ -200,7 +213,8 @@ class References {
                 result["l"])
     }
 
-    @Test fun aliasInString() {
+    @Test
+    fun aliasInString() {
         try {
             val result = parser.parse("""
             k = True
@@ -216,7 +230,8 @@ class References {
         } catch (e: IllegalStateException) { e.printStackTrace() }
     }
 
-    @Test fun expressionAlias() {
+    @Test
+    fun expressionAlias() {
         val result = parser.parse("""
             k = name
             l = k
@@ -225,6 +240,28 @@ class References {
         """)
         assertEquals(1, result.size)
         assertEquals(("name".asVariable() gt 0.0.asConstant()), result["n"])
+    }
+
+    @Test
+    fun unboundReference() {
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                f = EX k
+            """)
+        }
+        assertFailsWith<IllegalStateException> {
+            parser.parse("""
+                f = exists x in (x && True): False
+            """)
+        }
+    }
+
+    @Test
+    fun firstOrderReferences() {
+        assertEquals(
+                forall("x", True, "x".asReference() and "x".positiveIn()),
+                parser.formula("forall x: x && x:in+")
+        )
     }
 
 }

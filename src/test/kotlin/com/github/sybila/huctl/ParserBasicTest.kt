@@ -239,10 +239,10 @@ class Basic {
     @Test
     fun hybrid() {
         assertEquals(
-                at("x", True), parser.formula("at x: True")
+                bind("x", True), parser.formula("bind x: True")
         )
         assertEquals(
-                bind("x", True), parser.formula("bind x: True")
+                bind("x", at("x", True)), parser.formula("bind x: at x: True")
         )
     }
 
