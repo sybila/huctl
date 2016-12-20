@@ -44,7 +44,7 @@ dirModifierR : dirModifier;
 /* Direction formula - used as an optional parameter for temporal operators */
 
 dirFormula : VAR_NAME                                       #dirId
-           | (TRUE | FALSE)                                 #dirBool
+           | (TRUE | FALSE | LOOP)                          #dirAtom
            | VAR_NAME (PLUS | MINUS)                        #dirProposition
            | '(' dirFormula ')'                             #dirParenthesis
            | NEG dirFormula                                 #dirNegation
@@ -72,6 +72,7 @@ expression : VAR_NAME                                       #expId
 
 TRUE : ([tT]'rue' | 'tt');
 FALSE : ([fF]'alse' | 'ff');
+LOOP : [lL]'oop';
 
 IN : 'in';
 OUT : 'out';

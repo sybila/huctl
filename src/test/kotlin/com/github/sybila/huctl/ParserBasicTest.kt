@@ -251,6 +251,7 @@ class Basic {
         assertEquals(EX(True, "x".increase()), parser.formula("{x+}EX True"))
         assertEquals(EX(True, "x".decrease()), parser.formula("{x-}EX True"))
         assertEquals(EX(True, True.asDirectionFormula()!!), parser.formula("{True}EX True"))
+        assertEquals(EX(True, DirectionFormula.Atom.Loop), parser.formula("{Loop}EX True"))
         assertEquals(EX(True, False.asDirectionFormula()!!), parser.formula("{False}EX True"))
     }
 

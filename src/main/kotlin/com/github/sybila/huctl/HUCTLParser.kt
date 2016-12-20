@@ -426,8 +426,12 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
         dirFormulaTree[ctx] = DirectionFormula.Atom.Reference(ctx.text)
     }
 
-    override fun exitDirBool(ctx: HUCTLParser.DirBoolContext) {
-        dirFormulaTree[ctx] = if (ctx.TRUE() != null) DirectionFormula.Atom.True else DirectionFormula.Atom.False
+    override fun exitDirAtom(ctx: HUCTLParser.DirAtomContext) {
+        dirFormulaTree[ctx] = when {
+            ctx.TRUE() != null -> DirectionFormula.Atom.True
+            ctx.LOOP() != null -> DirectionFormula.Atom.Loop
+            else -> DirectionFormula.Atom.False
+        }
     }
 
     override fun exitDirProposition(ctx: HUCTLParser.DirPropositionContext) {

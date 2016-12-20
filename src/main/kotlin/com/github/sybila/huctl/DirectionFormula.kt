@@ -22,6 +22,9 @@ sealed class DirectionFormula {
         object False : Atom() {
             override fun toString(): String = "false"
         }
+        object Loop : Atom() {
+            override fun toString(): String = "loop"
+        }
 
         class Proposition(val name: String, val facet: Facet) : Atom() {
             override fun equals(other: Any?): Boolean
