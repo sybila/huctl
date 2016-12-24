@@ -234,12 +234,21 @@ class Basic {
         assertEquals(
                 exists("x", False, False), parser.formula("exists x in False: False")
         )
+        assertEquals(
+                exists("x", True, "x".asReference()), parser.formula("exists x: x")
+        )
+        assertEquals(
+                forall("x", True, "x".asReference()), parser.formula("forall x: x")
+        )
     }
 
     @Test
     fun hybrid() {
         assertEquals(
                 bind("x", True), parser.formula("bind x: True")
+        )
+        assertEquals(
+                bind("x", "x".asReference()), parser.formula("bind x: x")
         )
         assertEquals(
                 bind("x", at("x", True)), parser.formula("bind x: at x: True")
