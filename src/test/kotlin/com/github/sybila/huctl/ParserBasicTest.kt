@@ -394,4 +394,44 @@ class Basic {
         assertEquals(False, result["goo"])
     }
 
+    @Test
+    fun dirFormulaParse() {
+        val r = parser.dirFormula("True && x+")
+        assertEquals(True.asDirectionFormula()!! and "x".increase(), r)
+    }
+
+    @Test
+    fun dirFormulaInvalidParse() {
+        assertFailsWith<IllegalStateException> {
+            parser.dirFormula("True && EX False")
+        }
+    }
+
+    @Test
+    fun atomParse() {
+        assertEquals("x".positiveIn(), parser.atom("x:in+"))
+        assertEquals("x".asVariable() gt 3.4.asConstant(), parser.atom("x > 3.4"))
+        assertEquals(True, parser.atom("true"))
+    }
+
+    @Test
+    fun atomInvalidParse() {
+        assertFailsWith<IllegalStateException> {
+            parser.atom("EX x > 2.2")
+        }
+    }
+
+    @Test
+    fun dirAtomParse() {
+        assertEquals("x".increase(), parser.dirAtom("x+"))
+        assertEquals(True.asDirectionFormula()!!, parser.dirAtom("true"))
+    }
+
+    @Test
+    fun dirAtomInvalidParse() {
+        assertFailsWith<IllegalStateException> {
+            parser.dirAtom("x+ && y-")
+        }
+    }
+
 }

@@ -27,6 +27,18 @@ class HUCTLParser() {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
+    fun dirFormula(input: String): DirectionFormula
+            = (formula("{$input}EX True") as? Formula.Simple<*>)?.direction
+            ?: throw IllegalStateException("$input is not a direction formula")
+
+    fun atom(input: String): Formula.Atom
+            = formula(input) as? Formula.Atom
+            ?: throw IllegalStateException("$input is not an atom")
+
+    fun dirAtom(input: String): DirectionFormula.Atom
+            = dirFormula(input) as? DirectionFormula.Atom
+            ?: throw IllegalStateException("$input is not a direction atom")
+
     fun parse(input: String, onlyFlagged: Boolean = false): Map<String, Formula>
             = process(FileParser().process(input), onlyFlagged)
 
