@@ -100,5 +100,5 @@ NEWLINE : '\r'?'\n';
 WS : [ \t]+ -> channel(HIDDEN) ;
 
 Block_comment : '/*' (Block_comment|.)*? '*/' -> channel(HIDDEN) ; // nesting allow
-C_Line_comment : '//' ~('\n')* -> channel(HIDDEN) ;
-Python_Line_comment : '#' ~('\n')* -> channel(HIDDEN) ;
+C_Line_comment : '//' ~('\n'|'\r')* -> channel(HIDDEN) ;
+Python_Line_comment : '#' ~('\n'|'\r')* -> channel(HIDDEN) ;
