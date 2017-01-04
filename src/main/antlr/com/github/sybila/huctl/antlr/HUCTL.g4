@@ -144,7 +144,7 @@ FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
 
 NEWLINE : '\r'?'\n';
 
-WS : [ \t\u]+ -> channel(HIDDEN) ;
+WS : [ \t]+ -> channel(HIDDEN) ;
 
 Block_comment : '/*' (Block_comment|.)*? '*/' -> channel(HIDDEN) ; // nesting allow
 C_Line_comment : '//' .*? ('\n' | EOF) -> channel(HIDDEN) ;
