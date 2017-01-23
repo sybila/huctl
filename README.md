@@ -55,7 +55,7 @@ Assignment statement has the form of ```identifier = formula``` or ```identifier
  - a float proposition: two expressions (or expression identifiers) compared using one of these 
  operators: <, >, <=, >=, !=, ==. 
  - a direction proposition: ```id:direction facet```(space is not mandatory)  where ```id``` is
-  a name of the model property, direction is either in or our and facet can be positive(+) or
+  a name of the model variable, direction is either in or our and facet can be positive(+) or
    negative(-). Example: ```val:in+```
  - another formula in parentheses
  - a formula with unary operator applied. Unary operators: !, EX, AX, EF, AF, EG, AG
