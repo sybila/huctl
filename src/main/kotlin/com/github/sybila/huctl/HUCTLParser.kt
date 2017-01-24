@@ -23,21 +23,21 @@ import java.util.*
  * and returns a final map of valid formula assignments
  */
 
-class HUCTLParser() {
+class HUCTLParser {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
     fun dirFormula(input: String): DirectionFormula
             = (formula("{$input}EX True") as? Formula.Simple<*>)?.direction
-            ?: throw IllegalStateException("$input is not a direction formula")
+            ?: throw IllegalArgumentException("$input is not a direction formula")
 
     fun atom(input: String): Formula.Atom
             = formula(input) as? Formula.Atom
-            ?: throw IllegalStateException("$input is not an atom")
+            ?: throw IllegalArgumentException("$input is not an atom")
 
     fun dirAtom(input: String): DirectionFormula.Atom
             = dirFormula(input) as? DirectionFormula.Atom
-            ?: throw IllegalStateException("$input is not a direction atom")
+            ?: throw IllegalArgumentException("$input is not a direction atom")
 
     fun parse(input: String, onlyFlagged: Boolean = false): Map<String, Formula>
             = process(FileParser().process(input), onlyFlagged)
@@ -228,7 +228,7 @@ private class FileParser {
         lexer.removeErrorListeners()
         lexer.addErrorListener(errorListener)
         parser.removeErrorListeners()
-        lexer.addErrorListener(errorListener)
+        parser.addErrorListener(errorListener)
         val root = parser.root()
         val context = FileContext(location)
         ParseTreeWalker().walk(context, root)
@@ -260,7 +260,7 @@ private data class ParserContext(
                 .map { one -> assignments.filter { two -> one.name == two.name }.toSet().toList() }
                 .filter { it.size > 1 }
                 .any {
-                    throw IllegalStateException(
+                    throw IllegalArgumentException(
                             "Duplicate assignment for ${it[0].name} defined in ${it[0].location} and ${it[1].location}"
                     )
                 }
@@ -306,7 +306,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     }
 
     override fun visitErrorNode(node: ErrorNode) {
-        throw IllegalStateException("Syntax error at '${node.text}' in $location:${node.symbol.line}")
+        throw IllegalArgumentException("Syntax error at '${node.text}' in $location:${node.symbol.line}")
     }
 
     /* ------ Formula Parsing ------ */

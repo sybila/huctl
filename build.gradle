@@ -6,7 +6,7 @@ apply plugin: 'jacoco'
 apply plugin: "com.madvay.tools.build.gitbuildinfo"
 
 buildscript {
-    ext.kotlin_version = '1.0.5-2'
+    ext.kotlin_version = '1.0.6'
 
     repositories {
         jcenter()
@@ -20,10 +20,8 @@ buildscript {
     }
 }
 
-sourceCompatibility = 1.7
 group = "com.github.sybila.ctl"
-archivesBaseName = "ctl-parser"
-version = '2.2.0'
+version = '2.2.3'
 
 //antlr config
 generateGrammarSource {
@@ -91,4 +89,5 @@ test {
     testLogging {
         events "skipped", "failed", "standardOut", "standardError"
     }
+    void
 }

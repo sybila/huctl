@@ -93,7 +93,7 @@ class References {
             it.write("k = True")
         }
 
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             parser.parse(
                     ":include \"${ i1.absolutePath }\" \n" +
                     "k = False"
@@ -105,7 +105,7 @@ class References {
 
     @Test
     fun duplicateDeclarationInString() {
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             parser.parse("""
                 k = True
                 l = False
@@ -116,7 +116,7 @@ class References {
 
     @Test
     fun duplicateDeclarationExpression() {
-        assertFailsWith(IllegalStateException::class) {
+        assertFailsWith(IllegalArgumentException::class) {
             parser.parse("""
                 k = 1
                 l = 2

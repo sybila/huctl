@@ -411,7 +411,7 @@ class Basic {
 
     @Test
     fun dirFormulaInvalidParse() {
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.dirFormula("True && EX False")
         }
     }
@@ -425,7 +425,7 @@ class Basic {
 
     @Test
     fun atomInvalidParse() {
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.atom("EX x > 2.2")
         }
     }
@@ -438,8 +438,16 @@ class Basic {
 
     @Test
     fun dirAtomInvalidParse() {
-        assertFailsWith<IllegalStateException> {
+        assertFailsWith<IllegalArgumentException> {
             parser.dirAtom("x+ && y-")
+        }
+    }
+
+
+    @Test
+    fun garbageParse() {
+        assertFailsWith<IllegalArgumentException> {
+            parser.parse(" foo ")
         }
     }
 
