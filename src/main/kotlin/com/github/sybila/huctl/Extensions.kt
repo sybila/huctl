@@ -29,7 +29,7 @@ fun Expression.mapLeafs(
 }
 
 fun <R> DirectionFormula.fold(
-        atom: DirectionFormula.Atom.() -> R,
+        atom: DirectionFormula.() -> R,
         unary: DirectionFormula.Unary<*>.(R) -> R,
         binary: DirectionFormula.Binary<*>.(R, R) -> R
 ) : R {
@@ -45,7 +45,7 @@ fun <R> DirectionFormula.fold(
 }
 
 fun DirectionFormula.mapLeafs(
-        atom: (DirectionFormula.Atom) -> DirectionFormula
+        atom: (DirectionFormula) -> DirectionFormula
 ): DirectionFormula {
     return this.fold(atom, DirectionFormula.Unary<*>::copy, DirectionFormula.Binary<*>::copy)
 }
