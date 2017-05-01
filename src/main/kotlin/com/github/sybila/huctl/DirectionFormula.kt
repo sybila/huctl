@@ -1,7 +1,9 @@
 package com.github.sybila.huctl
 
 
-sealed class DirectionFormula {
+sealed class DirectionFormula(
+        private val string: String
+) {
 
     interface Atom
 
@@ -16,51 +18,33 @@ sealed class DirectionFormula {
         fun copy(left: DirectionFormula = this.left, right: DirectionFormula = this.right): T
     }
 
-    object True : DirectionFormula(), Atom {
-        override fun toString(): String = "true"
-    }
+    object True : DirectionFormula("true"), Atom
 
-    object False : DirectionFormula(), Atom {
-        override fun toString(): String = "false"
-    }
+    object False : DirectionFormula("false"), Atom
 
-    object Loop : DirectionFormula(), Atom {
-        override fun toString(): String = "loop"
-    }
+    object Loop : DirectionFormula("loop"), Atom
 
-    data class Proposition(val name: String, val facet: Facet) : DirectionFormula(), Atom {
-        override fun toString(): String = "$name$facet"
-    }
+    data class Proposition(val name: String, val facet: Facet) : DirectionFormula("$name$facet"), Atom
 
-    internal data class Reference(val name: String) : DirectionFormula(), Atom {
-        override fun toString(): String = name
-    }
+    internal data class Reference(val name: String) : DirectionFormula(name), Atom
 
-    data class Not(override val inner: DirectionFormula) : DirectionFormula(), Unary<Not> {
-        override fun toString(): String = "!$inner"
-    }
+    data class Not(override val inner: DirectionFormula) : DirectionFormula("!$inner"), Unary<Not>
 
     data class And(
             override val left: DirectionFormula, override val right: DirectionFormula
-    ) : DirectionFormula(), Binary<And> {
-        override fun toString(): String = "($left && $right)"
-    }
+    ) : DirectionFormula("($left && $right)"), Binary<And>
 
     data class Or(
             override val left: DirectionFormula, override val right: DirectionFormula
-    ) : DirectionFormula(), Binary<And> {
-        override fun toString(): String = "($left || $right)"
-    }
+    ) : DirectionFormula("($left || $right)"), Binary<Or>
 
     data class Implies(
             override val left: DirectionFormula, override val right: DirectionFormula
-    ) : DirectionFormula(), Binary<And> {
-        override fun toString(): String = "($left -> $right)"
-    }
+    ) : DirectionFormula("($left -> $right)"), Binary<Implies>
 
     data class Equals(
             override val left: DirectionFormula, override val right: DirectionFormula
-    ) : DirectionFormula(), Binary<And> {
-        override fun toString(): String = "($left <-> $right)"
-    }
+    ) : DirectionFormula("($left <-> $right)"), Binary<Equals>
+
+    override fun toString(): String = string
 }
