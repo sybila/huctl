@@ -21,6 +21,9 @@ enum class CompareOp(private val str: String) {
     /** Less than or equal (<=) */ LE("<="),
     /** Less than (<) */ LT("<");
 
+    /**
+     * Return a string representation which can be parsed to create an equivalent object.
+     */
     override fun toString(): String = str
 }
 
@@ -30,6 +33,10 @@ enum class CompareOp(private val str: String) {
 enum class Flow(private val str: String) {
     /** Incoming transition */ IN("in"),
     /** Outgoing transition */ OUT("out");
+
+    /**
+     * Return a string representation which can be parsed to create an equivalent object.
+     */
     override fun toString(): String = str
 }
 
@@ -39,6 +46,10 @@ enum class Flow(private val str: String) {
 enum class Direction(private val str: String) {
     /** Increasing (n -> n+1) */ POSITIVE("+"),
     /** Decreasing (n -> n-1) */ NEGATIVE("-");
+
+    /**
+     * Return a string representation which can be parsed to create an equivalent object.
+     */
     override fun toString(): String = str
 }
 
@@ -79,6 +90,22 @@ interface Binary<This, Tree> where This : Binary<This, Tree> {
      */
     fun copy(left: Tree = this.left, right: Tree = this.right): This
 
+}
+
+/**
+ * Common interface for temporal [Formula]s.
+ */
+interface Temporal {
+
+    /**
+     * Specifies the condition for selecting paths originating in the inspected state.
+     */
+    val quantifier: PathQuantifier
+
+    /**
+     * Specifies the direction requirement expected from the selected paths.
+     */
+    val direction: DirFormula
 }
 
 /**

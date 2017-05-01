@@ -31,7 +31,12 @@ sealed class DirFormula(
      * General direction proposition. Contains a variable [name] and a requested [direction]
      * (increase/up or decrease/down).
      */
-    data class Proposition(val name: String, val direction: Direction) : DirFormula("$name$direction")
+    data class Proposition(
+            /** The name of the variable in which the direction should hold. */
+            val name: String,
+            /** The direction in which the path should be moving (up/down). */
+            val direction: Direction
+    ) : DirFormula("$name$direction")
 
     // Used for alias resolution
     internal data class Reference(val name: String) : DirFormula(name)
@@ -73,5 +78,8 @@ sealed class DirFormula(
             override val left: DirFormula, override val right: DirFormula
     ) : DirFormula("($left <-> $right)"), Binary<Equals, DirFormula>
 
+    /**
+     * Return string which uniquely represents this formula and can be parsed to create an equivalent object.
+     */
     override fun toString(): String = string
 }

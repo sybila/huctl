@@ -45,7 +45,10 @@ sealed class Formula(
      * useful to use objects of this type to reference some precomputed results or
      * properties not supported by the HUCTLp syntax directly.
      */
-    data class Reference(val name: String) : Formula(name) {
+    data class Reference(
+            /** A unique name of the data referenced by this object */
+            val name: String
+    ) : Formula(name) {
         override fun asDirFormula(): DirFormula? = DirFormula.Reference(name)
     }
 
@@ -53,7 +56,13 @@ sealed class Formula(
      * Transition proposition. A state satisfies this proposition if there is a transition
      * in the specified direction (up/down) and flow in/out of the state.
      */
-    data class Transition(val name: String, val direction: Direction, val flow: Flow)
+    data class Transition(
+            /** The name of the variable which should perform the transition */
+            val name: String,
+            /** The direction (up/down) of the variable change (relative to this state) */
+            val direction: Direction,
+            /** The flow in the specified direction (in/out) */
+            val flow: Flow)
         : Formula("$name:$flow$direction")
 
     /**
@@ -61,7 +70,13 @@ sealed class Formula(
      * However, usually each state maps to a certain point/area in a cartesian space. In
      * this case, the proposition outlines an area of valid states.
      */
-    data class Numeric(val left: Expression, val cmp: CompareOp, val right: Expression)
+    data class Numeric(
+            /** Left side of the comparison */
+            val left: Expression,
+            /** Comparison operator */
+            val cmp: CompareOp,
+            /** Right side of the comparison */
+            val right: Expression)
         : Formula("($left $cmp $right)")
 
     /* ========== Hybrid ========== */
@@ -76,7 +91,13 @@ sealed class Formula(
      *
      * Warning: [name] must usually be a free name (not assigned yet).
      */
-    data class ForAll(val name: String, val bound: Formula, val target: Formula)
+    data class ForAll(
+            /** The name that should be substituted in the [target] formula. */
+            val name: String,
+            /** The bound formula which limits the states considered for substitution. */
+            val bound: Formula,
+            /** The target formula which is subject to substitution. */
+            val target: Formula)
         : Formula("(forall $name in $bound : $target)"), Binary<ForAll, Formula> {
         override val left: Formula = bound; override val right: Formula = target
         override fun copy(left: Formula, right: Formula): ForAll = this.copy(bound = left, target = right)
@@ -92,7 +113,13 @@ sealed class Formula(
      *
      * Warning: [name] must usually be a free name (not assigned yet).
      */
-    data class Exists(val name: String, val bound: Formula, val target: Formula)
+    data class Exists(
+            /** The name that should be substituted in the [target] formula. */
+            val name: String,
+            /** The bound formula which limits the states considered for substitution */
+            val bound: Formula,
+            /** The target formula which is subject to substitution */
+            val target: Formula)
         : Formula("(exists $name in $bound : $target)"), Binary<Exists, Formula> {
         override val left: Formula = bound; override val right: Formula = target
         override fun copy(left: Formula, right: Formula): Exists = this.copy(bound = left, target = right)
@@ -104,7 +131,11 @@ sealed class Formula(
      *
      * Warning: [name] must usually be a free name (not assigned yet).
      */
-    data class Bind(val name: String, val target: Formula)
+    data class Bind(
+            /** The name that should be substituted in the [target] formula */
+            val name: String,
+            /** The target formula which is subject to substitution */
+            val target: Formula)
         : Formula("(bind $name : $target)"), Unary<Bind, Formula> {
         override val inner: Formula = target
         override fun copy(inner: Formula): Bind = this.copy(target = inner)
@@ -115,7 +146,11 @@ sealed class Formula(
      *
      * Warning: [name] must be a bound name (assigned).
      */
-    data class At(val name: String, val target: Formula)
+    data class At(
+            /** The name of the state that should be considered as a new point of interest */
+            val name: String,
+            /** The formula which should be inspected at the new point of interest */
+            val target: Formula)
         : Formula("(at $name  $target)"), Unary<At, Formula> {
         override val inner: Formula = target
         override fun copy(inner: Formula): At = this.copy(target = inner)
@@ -172,8 +207,8 @@ sealed class Formula(
      * must satisfy the [direction]. See [WeakNext] for less strict alternative.
      */
     data class Next(
-            val quantifier: PathQuantifier, override val inner: Formula, val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}X $inner)"), Unary<Next, Formula> {
+            override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
+    ) : Formula("({$direction}${quantifier}X $inner)"), Unary<Next, Formula>, Temporal {
         override fun copy(inner: Formula): Next = this.copy(inner = inner)
     }
 
@@ -185,8 +220,8 @@ sealed class Formula(
      * must satisfy the [direction]. See [WeakFuture] for less strict alternative.
      */
     data class Future(
-            val quantifier: PathQuantifier, override val inner: Formula, val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}F $inner)"), Unary<Future, Formula> {
+            override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
+    ) : Formula("({$direction}${quantifier}F $inner)"), Unary<Future, Formula>, Temporal {
         override fun copy(inner: Formula): Future = this.copy(inner = inner)
     }
 
@@ -195,8 +230,8 @@ sealed class Formula(
      * match the [direction] and always satisfy the [inner] formula.
      */
     data class Globally(
-            val quantifier: PathQuantifier, override val inner: Formula, val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}G $inner)"), Unary<Globally, Formula> {
+            override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
+    ) : Formula("({$direction}${quantifier}G $inner)"), Unary<Globally, Formula>, Temporal {
         override fun copy(inner: Formula): Globally = this.copy(inner = inner)
     }
 
@@ -210,8 +245,8 @@ sealed class Formula(
      * When [direction] is [DirFormula.True], [WeakNext] and [Next] are equivalent.
      */
     data class WeakNext(
-            val quantifier: PathQuantifier, override val inner: Formula, val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}wX $inner)"), Unary<WeakNext, Formula> {
+            override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
+    ) : Formula("({$direction}${quantifier}wX $inner)"), Unary<WeakNext, Formula>, Temporal {
         override fun copy(inner: Formula): WeakNext = this.copy(inner = inner)
     }
 
@@ -225,8 +260,8 @@ sealed class Formula(
      * When [direction] is [DirFormula.True], [WeakFuture] and [Future] are equivalent.
      */
     data class WeakFuture(
-            val quantifier: PathQuantifier, override val inner: Formula, val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}wF $inner)"), Unary<WeakFuture, Formula> {
+            override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
+    ) : Formula("({$direction}${quantifier}wF $inner)"), Unary<WeakFuture, Formula>, Temporal {
         override fun copy(inner: Formula): WeakFuture = this.copy(inner = inner)
     }
 
@@ -238,15 +273,20 @@ sealed class Formula(
      * formula is satisfied.
      */
     data class Until(
-            val quantifier: PathQuantifier,
+            override val quantifier: PathQuantifier,
+            /** The formula which needs to be valid along a path until reach is found. */
             val path: Formula,
+            /** The formula which needs to be eventually found in the path. */
             val reach: Formula,
-            val direction: DirFormula
-    ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula> {
+            override val direction: DirFormula
+    ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula>, Temporal {
         override val left: Formula = path ; override val right: Formula = reach
         override fun copy(left: Formula, right: Formula): Until = this.copy(path = left, reach = right)
     }
 
+    /**
+     * Return string which uniquely represents this formula and can be parsed to create an equivalent object.
+     */
     override fun toString(): String = string
 
 }

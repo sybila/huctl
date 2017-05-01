@@ -17,12 +17,18 @@ sealed class Expression(
      * A variable [name]. If there is an existing alias with this name, it will be substituted.
      * Otherwise is considered to be a model variable.
      */
-    data class Variable(val name: String) : Expression(name)
+    data class Variable(
+            /** The name of the variable whose value should be substitued at this position. */
+            val name: String
+    ) : Expression(name)
 
     /**
      * A floating point constant. Scientific notation (2.3e10) is not supported.
      */
-    data class Constant(val value: Double) : Expression(String.format("%.6f", value))   // avoid scientific notation
+    data class Constant(
+            /** The value of the floating point constant. */
+            val value: Double
+    ) : Expression(String.format("%.6f", value))   // avoid scientific notation
 
     /**
      * Addition: A + B
@@ -52,6 +58,9 @@ sealed class Expression(
             override val left: Expression, override val right: Expression
     ) : Expression("($left / $right)"), Binary<Div, Expression>
 
+    /**
+     * Return string which uniquely represents this expression and can be parsed to create an equivalent object.
+     */
     override fun toString(): String = string
 
 }
