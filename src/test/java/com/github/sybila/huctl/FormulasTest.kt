@@ -154,8 +154,8 @@ class Misc {
     fun directionCast() {
         val tt = Formula.Atom.True
         val ff = Formula.Atom.False
-        val dTT = DirectionFormula.Atom.True
-        val dFF = DirectionFormula.Atom.False
+        val dTT = DirFormula.Atom.True
+        val dFF = DirFormula.Atom.False
 
         //simple invalid
         assertNull(("a".asVariable() gt "b".asVariable()).asDirectionFormula())

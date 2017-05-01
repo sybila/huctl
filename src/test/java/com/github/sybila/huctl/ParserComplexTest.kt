@@ -77,7 +77,7 @@ class Complex {
             e = c && (forall x: True) || (exists y in d: False) && b
         """)
 
-        val dir = DirectionFormula.Atom.True or "x".increase()
+        val dir = DirFormula.Atom.True or "x".increase()
         val a = p1 and p2
         val b = EX(p3) EU a
         val c = b equal b

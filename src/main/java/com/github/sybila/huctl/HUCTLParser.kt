@@ -27,7 +27,7 @@ class HUCTLParser {
 
     fun formula(input: String): Formula = parse("val = $input")["val"]!!
 
-    fun dirFormula(input: String): DirectionFormula
+    fun dirFormula(input: String): DirFormula
             = (formula("{$input}EX True") as? Formula.Simple<*>)?.direction
             ?: throw IllegalArgumentException("$input is not a direction formula")
 
@@ -35,8 +35,8 @@ class HUCTLParser {
             = formula(input) as? Formula.Atom
             ?: throw IllegalArgumentException("$input is not an atom")
 
-    fun dirAtom(input: String): DirectionFormula.Atom
-            = dirFormula(input) as? DirectionFormula.Atom
+    fun dirAtom(input: String): DirFormula.Atom
+            = dirFormula(input) as? DirFormula.Atom
             ?: throw IllegalArgumentException("$input is not a direction atom")
 
     fun parse(input: String, onlyFlagged: Boolean = false): Map<String, Formula>
@@ -64,7 +64,7 @@ class HUCTLParser {
             return result
         }
 
-        //resolve a string alias to a specific type (Formula|DirectionFormula|Expression)
+        //resolve a string alias to a specific type (Formula|DirFormula|Expression)
         fun resolveAlias(name: String): Any =
             if (name in replaced) {
                 throw IllegalStateException("Cyclic reference: $name")
@@ -91,14 +91,14 @@ class HUCTLParser {
         }
 
         //resolve references in a direction formula
-        fun resolveDirectionFormula(f: DirectionFormula): DirectionFormula = f.mapLeafs {
-            if (it is DirectionFormula.Reference) {
+        fun resolveDirectionFormula(f: DirFormula): DirFormula = f.mapLeafs {
+            if (it is DirFormula.Reference) {
                 val name = it.name
                 if (name in replaced) {
                     throw IllegalStateException("Cyclic reference: $name")
                 } else name.resolved {
                     references[name]?.run {
-                        if (this.item is DirectionFormula) resolveDirectionFormula(this.item)
+                        if (this.item is DirFormula) resolveDirectionFormula(this.item)
                         else if (this.item is Formula)  //try up-casting
                             this.item.asDirectionFormula()?.let(::resolveDirectionFormula)
                             ?: throw IllegalStateException("$name cannot be cast to direction formula.")
@@ -113,7 +113,7 @@ class HUCTLParser {
         //Resolve references in a formula.
         fun resolveFormula(f: Formula): Formula = f.fold({
             when (this) {
-                is Formula.Atom.Reference -> {
+                is Formula.Reference -> {
                     val name = this.name
                     if (name in replaced) {
                         throw IllegalStateException("Cyclic reference: $name")
@@ -125,7 +125,7 @@ class HUCTLParser {
                     }
                 }
                 //dive into the expressions
-                is Formula.Atom.Float -> this.copy(
+                is Formula.Numeric -> this.copy(
                         left = resolveExpression(this.left),
                         right = resolveExpression(this.right)
                 )
@@ -171,7 +171,7 @@ class HUCTLParser {
         for ((name, assignment) in references) {
             references[name] = when (assignment.item) {
                 is Expression -> assignment.copy(item = resolveExpression(assignment.item))
-                is DirectionFormula -> assignment.copy(item = resolveDirectionFormula(assignment.item))
+                is DirFormula -> assignment.copy(item = resolveDirectionFormula(assignment.item))
                 is Formula -> assignment.copy(item = resolveFormula(assignment.item))
                 else -> throw IllegalStateException("WTF?!")
             }
@@ -276,13 +276,13 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
 
     val includes = ArrayList<File>()
     val formulas = ArrayList<Assignment<Formula>>()
-    val dirFormulas = ArrayList<Assignment<DirectionFormula>>()
+    val dirFormulas = ArrayList<Assignment<DirFormula>>()
     val expressions = ArrayList<Assignment<Expression>>()
     val aliases = ArrayList<Assignment<String>>()
 
     private val formulaTree = ParseTreeProperty<Formula>()
     private val expressionTree = ParseTreeProperty<Expression>()
-    private val dirFormulaTree = ParseTreeProperty<DirectionFormula>()
+    private val dirFormulaTree = ParseTreeProperty<DirFormula>()
 
     fun toParseContext() = ParserContext(formulas + expressions + aliases + dirFormulas)
 
@@ -312,7 +312,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     /* ------ Formula Parsing ------ */
 
     override fun exitId(ctx: HUCTLParser.IdContext) {
-        formulaTree[ctx] = Formula.Atom.Reference(ctx.text)
+        formulaTree[ctx] = Formula.Reference(ctx.text)
     }
 
     override fun exitBool(ctx: HUCTLParser.BoolContext) {
@@ -320,7 +320,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     }
 
     override fun exitTransition(ctx: HUCTLParser.TransitionContext) {
-        formulaTree[ctx] = Formula.Atom.Transition(
+        formulaTree[ctx] = Formula.Transition(
                 name = ctx.VAR_NAME().text,
                 direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
                 facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
@@ -357,8 +357,8 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
 
     override fun exitUnaryTemporal(ctx: HUCTLParser.UnaryTemporalContext) {
         val (path, state) = splitOperator(ctx.TEMPORAL_UNARY().text)
-        val dir = ctx.dirModifier()?.let { dirFormulaTree[it.dirFormula()] } ?: DirectionFormula.True
-        fun put(constructor: (PathQuantifier, Formula, DirectionFormula) -> Formula) {
+        val dir = ctx.dirModifier()?.let { dirFormulaTree[it.dirFormula()] } ?: DirFormula.True
+        fun put(constructor: (PathQuantifier, Formula, DirFormula) -> Formula) {
             formulaTree[ctx] = constructor(path, formulaTree[ctx.formula()], dir)
         }
         put(unaryTemporalConstructors[state]!!)
@@ -404,11 +404,11 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
         assert(state == "U")
         val left = formulaTree[pathC]
         val right = formulaTree[reachC]
-        val dirL = dirFormulaTree[dirLC] ?: DirectionFormula.True
-        val dirR = dirFormulaTree[dirRC] ?: DirectionFormula.True
-        if (dirR != DirectionFormula.True) {
+        val dirL = dirFormulaTree[dirLC] ?: DirFormula.True
+        val dirR = dirFormulaTree[dirRC] ?: DirFormula.True
+        if (dirR != DirFormula.True) {
             //rewrite using U X
-            val next = Formula.Simple.Next(path, right, dirR)
+            val next = Formula.Next(path, right, dirR)
             formulaTree[this] = Formula.Until(path, left, next, dirL)
         } else {
             formulaTree[this] = Formula.Until(path, left, right, dirL)
@@ -419,35 +419,40 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
         val bound = ctx.setBound()?.formula()?.let { formulaTree[it] } ?: True
         val name = ctx.VAR_NAME().text
         val inner = formulaTree[ctx.formula()]
-        formulaTree[ctx] =
-                if (ctx.FORALL() != null) Formula.FirstOrder.ForAll(name, bound, inner)
-                else Formula.FirstOrder.Exists(name, bound, inner)
+        formulaTree.put(ctx, if (ctx.FORALL() != null) {
+            Formula.ForAll(name, bound, inner)
+        } else {
+            Formula.Exists(name, bound, inner)
+        })
+
     }
 
     override fun exitHybrid(ctx: HUCTLParser.HybridContext) {
         val name = ctx.VAR_NAME().text
         val inner = formulaTree[ctx.formula()]
-        formulaTree[ctx] =
-                if (ctx.BIND() != null) Formula.Hybrid.Bind(name, inner)
-                else Formula.Hybrid.At(name, inner)
+        formulaTree.put(ctx, if (ctx.BIND() != null) {
+            Formula.Bind(name, inner)
+        } else {
+            Formula.At(name, inner)
+        })
     }
 
     /* ------ Direction formula parsing ------ */
 
     override fun exitDirId(ctx: HUCTLParser.DirIdContext) {
-        dirFormulaTree[ctx] = DirectionFormula.Reference(ctx.text)
+        dirFormulaTree[ctx] = DirFormula.Reference(ctx.text)
     }
 
     override fun exitDirAtom(ctx: HUCTLParser.DirAtomContext) {
         dirFormulaTree.put(ctx, when {
-            ctx.TRUE() != null -> DirectionFormula.True
-            ctx.LOOP() != null -> DirectionFormula.Loop
-            else -> DirectionFormula.False
+            ctx.TRUE() != null -> DirFormula.True
+            ctx.LOOP() != null -> DirFormula.Loop
+            else -> DirFormula.False
         })
     }
 
     override fun exitDirProposition(ctx: HUCTLParser.DirPropositionContext) {
-        dirFormulaTree[ctx] = DirectionFormula.Proposition(
+        dirFormulaTree[ctx] = DirFormula.Proposition(
                 ctx.VAR_NAME().text, if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
         )
     }
@@ -509,12 +514,12 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
 
 }
 
-private val unaryTemporalConstructors = mapOf<String, (PathQuantifier, Formula, DirectionFormula) -> Formula>(
-        "X" to { a,b,c -> Formula.Simple.Next(a, b, c) },
-        "wX" to { a,b,c -> Formula.Simple.WeakNext(a, b, c) },
-        "F" to { a,b,c -> Formula.Simple.Future(a, b, c) },
-        "wF" to { a,b,c -> Formula.Simple.WeakFuture(a, b, c) },
-        "G" to { a,b,c -> Formula.Simple.Globally(a, b, c) }
+private val unaryTemporalConstructors = mapOf<String, (PathQuantifier, Formula, DirFormula) -> Formula>(
+        "X" to { a,b,c -> Formula.Next(a, b, c) },
+        "wX" to { a,b,c -> Formula.WeakNext(a, b, c) },
+        "F" to { a,b,c -> Formula.Future(a, b, c) },
+        "wF" to { a,b,c -> Formula.WeakFuture(a, b, c) },
+        "G" to { a,b,c -> Formula.Globally(a, b, c) }
 )
 
 private data class Assignment<out T: Any>(
