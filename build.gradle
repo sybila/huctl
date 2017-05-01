@@ -1,6 +1,6 @@
 buildscript {
     ext.version_antlr = '4.7'
-    ext.version_dokka = '0.9.14-eap-2'
+    ext.version_dokka = '0.9.13'
     ext.version_option_result = '1.0.0'
     ext.version_kotlin = '1.1.2-2'
 
