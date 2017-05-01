@@ -100,7 +100,7 @@ class HUCTLParser {
                     references[name]?.run {
                         if (this.item is DirFormula) resolveDirectionFormula(this.item)
                         else if (this.item is Formula)  //try up-casting
-                            this.item.asDirectionFormula()?.let(::resolveDirectionFormula)
+                            this.item.asDirFormula()?.let(::resolveDirectionFormula)
                             ?: throw IllegalStateException("$name cannot be cast to direction formula.")
                         else throw IllegalStateException(
                                 "Expected type of $name is a direction formula."
@@ -149,10 +149,10 @@ class HUCTLParser {
         })
 
         fun unboundNames(f: Formula): List<String> = f.fold({
-            if (this is Formula.Atom.Reference) listOf(this.name) else listOf()
+            if (this is Formula.Reference) listOf(this.name) else listOf()
         }, { inner ->
-            if (this is Formula.Hybrid.At) inner + listOf(this.name)
-            else if (this is Formula.Hybrid.Bind) inner - listOf(this.name)
+            if (this is Formula.At) inner + listOf(this.name)
+            else if (this is Formula.Bind) inner - listOf(this.name)
             else inner
         }, { l, r ->
             if (this is Formula.FirstOrder) l + (r - listOf(this.name))
@@ -322,7 +322,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     override fun exitTransition(ctx: HUCTLParser.TransitionContext) {
         formulaTree[ctx] = Formula.Transition(
                 name = ctx.VAR_NAME().text,
-                direction = if (ctx.IN() != null) Flow.IN else Flow.OUT,
+                flow = if (ctx.IN() != null) Flow.IN else Flow.OUT,
                 facet = if (ctx.PLUS() != null) Direction.POSITIVE else Direction.NEGATIVE
         )
     }

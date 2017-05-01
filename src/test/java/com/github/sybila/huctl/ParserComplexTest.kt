@@ -207,21 +207,21 @@ class Complex {
 
     @Test
     fun formulaCastError() {
-        //direction to formula
+        //flow to formula
         assertFailsWith<IllegalStateException> {
             parser.parse("""
                 k = x+ || y-
                 l = EX k
             """)
         }
-        //formula to direction
+        //formula to flow
         assertFailsWith<IllegalStateException> {
             parser.parse("""
                 k = EX True
                 l = {k}EF False
             """)
         }
-        //expression to direction formula
+        //expression to flow formula
         assertFailsWith<IllegalStateException> {
             parser.parse("""
                 k = 1 + 2

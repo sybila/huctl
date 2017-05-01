@@ -53,7 +53,7 @@ class References {
         assertFailsWith<IllegalStateException> {
             parser.parse("a = a + a")
         }
-        //direction formula
+        //flow formula
         assertFailsWith<IllegalStateException> {
             parser.parse("a = b+ || a")
         }

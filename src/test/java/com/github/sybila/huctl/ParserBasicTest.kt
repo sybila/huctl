@@ -51,7 +51,7 @@ class Basic {
                 True AU False,
                 parser.formula("True AU False")
         )
-        //path direction
+        //path flow
         assertEquals(
                 True.pastEU(False, True.asDirectionFormula()!!),
                 parser.formula("True {True}pEU False")
@@ -60,7 +60,7 @@ class Basic {
                 True.pastAU(False, True.asDirectionFormula()!!),
                 parser.formula("True {True}pAU False")
         )
-        //reach direction
+        //reach flow
         assertEquals(
                 True EU (EX(False, False.asDirectionFormula()!!)),
                 parser.formula("True EU{False} False")

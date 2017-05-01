@@ -37,3 +37,15 @@ interface Binary<This, Tree> where This : Binary<This, Tree> {
     val right: Tree
     fun copy(left: Tree = this.left, right: Tree = this.right): This
 }
+
+/**
+ * An utility method which transforms a binary formula into a DirFormula assuming both
+ * children can be also transformed.
+ */
+internal fun Binary<*, Formula>.directionFold(fold: (DirFormula, DirFormula) -> DirFormula): DirFormula? {
+    val left = this.left.asDirFormula()
+    val right = this.right.asDirFormula()
+    return if (left != null && right != null)
+        fold(left, right)
+    else null
+}

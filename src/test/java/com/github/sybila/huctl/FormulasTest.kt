@@ -143,7 +143,7 @@ class Misc {
         assertNotEquals(dir1, dir2)
         assertEquals("v1", dir1.name)
         assertEquals(Direction.POSITIVE, dir1.facet)
-        assertEquals(Flow.IN, dir1.direction)
+        assertEquals(Flow.IN, dir1.flow)
 
         val u = (prop1 EU prop2) as Formula.Until
         assertEquals(prop1, u.path)
@@ -158,12 +158,12 @@ class Misc {
         val dFF = DirFormula.Atom.False
 
         //simple invalid
-        assertNull(("a".asVariable() gt "b".asVariable()).asDirectionFormula())
-        assertNull("a".positiveIn().asDirectionFormula())
-        assertNull(EX(tt).asDirectionFormula())
+        assertNull(("a".asVariable() gt "b".asVariable()).asDirFormula())
+        assertNull("a".positiveIn().asDirFormula())
+        assertNull(EX(tt).asDirFormula())
         assertNull((tt EU ff).asDirectionFormula())
-        assertNull(forall("x", tt, tt).asDirectionFormula())
-        assertNull(bind("x", tt).asDirectionFormula())
+        assertNull(forall("x", tt, tt).asDirFormula())
+        assertNull(bind("x", tt).asDirFormula())
 
         //simple valid
         assertEquals(dTT, tt.asDirectionFormula())
@@ -176,13 +176,13 @@ class Misc {
 
         //complex invalid
         assertNull((tt and "a".positiveIn()).asDirectionFormula())
-        assertNull(("a".positiveIn() and ff).asDirectionFormula())
+        assertNull(("a".positiveIn() and ff).asDirFormula())
         assertNull((tt or "a".positiveIn()).asDirectionFormula())
-        assertNull(("a".positiveIn() or ff).asDirectionFormula())
+        assertNull(("a".positiveIn() or ff).asDirFormula())
         assertNull((tt implies "a".positiveIn()).asDirectionFormula())
-        assertNull(("a".positiveIn() implies ff).asDirectionFormula())
+        assertNull(("a".positiveIn() implies ff).asDirFormula())
         assertNull((tt equal "a".positiveIn()).asDirectionFormula())
-        assertNull(("a".positiveIn() equal ff).asDirectionFormula())
+        assertNull(("a".positiveIn() equal ff).asDirFormula())
     }
 
 }
