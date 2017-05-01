@@ -1,45 +1,43 @@
 package com.github.sybila.huctl
 
 sealed class Expression {
-    class Variable(val name: String) : Expression() {
-        override fun equals(other: Any?): Boolean = other is Variable && other.name == this.name
-        override fun hashCode(): Int = this.name.hashCode()
-        override fun toString(): String = this.name
+
+    interface Binary<T> where T : Expression, T : Binary<T> {
+        val left: Expression
+        val right: Expression
+        fun copy(left: Expression = this.left, right: Expression = this.right): T
     }
-    class Constant(val value: Double) : Expression() {
-        override fun equals(other: Any?): Boolean = other is Constant && other.value == this.value
-        override fun hashCode(): Int = this.value.hashCode()
+
+    data class Variable(val name: String) : Expression() {
+        override fun toString(): String = name
+    }
+
+    data class Constant(val value: Double) : Expression() {
         override fun toString(): String = String.format("%.4f", this.value) //no scientific notation
     }
-    sealed class Arithmetic<T: Arithmetic<T>>(
-            val left: Expression,
-            val right: Expression,
-            private val clazz: Class<T>,
-            private val op: String
-    ) : Expression() {
-        override fun equals(other: Any?): Boolean
-                = clazz.isInstance(other) && clazz.cast(other).let { that ->
-            this.left == that.left && this.right == that.right
-        }
-        override fun hashCode(): Int = 31 * (31 * clazz.hashCode() + left.hashCode()) + right.hashCode()
-        override fun toString(): String = "($left $op $right)"
 
-        abstract fun copy(left: Expression = this.left, right: Expression = this.right): Arithmetic<T>
-
-        class Add(left: Expression, right: Expression) : Arithmetic<Add>(left, right, Add::class.java, "+") {
-            override fun copy(left: Expression, right: Expression): Arithmetic<Add> = Add(left, right)
-        }
-
-        class Sub(left: Expression, right: Expression) : Arithmetic<Sub>(left, right, Sub::class.java, "-") {
-            override fun copy(left: Expression, right: Expression): Arithmetic<Sub> = Sub(left, right)
-        }
-
-        class Mul(left: Expression, right: Expression) : Arithmetic<Mul>(left, right, Mul::class.java, "*") {
-            override fun copy(left: Expression, right: Expression): Arithmetic<Mul> = Mul(left, right)
-        }
-
-        class Div(left: Expression, right: Expression) : Arithmetic<Div>(left, right, Div::class.java, "/") {
-            override fun copy(left: Expression, right: Expression): Arithmetic<Div> = Div(left, right)
-        }
+    data class Add(
+            override val left: Expression, override val right: Expression
+    ) : Expression(), Binary<Add> {
+        override fun toString(): String = "($left + $right)"
     }
+
+    data class Sub(
+            override val left: Expression, override val right: Expression
+    ) : Expression(), Binary<Add> {
+        override fun toString(): String = "($left - $right)"
+    }
+
+    data class Mul(
+            override val left: Expression, override val right: Expression
+    ) : Expression(), Binary<Add> {
+        override fun toString(): String = "($left * $right)"
+    }
+
+    data class Div(
+            override val left: Expression, override val right: Expression
+    ) : Expression(), Binary<Add> {
+        override fun toString(): String = "($left / $right)"
+    }
+
 }
