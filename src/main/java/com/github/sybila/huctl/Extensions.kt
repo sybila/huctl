@@ -8,11 +8,11 @@ import com.github.sybila.huctl.PathQuantifier.*
 fun <R> Expression.fold(
         constant: Expression.Constant.() -> R,
         variable: Expression.Variable.() -> R,
-        arithmetic: Expression.Binary<*>.(R, R) -> R): R {
+        arithmetic: Binary<*, Expression>.(R, R) -> R): R {
     return when (this) {
         is Expression.Constant -> constant(this)
         is Expression.Variable -> variable(this)
-        is Expression.Binary<*> -> arithmetic(this,
+        is Binary<*, *> -> arithmetic(this,
                 this.left.fold(constant, variable, arithmetic),
                 this.right.fold(constant, variable, arithmetic)
         )
@@ -24,7 +24,7 @@ fun Expression.mapLeafs(
         constant: (Expression.Constant) -> Expression,
         variable: (Expression.Variable) -> Expression
 ): Expression {
-    return this.fold(constant, variable, Expression.Binary<*>::copy)
+    return this.fold<Expression>(constant, variable, Binary<*, Expression>::copy)
 }
 
 fun <R> DirFormula.fold(

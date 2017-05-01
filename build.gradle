@@ -77,3 +77,7 @@ test {
     }
     void
 }
+
+dokka {
+    sourceDirs = files('src/main/java')     // excludes generated antlr classes
+}
