@@ -142,8 +142,8 @@ class Misc {
         assertNotEquals(dir1.hashCode(), dir2.hashCode())
         assertNotEquals(dir1, dir2)
         assertEquals("v1", dir1.name)
-        assertEquals(Facet.POSITIVE, dir1.facet)
-        assertEquals(Direction.IN, dir1.direction)
+        assertEquals(Direction.POSITIVE, dir1.facet)
+        assertEquals(Flow.IN, dir1.direction)
 
         val u = (prop1 EU prop2) as Formula.Until
         assertEquals(prop1, u.path)

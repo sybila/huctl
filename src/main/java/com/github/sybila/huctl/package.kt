@@ -17,12 +17,23 @@ enum class CompareOp(private val str: String) {
     override fun toString(): String = str
 }
 
-enum class Direction(private val str: String) {
+enum class Flow(private val str: String) {
     IN("in"), OUT("out");
     override fun toString(): String = str
 }
 
-enum class Facet(private val str: String) {
+enum class Direction(private val str: String) {
     POSITIVE("+"), NEGATIVE("-");
     override fun toString(): String = str
+}
+
+interface Unary<This, Tree> where This : Unary<This, Tree> {
+    val inner: Tree
+    fun copy(inner: Tree = this.inner): This
+}
+
+interface Binary<This, Tree> where This : Binary<This, Tree> {
+    val left: Tree
+    val right: Tree
+    fun copy(left: Tree = this.left, right: Tree = this.right): This
 }

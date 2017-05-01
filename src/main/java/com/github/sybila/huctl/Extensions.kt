@@ -33,13 +33,12 @@ fun <R> DirFormula.fold(
         binary: DirFormula.Binary<*>.(R, R) -> R
 ) : R {
     return when (this) {
-        is DirFormula.Atom -> atom(this)
         is DirFormula.Unary<*> -> unary(this, this.inner.fold(atom, unary, binary))
         is DirFormula.Binary<*> -> binary(this,
                 this.left.fold(atom, unary, binary),
                 this.right.fold(atom, unary, binary)
         )
-        else -> throw IllegalStateException("Cannot fold over formula $this")
+        else -> atom(this)
     }
 }
 
@@ -95,18 +94,18 @@ infix fun Expression.lt(other: Expression): Numeric = Numeric(this, CompareOp.LT
 val True = Formula.True
 val False = Formula.False
 
-fun String.positiveIn() = Transition(this, Direction.IN, Facet.POSITIVE)
-fun String.positiveOut() = Transition(this, Direction.OUT, Facet.POSITIVE)
-fun String.negativeIn() = Transition(this, Direction.IN, Facet.NEGATIVE)
-fun String.negativeOut() = Transition(this, Direction.OUT, Facet.NEGATIVE)
+fun String.positiveIn() = Transition(this, Flow.IN, Direction.POSITIVE)
+fun String.positiveOut() = Transition(this, Flow.OUT, Direction.POSITIVE)
+fun String.negativeIn() = Transition(this, Flow.IN, Direction.NEGATIVE)
+fun String.negativeOut() = Transition(this, Flow.OUT, Direction.NEGATIVE)
 fun String.asReference() = Reference(this)
 
-// Direction propositions
+// Flow propositions
 
-fun String.increase(): DirFormula = DirFormula.Proposition(this, Facet.POSITIVE)
-fun String.decrease(): DirFormula = DirFormula.Proposition(this, Facet.NEGATIVE)
+fun String.increase(): DirFormula = DirFormula.Proposition(this, Direction.POSITIVE)
+fun String.decrease(): DirFormula = DirFormula.Proposition(this, Direction.NEGATIVE)
 
-// Direction formulas
+// Flow formulas
 
 fun not(inner: DirFormula): DirFormula = DirFormula.Not(inner)
 

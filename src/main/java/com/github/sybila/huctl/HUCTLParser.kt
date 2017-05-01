@@ -322,8 +322,8 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
     override fun exitTransition(ctx: HUCTLParser.TransitionContext) {
         formulaTree[ctx] = Formula.Transition(
                 name = ctx.VAR_NAME().text,
-                direction = if (ctx.IN() != null) Direction.IN else Direction.OUT,
-                facet = if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
+                direction = if (ctx.IN() != null) Flow.IN else Flow.OUT,
+                facet = if (ctx.PLUS() != null) Direction.POSITIVE else Direction.NEGATIVE
         )
     }
 
@@ -437,7 +437,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
         })
     }
 
-    /* ------ Direction formula parsing ------ */
+    /* ------ Flow formula parsing ------ */
 
     override fun exitDirId(ctx: HUCTLParser.DirIdContext) {
         dirFormulaTree[ctx] = DirFormula.Reference(ctx.text)
@@ -453,7 +453,7 @@ private class FileContext(val location: String) : HUCTLBaseListener() {
 
     override fun exitDirProposition(ctx: HUCTLParser.DirPropositionContext) {
         dirFormulaTree[ctx] = DirFormula.Proposition(
-                ctx.VAR_NAME().text, if (ctx.PLUS() != null) Facet.POSITIVE else Facet.NEGATIVE
+                ctx.VAR_NAME().text, if (ctx.PLUS() != null) Direction.POSITIVE else Direction.NEGATIVE
         )
     }
 

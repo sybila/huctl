@@ -78,7 +78,7 @@ sealed class Formula {
         override fun toString(): String = name
     }
 
-    data class Transition(val name: String, val direction: Direction, val facet: Facet) : Formula(), Atom {
+    data class Transition(val name: String, val direction: Flow, val facet: Direction) : Formula(), Atom {
         override fun toString(): String = "$name:$direction$facet"
     }
 
