@@ -1,34 +1,56 @@
 package com.github.sybila.huctl
 
+/**
+ * Arithmetic expressions which are used in the [Formula.Numeric] proposition.
+ *
+ * They support standard arithmetic operations (+, -, *, /), floating point
+ * literals and variables. Note that any unresolved variables are expected to
+ * be resolved "at runtime", meaning they are considered to be a part of the model.
+ *
+ * Note that each expressions is either [Binary] or a constant or a variable.
+ */
 sealed class Expression(
         private val string: String
 ) {
 
-    interface Binary<T> where T : Expression, T : Binary<T> {
-        val left: Expression
-        val right: Expression
-        fun copy(left: Expression = this.left, right: Expression = this.right): T
-    }
-
+    /**
+     * A variable [name]. If there is an existing alias with this name, it will be substituted.
+     * Otherwise is considered to be a model variable.
+     */
     data class Variable(val name: String) : Expression(name)
 
+    /**
+     * A floating point constant. Scientific notation (2.3e10) is not supported.
+     */
     data class Constant(val value: Double) : Expression(String.format("%.6f", value))   // avoid scientific notation
 
+    /**
+     * Addition: A + B
+     */
     data class Add(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left + $right)"), Binary<Add>
+    ) : Expression("($left + $right)"), Binary<Add, Expression>
 
+    /**
+     * Subtraction: A - B
+     */
     data class Sub(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left - $right)"), Binary<Add>
+    ) : Expression("($left - $right)"), Binary<Sub, Expression>
 
+    /**
+     * Multiplication: A * B
+     */
     data class Mul(
             override val left: Expression, override val right: Expression
-    ) : Expression("$left * $right"), Binary<Add>
+    ) : Expression("$left * $right"), Binary<Mul, Expression>
 
+    /**
+     * Division: A / B
+     */
     data class Div(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left / $right)"), Binary<Add>
+    ) : Expression("($left / $right)"), Binary<Div, Expression>
 
     override fun toString(): String = string
 
