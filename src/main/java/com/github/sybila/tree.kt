@@ -12,12 +12,16 @@ package com.github.sybila
  *
  * Note that we assume the tree node is immutable!
  *
- * The type parameter [Tree] indicates what is the least common supertype of all
+ * The type parameter Tree indicates what is the least common supertype of all
  * tree nodes.
  *
  * Note that if a tree node isn't [Unary] or [Binary], it is assumed to be an atom without children.
  */
 interface TreeNode<out Tree> {
+
+    /**
+     * The object which holds the actual data in the tree.
+     */
     val node: Tree
 }
 

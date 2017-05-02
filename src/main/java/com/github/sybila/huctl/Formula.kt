@@ -268,11 +268,13 @@ sealed class Formula(
      * formula is satisfied.
      */
     data class Until(
+            /** Specifies the condition for selecting paths originating in the inspected state. */
             val quantifier: PathQuantifier,
             /** The formula which needs to be valid along a path until reach is found. */
             val path: Formula,
             /** The formula which needs to be eventually found in the path. */
             val reach: Formula,
+            /** Specifies the direction requirement expected from the selected paths. */
             val direction: DirFormula
     ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula> {
         override val left: Formula = path ; override val right: Formula = reach
