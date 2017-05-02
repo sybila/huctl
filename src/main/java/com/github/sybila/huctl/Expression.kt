@@ -21,7 +21,7 @@ sealed class Expression(
      * Otherwise is considered to be a model variable.
      */
     data class Variable(
-            /** The name of the variable whose value should be substitued at this position. */
+            /** The name of the variable whose value should be substituted at this position. */
             val name: String
     ) : Expression(name) {
         override fun toString(): String = string

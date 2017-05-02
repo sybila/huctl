@@ -1,8 +1,6 @@
 package com.github.sybila.huctl
 
 import com.github.sybila.Unary
-import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.ParseTreeProperty
 
 /**
  * Specifies the type of the temporal path quantifier used by the HUCTLp [Formula].

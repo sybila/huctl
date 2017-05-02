@@ -152,7 +152,7 @@ private fun Map<String, Assignment<*>>.resolveReferences(onlyFlagged: Boolean): 
         }
     })
 
-    // resolve references in direction formulas (with possible upcast)
+    // resolve references in direction formulas (with possible cast)
     fun resolveDirFormula(formula: DirFormula, stack: List<String>): DirFormula = formula.map(atom = {
         when {
             this !is DirFormula.Reference -> this   // True, False, Proposition
@@ -332,7 +332,7 @@ private fun Formula.unboundedNames(): Set<String> = this.fold(
         else -> it
     } },
     binary = { l, r -> when {
-        this is Formula.ForAll -> l + (r - name)    // the parentesis are important!
+        this is Formula.ForAll -> l + (r - name)    // the parentheses are important!
         this is Formula.Exists -> l + (r - name)
         else -> l + r
     } }

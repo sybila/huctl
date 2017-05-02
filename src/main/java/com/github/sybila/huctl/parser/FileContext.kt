@@ -4,7 +4,6 @@ import com.github.sybila.huctl.*
 import com.github.sybila.huctl.antlr.HUCTLBaseListener
 import com.github.sybila.huctl.antlr.HUCTLParser
 import com.github.sybila.huctl.dsl.*
-import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
 import java.io.File
