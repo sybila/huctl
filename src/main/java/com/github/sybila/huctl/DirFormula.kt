@@ -13,23 +13,29 @@ import com.github.sybila.Unary
  * Note that each formula is either [Binary], [Unary] or an atomic proposition.
  */
 sealed class DirFormula(
-        private val string: String
+        protected val string: String
 ) : TreeNode<DirFormula> {
 
     /**
      * Logical tautology - any path will match this restriction.
      */
-    object True : DirFormula("true")
+    object True : DirFormula("true") {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical contradiction - no path will match this restriction.
      */
-    object False : DirFormula("false")
+    object False : DirFormula("false") {
+        override fun toString(): String = string
+    }
 
     /**
      * Special loop proposition - only a self-loop path matches this restriction.
      */
-    object Loop : DirFormula("loop")
+    object Loop : DirFormula("loop"){
+        override fun toString(): String = string
+    }
 
     /**
      * General direction proposition. Contains a variable [name] and a requested [direction]
@@ -40,7 +46,9 @@ sealed class DirFormula(
             val name: String,
             /** The direction in which the path should be moving (up/down). */
             val direction: Direction
-    ) : DirFormula("$name$direction")
+    ) : DirFormula("$name$direction") {
+        override fun toString(): String = string
+    }
 
     /**
      * A general purpose proposition that can contain any string value.
@@ -48,15 +56,21 @@ sealed class DirFormula(
     data class Text(
             /** The text value of this proposition. */
             val value: String
-    ) : DirFormula("\"$value\"")
+    ) : DirFormula("\"$value\"") {
+        override fun toString(): String = string
+    }
 
     // Used for alias resolution
-    internal data class Reference(val name: String) : DirFormula(name)
+    internal data class Reference(val name: String) : DirFormula(name) {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical negation. A path will match this restriction if it does not match the [inner] restriction.
      */
-    data class Not(override val inner: DirFormula) : DirFormula("!$inner"), Unary<Not, DirFormula>
+    data class Not(override val inner: DirFormula) : DirFormula("!$inner"), Unary<Not, DirFormula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical conjunction. A path will match this restriction only if it matches both [left] and [right]
@@ -64,7 +78,9 @@ sealed class DirFormula(
      */
     data class And(
             override val left: DirFormula, override val right: DirFormula
-    ) : DirFormula("($left && $right)"), Binary<And, DirFormula>
+    ) : DirFormula("($left && $right)"), Binary<And, DirFormula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical disjunction. A path will match this restriction only if it matches any of the [left] and [right]
@@ -72,7 +88,9 @@ sealed class DirFormula(
      */
     data class Or(
             override val left: DirFormula, override val right: DirFormula
-    ) : DirFormula("($left || $right)"), Binary<Or, DirFormula>
+    ) : DirFormula("($left || $right)"), Binary<Or, DirFormula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical implication. A path will match this restriction only if does not match the [left] restriction
@@ -80,7 +98,9 @@ sealed class DirFormula(
      */
     data class Implies(
             override val left: DirFormula, override val right: DirFormula
-    ) : DirFormula("($left -> $right)"), Binary<Implies, DirFormula>
+    ) : DirFormula("($left -> $right)"), Binary<Implies, DirFormula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical equivalence. A path will match this restriction either when it matches both [left] and [right]
@@ -88,7 +108,9 @@ sealed class DirFormula(
      */
     data class Equals(
             override val left: DirFormula, override val right: DirFormula
-    ) : DirFormula("($left <-> $right)"), Binary<Equals, DirFormula>
+    ) : DirFormula("($left <-> $right)"), Binary<Equals, DirFormula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Return string which uniquely represents this formula and can be parsed to create an equivalent object.

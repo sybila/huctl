@@ -21,7 +21,7 @@ import com.github.sybila.Unary
  * Note that each formula is either [Binary], [Unary] or an atomic proposition.
  */
 sealed class Formula(
-        private val string: String
+        protected val string: String
 ) : TreeNode<Formula> {
 
     /* ========== Atoms ========== */
@@ -29,12 +29,16 @@ sealed class Formula(
     /**
      * Logical tautology. Any state satisfies this formula.
      */
-    object True : Formula("true")
+    object True : Formula("true") {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical contradiction. No state satisfies this formula.
      */
-    object False : Formula("false")
+    object False : Formula("false") {
+        override fun toString(): String = string
+    }
 
     /**
      * The semantics of the reference formula are not defined. The parser will never
@@ -45,7 +49,9 @@ sealed class Formula(
     data class Reference(
             /** A unique name of the data referenced by this object */
             val name: String
-    ) : Formula(name)
+    ) : Formula(name) {
+        override fun toString(): String = string
+    }
 
     /**
      * Transition proposition. A state satisfies this proposition if there is a transition
@@ -58,7 +64,9 @@ sealed class Formula(
             val direction: Direction,
             /** The flow in the specified direction (in/out) */
             val flow: Flow)
-        : Formula("$name:$flow$direction")
+        : Formula("$name:$flow$direction") {
+        override fun toString(): String = string
+    }
 
     /**
      * Numeric proposition. The semantics of this proposition are not strictly defined.
@@ -72,7 +80,9 @@ sealed class Formula(
             val cmp: CompareOp,
             /** Right side of the comparison */
             val right: Expression)
-        : Formula("($left $cmp $right)")
+        : Formula("($left $cmp $right)") {
+        override fun toString(): String = string
+    }
 
     /**
      * A general purpose proposition that can contain any string value.
@@ -80,7 +90,9 @@ sealed class Formula(
     data class Text(
             /** The text value of this proposition. */
             val value: String
-    ) : Formula("\"$value\"")
+    ) : Formula("\"$value\"") {
+        override fun toString(): String = string
+    }
 
     /* ========== Hybrid ========== */
 
@@ -104,6 +116,7 @@ sealed class Formula(
         : Formula("(forall $name in $bound : $target)"), Binary<ForAll, Formula> {
         override val left: Formula = bound; override val right: Formula = target
         override fun copy(left: Formula, right: Formula): ForAll = this.copy(bound = left, target = right)
+        override fun toString(): String = string
     }
 
     /**
@@ -126,6 +139,7 @@ sealed class Formula(
         : Formula("(exists $name in $bound : $target)"), Binary<Exists, Formula> {
         override val left: Formula = bound; override val right: Formula = target
         override fun copy(left: Formula, right: Formula): Exists = this.copy(bound = left, target = right)
+        override fun toString(): String = string
     }
 
     /**
@@ -142,6 +156,7 @@ sealed class Formula(
         : Formula("(bind $name : $target)"), Unary<Bind, Formula> {
         override val inner: Formula = target
         override fun copy(inner: Formula): Bind = this.copy(target = inner)
+        override fun toString(): String = string
     }
 
     /**
@@ -154,9 +169,10 @@ sealed class Formula(
             val name: String,
             /** The formula which should be inspected at the new point of interest */
             val target: Formula)
-        : Formula("(at $name  $target)"), Unary<At, Formula> {
+        : Formula("(at $name : $target)"), Unary<At, Formula> {
         override val inner: Formula = target
         override fun copy(inner: Formula): At = this.copy(target = inner)
+        override fun toString(): String = string
     }
 
     /* ========== Boolean ========== */
@@ -164,33 +180,43 @@ sealed class Formula(
     /**
      * Logical negation. A state satisfies this formula if it does not satisfy [inner].
      */
-    data class Not(override val inner: Formula) : Formula("!$inner"), Unary<Not, Formula>
+    data class Not(override val inner: Formula) : Formula("!$inner"), Unary<Not, Formula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical conjunction. A state satisfies this formula if it satisfies both [left] and [right].
      */
     data class And(override val left: Formula, override val right: Formula)
-        : Formula("($left && $right)"), Binary<And, Formula>
+        : Formula("($left && $right)"), Binary<And, Formula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical disjunction. A state satisfies this formula if it satisfies any of the [left] and [right] formulas.
      */
     data class Or(override val left: Formula, override val right: Formula)
-        : Formula("($left && $right)"), Binary<Or, Formula>
+        : Formula("($left && $right)"), Binary<Or, Formula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical implication. A state satisfies this formula if it does not satisfy [left] or if it
      * satisfies both [left] and [right].
      */
     data class Implies(override val left: Formula, override val right: Formula)
-        : Formula("($left -> $right)"), Binary<Implies, Formula>
+        : Formula("($left -> $right)"), Binary<Implies, Formula> {
+        override fun toString(): String = string
+    }
 
     /**
      * Logical equivalence. A state satisfies this formula if it does not satisfy neither [left] nor [right] or
      * if it satisfies both.
      */
     data class Equals(override val left: Formula, override val right: Formula)
-        : Formula("($left <-> $right)"), Binary<Equals, Formula>
+        : Formula("($left <-> $right)"), Binary<Equals, Formula> {
+        override fun toString(): String = string
+    }
 
     /* ========== Temporal, Simple ========== */
 
@@ -205,6 +231,7 @@ sealed class Formula(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
     ) : Formula("({$direction}${quantifier}X $inner)"), Temporal<Next> {
         override fun copy(inner: Formula): Next = this.copy(inner = inner)
+        override fun toString(): String = string
     }
 
     /**
@@ -218,6 +245,7 @@ sealed class Formula(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
     ) : Formula("({$direction}${quantifier}F $inner)"), Temporal<Future> {
         override fun copy(inner: Formula): Future = this.copy(inner = inner)
+        override fun toString(): String = string
     }
 
     /**
@@ -228,6 +256,7 @@ sealed class Formula(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
     ) : Formula("({$direction}${quantifier}G $inner)"), Temporal<Globally> {
         override fun copy(inner: Formula): Globally = this.copy(inner = inner)
+        override fun toString(): String = string
     }
 
     /**
@@ -243,6 +272,7 @@ sealed class Formula(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
     ) : Formula("({$direction}${quantifier}wX $inner)"), Temporal<WeakNext> {
         override fun copy(inner: Formula): WeakNext = this.copy(inner = inner)
+        override fun toString(): String = string
     }
 
     /**
@@ -258,6 +288,7 @@ sealed class Formula(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
     ) : Formula("({$direction}${quantifier}wF $inner)"), Temporal<WeakFuture> {
         override fun copy(inner: Formula): WeakFuture = this.copy(inner = inner)
+        override fun toString(): String = string
     }
 
     /* ========== Temporal, Until ========== */
@@ -279,6 +310,7 @@ sealed class Formula(
     ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula> {
         override val left: Formula = path ; override val right: Formula = reach
         override fun copy(left: Formula, right: Formula): Until = this.copy(path = left, reach = right)
+        override fun toString(): String = string
     }
 
     /**

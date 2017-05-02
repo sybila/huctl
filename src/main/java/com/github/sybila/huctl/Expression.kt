@@ -13,7 +13,7 @@ import com.github.sybila.TreeNode
  * Note that each expressions is either [Binary] or a constant or a variable.
  */
 sealed class Expression(
-        private val string: String
+        protected val string: String
 ) : TreeNode<Expression> {
 
     /**
@@ -23,7 +23,9 @@ sealed class Expression(
     data class Variable(
             /** The name of the variable whose value should be substitued at this position. */
             val name: String
-    ) : Expression(name)
+    ) : Expression(name) {
+        override fun toString(): String = string
+    }
 
     /**
      * A floating point constant. Scientific notation (2.3e10) is not supported.
@@ -31,35 +33,45 @@ sealed class Expression(
     data class Constant(
             /** The value of the floating point constant. */
             val value: Double
-    ) : Expression(String.format("%.6f", value))   // avoid scientific notation
+    ) : Expression(String.format("%.6f", value)) { // avoid scientific notation
+        override fun toString(): String = string
+    }
 
     /**
      * Addition: A + B
      */
     data class Add(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left + $right)"), Binary<Add, Expression>
+    ) : Expression("($left + $right)"), Binary<Add, Expression> {
+        override fun toString(): String = string
+    }
 
     /**
      * Subtraction: A - B
      */
     data class Sub(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left - $right)"), Binary<Sub, Expression>
+    ) : Expression("($left - $right)"), Binary<Sub, Expression> {
+        override fun toString(): String = string
+    }
 
     /**
      * Multiplication: A * B
      */
     data class Mul(
             override val left: Expression, override val right: Expression
-    ) : Expression("$left * $right"), Binary<Mul, Expression>
+    ) : Expression("($left * $right)"), Binary<Mul, Expression> {
+        override fun toString(): String = string
+    }
 
     /**
      * Division: A / B
      */
     data class Div(
             override val left: Expression, override val right: Expression
-    ) : Expression("($left / $right)"), Binary<Div, Expression>
+    ) : Expression("($left / $right)"), Binary<Div, Expression> {
+        override fun toString(): String = string
+    }
 
     /**
      * Return string which uniquely represents this expression and can be parsed to create an equivalent object.
