@@ -70,6 +70,14 @@ sealed class Formula(
             val right: Expression)
         : Formula("($left $cmp $right)")
 
+    /**
+     * A general purpose proposition that can contain any string value.
+     */
+    data class Text(
+            /** The text value of this proposition. */
+            val value: String
+    ) : Formula("\"$value\"")
+
     /* ========== Hybrid ========== */
 
     /**

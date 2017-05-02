@@ -21,6 +21,7 @@ formula : VAR_NAME                                                              
         | (TRUE | FALSE)                                                                #bool
         | VAR_NAME ':' (IN | OUT) (PLUS | MINUS)                                        #transition
         | expression compare expression                                                 #proposition
+        | STRING                                                                        #text
         | '(' formula ')'                                                               #parenthesis
         | NEG formula                                                                   #negation
         | dirModifier? TEMPORAL_UNARY formula                                           #unaryTemporal
@@ -46,6 +47,7 @@ dirModifierR : dirModifier;
 dirFormula : VAR_NAME                                       #dirId
            | (TRUE | FALSE | LOOP)                          #dirAtom
            | VAR_NAME (PLUS | MINUS)                        #dirProposition
+           | STRING                                         #dirText
            | '(' dirFormula ')'                             #dirParenthesis
            | NEG dirFormula                                 #dirNegation
            | dirFormula CON dirFormula                      #dirAnd

@@ -1,6 +1,5 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.HUCTLParser
 import com.github.sybila.huctl.False
 import com.github.sybila.huctl.True
 import org.junit.Test

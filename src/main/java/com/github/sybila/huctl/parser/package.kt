@@ -269,6 +269,7 @@ private fun Formula.toDirFormula(): DirFormula?
         atom = { when (this) {
             is Formula.True -> DirFormula.True
             is Formula.False -> DirFormula.False
+            is Formula.Text -> DirFormula.Text(this.value)
             is Formula.Reference -> DirFormula.Reference(this.name)
             else -> null
         } },

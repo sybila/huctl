@@ -38,6 +38,14 @@ sealed class DirFormula(
             val direction: Direction
     ) : DirFormula("$name$direction")
 
+    /**
+     * A general purpose proposition that can contain any string value.
+     */
+    data class Text(
+            /** The text value of this proposition. */
+            val value: String
+    ) : DirFormula("\"$value\"")
+
     // Used for alias resolution
     internal data class Reference(val name: String) : DirFormula(name)
 

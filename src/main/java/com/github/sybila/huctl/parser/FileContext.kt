@@ -94,6 +94,11 @@ internal class FileContext(val location: String) : HUCTLBaseListener() {
         }
     }
 
+    override fun exitText(ctx: HUCTLParser.TextContext) {
+        val string = ctx.STRING().text
+        formulaTree[ctx] = Formula.Text(string.substring(1, string.length - 1)) //remove quotes
+    }
+
     override fun exitParenthesis(ctx: HUCTLParser.ParenthesisContext) {
         formulaTree[ctx] = formulaTree[ctx.formula()]
     }
@@ -190,7 +195,7 @@ internal class FileContext(val location: String) : HUCTLBaseListener() {
         })
     }
 
-    /* ------ Flow formula parsing ------ */
+    /* ------ Direction formula parsing ------ */
 
     override fun exitDirId(ctx: HUCTLParser.DirIdContext) {
         dirFormulaTree[ctx] = DirFormula.Reference(ctx.text)
@@ -208,6 +213,11 @@ internal class FileContext(val location: String) : HUCTLBaseListener() {
         dirFormulaTree[ctx] = DirFormula.Proposition(
                 ctx.VAR_NAME().text, if (ctx.PLUS() != null) Direction.POSITIVE else Direction.NEGATIVE
         )
+    }
+
+    override fun exitDirText(ctx: HUCTLParser.DirTextContext) {
+        val string = ctx.STRING().text
+        dirFormulaTree[ctx] = DirFormula.Text(string.substring(1, string.length - 1)) //remove quotes
     }
 
     override fun exitDirParenthesis(ctx: HUCTLParser.DirParenthesisContext) {
