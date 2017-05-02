@@ -1,9 +1,7 @@
 package com.github.sybila.huctl
 
 import com.github.sybila.huctl.dsl.*
-import com.github.sybila.huctl.parser.toDirFormula
-import com.github.sybila.huctl.parser.toFormula
-import com.github.sybila.huctl.parser.toHUCTLp
+import com.github.sybila.huctl.parser.*
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -239,6 +237,7 @@ class Basic {
     @Test
     fun dirFormulaParse() {
         assertEquals(!!"d1" and "x".toIncreasing(), "'d1' && x+".toDirFormula())
+        assertEquals(!!"d1" and "x".toIncreasing(), readDirFormula("'d1' && x+"))
     }
 
     @Test
@@ -254,6 +253,19 @@ class Basic {
         assertFailsWith<IllegalArgumentException> {
             " foo ".toHUCTLp()
         }
+    }
+
+    @Test
+    fun invalidParse() {
+        assertFailsWith<IllegalArgumentException> {
+            "a = AF ((True)".toHUCTLp()
+        }
+    }
+
+    @Test
+    fun expressionParse() {
+        assertEquals("a".toVar() plus !3.14, "a + 3.14".toExpression())
+        assertEquals("c".toVar() minus (!4.0 + !2.2), readExpression("c - (4.0 + 2.2)"))
     }
 
 }

@@ -56,9 +56,11 @@ internal class FileContext(val location: String) : HUCTLBaseListener() {
         }
     }
 
+    /* Seems useless?
     override fun visitErrorNode(node: ErrorNode) {
         throw IllegalArgumentException("Syntax error at '${node.text}' in $location:${node.symbol.line}")
     }
+    */
 
     /* ------ Formula Parsing ------ */
 

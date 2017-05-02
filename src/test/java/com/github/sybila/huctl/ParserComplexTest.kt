@@ -1,6 +1,8 @@
 package com.github.sybila.huctl
 
 import com.github.sybila.huctl.dsl.*
+import com.github.sybila.huctl.parser.parseHUCTLp
+import com.github.sybila.huctl.parser.readFormula
 import com.github.sybila.huctl.parser.toHUCTLp
 import org.junit.Test
 import java.io.File
@@ -58,6 +60,10 @@ class Complex {
         assertEquals(c, result["c"])
         assertEquals(d, result["d"])
         assertEquals(e, result["e"])
+
+        assertEquals(a, readFormula("!p1 == 4"))
+        assertEquals(a, parseHUCTLp("a = !p1 == 4")["a"])
+        assertEquals(result, parseHUCTLp(f3))
 
         f1.delete()
         f2.delete()
@@ -167,17 +173,29 @@ class Complex {
 
     @Test
     fun formulaCastError() {
-        //flow to formula
+        //direction to formula
         assertFailsWith<IllegalStateException> {
             """
                 k = x+ || y-
                 l = EX k
             """.toHUCTLp()
         }
-        //formula to flow
+        //formula to direction
         assertFailsWith<IllegalStateException> {
             """
-                k = EX True
+                k = 'p1' && EX True
+                l = {k}EF False
+            """.toHUCTLp()
+        }
+        assertFailsWith<IllegalStateException> {
+            """
+                k = 'p1' EU True
+                l = {k}EF False
+            """.toHUCTLp()
+        }
+        assertFailsWith<IllegalStateException> {
+            """
+                k = EF False || z:in+
                 l = {k}EF False
             """.toHUCTLp()
         }
@@ -202,6 +220,18 @@ class Complex {
                 a = k + 2
             """.toHUCTLp()
         }
+    }
+
+    @Test
+    fun formulaCastValid() {
+        val r = """
+            c = True
+            a = ('d1' && 'd2') || ('d1' -> (c <-> 'd1'))
+            b = {a}EX True
+        """.toHUCTLp()
+        val d1 = !!"d1"
+        val d2 = !!"d2"
+        assertEquals(EX(Formula.True, ((d1 and d2) or (d1 implies (DirFormula.True equal d1)))), r["b"])
     }
 
 }
