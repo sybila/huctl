@@ -1,5 +1,9 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.Binary
+import com.github.sybila.TreeNode
+import com.github.sybila.Unary
+
 /**
  * An HUCTLp Formula that can be used to describe general temporal properties.
  *

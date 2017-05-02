@@ -1,5 +1,9 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.Binary
+import com.github.sybila.TreeNode
+import com.github.sybila.Unary
+
 /**
  * Formulas that are used to describe the direction of the temporal path.
  *

@@ -1,5 +1,8 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.Binary
+import com.github.sybila.TreeNode
+
 /**
  * Arithmetic expressions which are used in the [Formula.Numeric] proposition.
  *

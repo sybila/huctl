@@ -1,9 +1,11 @@
 package com.github.sybila.huctl.parser
 
+import com.github.sybila.fold
 import com.github.sybila.huctl.*
 import com.github.sybila.huctl.antlr.HUCTLLexer
 import com.github.sybila.huctl.antlr.HUCTLParser
 import com.github.sybila.huctl.dsl.*
+import com.github.sybila.map
 import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.ATNConfigSet
 import org.antlr.v4.runtime.dfa.DFA

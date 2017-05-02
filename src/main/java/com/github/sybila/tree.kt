@@ -1,7 +1,7 @@
-package com.github.sybila.huctl
+package com.github.sybila
 
 /**
- * This file contains interfaces that together define a tree structure with unary, binary and atom nodes.
+ * This file contains interfaces that together define a tree structure with unary, binary and atomic nodes.
  *
  * The tree structure can be then transformed using the standard fold catamorphism.
  */
@@ -22,7 +22,7 @@ interface TreeNode<out Tree> {
 }
 
 /**
- * Common interface for unary operators. Used by [DirFormula] and [Formula].
+ * Common interface for unary operators.
  */
 interface Unary<out This, Tree> : TreeNode<Tree> where This : Tree, Tree : TreeNode<Tree> {
 
@@ -39,7 +39,7 @@ interface Unary<out This, Tree> : TreeNode<Tree> where This : Tree, Tree : TreeN
 }
 
 /**
- * Common interface for binary operators. Used by [Formula], [DirFormula] and [Expression].
+ * Common interface for binary operators.
  */
 interface Binary<out This, Tree> : TreeNode<Tree> where This : Tree, Tree : TreeNode<Tree> {
 
