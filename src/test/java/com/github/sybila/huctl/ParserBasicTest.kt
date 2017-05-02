@@ -1,445 +1,250 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.huctl.dsl.*
+import com.github.sybila.huctl.parser.toDirFormula
+import com.github.sybila.huctl.parser.toFormula
+import com.github.sybila.huctl.parser.toHUCTLp
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class Basic {
 
-    val parser = HUCTLParser()
+    private val p1 = !"p1"
+    private val p2 = !"p2"
+    private val d1 = !!"d1"
+    private val d2 = !!"d2"
+
 
     @Test
     fun parenthesis() {
-        assertEquals(
-                True,
-                parser.formula("(True)")
-        )
+        formulaEquals(!"p1", "('p1')")
     }
 
     @Test
     fun boolOps() {
-        assertEquals(
-                not(True),
-                parser.formula("!True")
-        )
-        assertEquals(
-                True and False,
-                parser.formula("True && False")
-        )
-        assertEquals(
-                True or False,
-                parser.formula("True || False")
-        )
-        assertEquals(
-                True implies False,
-                parser.formula("True -> False")
-        )
-        assertEquals(
-                True equal False,
-                parser.formula("True <-> False")
-        )
+        formulaEquals(Not(!"p1"), "!'p1'")
+        formulaEquals(!"p1" and !"p2", "'p1' && 'p2'")
+        formulaEquals(!"p1" or !"p2", "'p1' || 'p2'")
+        formulaEquals(!"p1" implies !"p2", "'p1' -> 'p2'")
+        formulaEquals(!"p1" equal !"p2", "'p1' <-> 'p2'")
     }
 
     @Test
     fun untilOps() {
+
         //basic
-        assertEquals(
-                True EU False,
-                parser.formula("True EU False")
-        )
-        assertEquals(
-                True AU False,
-                parser.formula("True AU False")
-        )
-        //path flow
-        assertEquals(
-                True.pastEU(False, True.asDirectionFormula()!!),
-                parser.formula("True {True}pEU False")
-        )
-        assertEquals(
-                True.pastAU(False, True.asDirectionFormula()!!),
-                parser.formula("True {True}pAU False")
-        )
-        //reach flow
-        assertEquals(
-                True EU (EX(False, False.asDirectionFormula()!!)),
-                parser.formula("True EU{False} False")
-        )
-        assertEquals(
-                True pastEU (pastEX(False, False.asDirectionFormula()!!)),
-                parser.formula("True pEU{False} False")
-        )
-        assertEquals(
-                True AU (AX(False, False.asDirectionFormula()!!)),
-                parser.formula("True AU{False} False")
-        )
-        assertEquals(
-                True pastAU (pastAX(False, False.asDirectionFormula()!!)),
-                parser.formula("True pAU{False} False")
-        )
+        formulaEquals(p1 EU p2, "'p1' EU 'p2'")
+        formulaEquals(p1 AU p2, "'p1' AU 'p2'")
+
+        //path direction
+        formulaEquals(p1.pEU(p2, d1), "'p1' {'d1'}pEU 'p2'")
+        formulaEquals(p1.pAU(p2, d1), "'p1' {'d1'}pAU 'p2'")
+
+        //reach direction
+        formulaEquals(p1 EU EX(p2, d1), "'p1' EU{'d1'} 'p2'")
+        formulaEquals(p1 AU AX(p2, d1), "'p1' AU{'d1'} 'p2'")
+        formulaEquals(p1 pEU pEX(p2, d1), "'p1' pEU{'d1'} 'p2'")
+        formulaEquals(p1 pAU pAX(p2, d1), "'p1' pAU{'d1'} 'p2'")
+
         //both
-        assertEquals(
-                True.pastEU(pastEX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
-                parser.formula("True {True}pEU{False} False")
-        )
-        assertEquals(
-                True.EU(EX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
-                parser.formula("True {True}EU{False} False")
-        )
-        assertEquals(
-                True.pastAU(pastAX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
-                parser.formula("True {True}pAU{False} False")
-        )
-        assertEquals(
-                True.AU(AX(False, False.asDirectionFormula()!!), True.asDirectionFormula()!!),
-                parser.formula("True {True}AU{False} False")
-        )
+        formulaEquals(p1.pEU(pEX(p2, d1), d2), "'p1' {'d2'}pEU{'d1'} 'p2'")
+        formulaEquals(p1.EU(EX(p2, d1), d2), "'p1' {'d2'}EU{'d1'} 'p2'")
+        formulaEquals(p1.pAU(pAX(p2, d1), d2), "'p1' {'d2'}pAU{'d1'} 'p2'")
+        formulaEquals(p1.AU(AX(p2, d1), d2), "'p1' {'d2'}AU{'d1'} 'p2'")
+
     }
 
     @Test
     fun unaryOps() {
+
         //basic
-        assertEquals(
-                EX(True),
-                parser.formula("EX True")
-        )
-        assertEquals(
-                AX(True),
-                parser.formula("AX True")
-        )
-        assertEquals(
-                EF(True),
-                parser.formula("EF True")
-        )
-        assertEquals(
-                AF(True),
-                parser.formula("AF True")
-        )
-        assertEquals(
-                EG(True),
-                parser.formula("EG True")
-        )
-        assertEquals(
-                AG(True),
-                parser.formula("AG True")
-        )
-        assertEquals(
-                weakEX(True),
-                parser.formula("EwX True")
-        )
-        assertEquals(
-                weakAX(True),
-                parser.formula("AwX True")
-        )
-        assertEquals(
-                weakEF(True),
-                parser.formula("EwF True")
-        )
-        assertEquals(
-                weakAF(True),
-                parser.formula("AwF True")
-        )
+        formulaEquals(EX(p1), "EX 'p1'")
+        formulaEquals(AX(p1), "AX 'p1'")
+        formulaEquals(EF(p1), "EF 'p1'")
+        formulaEquals(AF(p1), "AF 'p1'")
+        formulaEquals(EG(p1), "EG 'p1'")
+        formulaEquals(AG(p1), "AG 'p1'")
+        formulaEquals(EwX(p1), "EwX 'p1'")
+        formulaEquals(AwX(p1), "AwX 'p1'")
+        formulaEquals(EwF(p1), "EwF 'p1'")
+        formulaEquals(AwF(p1),"AwF 'p1'")
+
         //past
-        assertEquals(
-                pastEX(True),
-                parser.formula("pEX True")
-        )
-        assertEquals(
-                pastAX(True),
-                parser.formula("pAX True")
-        )
-        assertEquals(
-                pastEF(True),
-                parser.formula("pEF True")
-        )
-        assertEquals(
-                pastAF(True),
-                parser.formula("pAF True")
-        )
-        assertEquals(
-                pastEG(True),
-                parser.formula("pEG True")
-        )
-        assertEquals(
-                pastAG(True),
-                parser.formula("pAG True")
-        )
-        assertEquals(
-                pastWeakEX(True),
-                parser.formula("pEwX True")
-        )
-        assertEquals(
-                pastWeakAX(True),
-                parser.formula("pAwX True")
-        )
-        assertEquals(
-                pastWeakEF(True),
-                parser.formula("pEwF True")
-        )
-        assertEquals(
-                pastWeakAF(True),
-                parser.formula("pAwF True")
-        )
+        formulaEquals(pEX(p1),"pEX 'p1'")
+        formulaEquals(pAX(p1),"pAX 'p1'")
+        formulaEquals(pEF(p1),"pEF 'p1'")
+        formulaEquals(pAF(p1),"pAF 'p1'")
+        formulaEquals(pEG(p1),"pEG 'p1'")
+        formulaEquals(pAG(p1),"pAG 'p1'")
+        formulaEquals(pEwX(p1),"pEwX 'p1'")
+        formulaEquals(pAwX(p1),"pAwX 'p1'")
+        formulaEquals(pEwF(p1),"pEwF 'p1'")
+        formulaEquals(pAwF(p1),"pAwF 'p1'")
+
         //transitions
-        assertEquals(
-                pastWeakAF(True, False.asDirectionFormula()!!),
-                parser.formula("{False}pAwF True")
-        )
+        formulaEquals(pAwF(p1, !!"d1"),"{'d1'}pAwF 'p1'")
+
     }
 
     @Test
     fun floats() {
-        val v = "var".asVariable()
-        assertEquals(
-                (v eq 0.0.asConstant()),
-                parser.formula("var == 0")
-        )
-        assertEquals(
-                (v eq 1.0.asConstant()),
-                parser.formula("var == 1")
-        )
-        assertEquals(
-                (v neq (-1.0).asConstant()),
-                parser.formula("var != -1")
-        )
-        assertEquals(
-                (v gt 0.158.asConstant()),
-                parser.formula("var > 0.158")
-        )
-        assertEquals(
-                (v ge (-0.9995).asConstant()),
-                parser.formula("var >= -0.9995")
-        )
-        assertEquals(
-                (v lt 1040.58.asConstant()),
-                parser.formula("var < 1040.58")
-        )
-        assertEquals(
-                (v le (-586.44).asConstant()),
-                parser.formula("var <= -586.44")
-        )
+        val v = "var".toVar()
+        formulaEquals(v eq !0.0, "var == 0")
+        formulaEquals(v eq !1.0,"var == 1")
+        formulaEquals(v neq !(-1.0),"var != -1")
+        formulaEquals(v gt !0.158,"var > 0.158")
+        formulaEquals(v ge !(-0.9995),"var >= -0.9995")
+        formulaEquals(v lt !1040.58,"var < 1040.58")
+        formulaEquals(v le !(-586.44),"var <= -586.44")
     }
 
     @Test
     fun firstOrder() {
-        assertEquals(
-                forall("x", True, False), parser.formula("forall x: False")
-        )
-        assertEquals(
-                forall("x", False, False), parser.formula("forall x in False: False")
-        )
-        assertEquals(
-                exists("x", True, False), parser.formula("exists x: False")
-        )
-        assertEquals(
-                exists("x", False, False), parser.formula("exists x in False: False")
-        )
-        assertEquals(
-                exists("x", True, "x".asReference()), parser.formula("exists x: x")
-        )
-        assertEquals(
-                forall("x", True, "x".asReference()), parser.formula("forall x: x")
-        )
+        formulaEquals(ForAll("x", p1, p2), "forall x in 'p1': 'p2'")
+        formulaEquals(Exists("x", p1, p2), "exists x in 'p1': 'p2'")
+        formulaEquals(ForAll("x", Formula.True, p1), "forall x: 'p1'")
+        formulaEquals(Exists("x", Formula.True, p1), "exists x: 'p1'")
+        formulaEquals(Exists("x", Formula.True, "x".toReference()), "exists x: x")
+        formulaEquals(ForAll("x", Formula.True, "x".toReference()), "forall x: x")
     }
 
     @Test
     fun hybrid() {
-        assertEquals(
-                bind("x", True), parser.formula("bind x: True")
-        )
-        assertEquals(
-                bind("x", "x".asReference()), parser.formula("bind x: x")
-        )
-        assertEquals(
-                bind("x", at("x", True)), parser.formula("bind x: at x: True")
-        )
+        formulaEquals(Bind("x", p1), "bind x: 'p1'")
+        formulaEquals(Bind("x", "x".toReference()), "bind x: x")
+        formulaEquals(Bind("x", At("x", p1)), "bind x: at x: 'p1'")
     }
 
     @Test
     fun directionProposition() {
-        assertEquals(EX(True, "x".increase()), parser.formula("{x+}EX True"))
-        assertEquals(EX(True, "x".decrease()), parser.formula("{x-}EX True"))
-        assertEquals(EX(True, True.asDirectionFormula()!!), parser.formula("{True}EX True"))
-        assertEquals(EX(True, DirFormula.Atom.Loop), parser.formula("{Loop}EX True"))
-        assertEquals(EX(True, False.asDirectionFormula()!!), parser.formula("{False}EX True"))
+        formulaEquals(EX(p1, "x".toIncreasing()), "{x+}EX 'p1'")
+        formulaEquals(EX(p1, "x".toDecreasing()), "{x-}EX 'p1'")
+        formulaEquals(EX(p1, DirFormula.True), "{True}EX 'p1'")
+        formulaEquals(EX(p1, DirFormula.Loop), "{Loop}EX 'p1'")
+        formulaEquals(EX(p1, DirFormula.False), "{False}EX 'p1'")
     }
 
     @Test
     fun directionBool() {
-        assertEquals(EX(True, not("x".increase())), parser.formula("{!x+}EX True"))
-        assertEquals(EX(True, "x".increase() and "y".decrease()), parser.formula("{x+ && y-}EX True"))
-        assertEquals(EX(True, "x".increase() or "y".decrease()), parser.formula("{x+ || y-}EX True"))
-        assertEquals(EX(True, "x".increase() implies "y".decrease()), parser.formula("{x+ -> y-}EX True"))
-        assertEquals(EX(True, "x".increase() equal "y".decrease()), parser.formula("{x+ <-> y-}EX True"))
+        formulaEquals(EX(p1, Not(d1)), "{!'d1'}EX 'p1'")
+        formulaEquals(EX(p1, d1 and d2), "{'d1' && 'd2'}EX 'p1'")
+        formulaEquals(EX(p1, d1 or d2), "{'d1' || 'd2'}EX 'p1'")
+        formulaEquals(EX(p1, d1 implies d2), "{'d1' -> 'd2'}EX 'p1'")
+        formulaEquals(EX(p1, d1 equal d2), "{'d1' <-> 'd2'}EX 'p1'")
     }
 
     @Test
     fun transitions() {
-        assertEquals(
-                "var".positiveIn(),
-                parser.formula("var:in+")
-        )
-        assertEquals(
-                "var".positiveOut(),
-                parser.formula("var:out+")
-        )
-        assertEquals(
-                "var".negativeIn(),
-                parser.formula("var:in-")
-        )
-        assertEquals(
-                "var".negativeOut(),
-                parser.formula("var:out-")
-        )
+        formulaEquals("var".toPositiveIn(), "var:in+")
+        formulaEquals("var".toPositiveOut(), "var:out+")
+        formulaEquals("var".toNegativeIn(), "var:in-")
+        formulaEquals("var".toNegativeOut(), "var:out-")
     }
 
     @Test
     fun floatOps() {
-        val v = "var1".asVariable()
-        val w = "var2".asVariable()
-        val zero = 0.0.asConstant()
-        assertEquals(
-                ((v plus w) eq zero),
-                parser.formula("var1 + var2 == 0")
-        )
-        assertEquals(
-                ((v minus w) eq zero),
-                parser.formula("var1 - var2 == 0")
-        )
-        assertEquals(
-                ((v times w) eq zero),
-                parser.formula("var1 * var2 == 0")
-        )
-        assertEquals(
-                ((v div w) eq zero),
-                parser.formula("var1 / var2 == 0")
-        )
+        val v = "var1".toVar()
+        val w = "var2".toVar()
+        val zero = !0.0
+        formulaEquals(((v plus w) eq zero), "var1 + var2 == 0")
+        formulaEquals(((v minus w) eq zero), "var1 - var2 == 0")
+        formulaEquals(((v times w) eq zero), "var1 * var2 == 0")
+        formulaEquals(((v div w) eq zero), "var1 / var2 == 0")
     }
 
     @Test
     fun comments() {
-        var result = parser.parse("""
+        var result = """
             //f = False
             k = True
-            //l = False
-        """)
+            //l = False""".toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals(True, result["k"])
+        assertEquals(Formula.True, result["k"])
 
-        result = parser.parse("""
+        result = """
             /* Some redundant text
             f = False
             */
             k = True
-            //l = False
-        """)
+            //l = False""".toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals(True, result["k"])
+        assertEquals(Formula.True, result["k"])
 
-        result = parser.parse("""
+        result = """
             k = True
             # Python style comment
-            f = False
-        """)
+            f = False""".toHUCTLp()
         assertEquals(2, result.size)
-        assertEquals(True, result["k"])
-        assertEquals(False, result["f"])
+        assertEquals(Formula.True, result["k"])
+        assertEquals(Formula.False, result["f"])
 
-        result = parser.parse("""
+        result = """
             /* Comment f = False
                 /* With nesting */
             */
             k = True
-            //l = False
-        """)
+            //l = False""".toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals(True, result["k"])
+        assertEquals(Formula.True, result["k"])
 
-        result = parser.parse("""
+        result = """
             k = True
-        //comment at the end of file""")
+        //comment at the end of file""".toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals(True, result["k"])
+        assertEquals(Formula.True, result["k"])
     }
 
     @Test
     fun booleans() {
-        assertEquals(True, parser.formula("true"))
-        assertEquals(True, parser.formula("True"))
-        assertEquals(True, parser.formula("tt"))
-        assertEquals(False, parser.formula("false"))
-        assertEquals(False, parser.formula("False"))
-        assertEquals(False, parser.formula("ff"))
+        val True = Formula.True
+        val False = Formula.False
+        formulaEquals(True, "true")
+        formulaEquals(True, "True")
+        formulaEquals(True, "tt")
+        formulaEquals(False, "false")
+        formulaEquals(False, "False")
+        formulaEquals(False, "ff")
     }
 
     @Test
     fun invalidInput() {
         assertFailsWith<IllegalArgumentException> {
-            parser.parse("""
+            """
                 l = True && False
                 k = tr&ue && False
-            """)
+            """.toHUCTLp()
         }
     }
 
     @Test
     fun flaggedFormulasParseAll() {
-        val result = parser.parse("""
+        val result = """
             foo = True
-            :? goo = False
-        """, onlyFlagged = false)
+            :? goo = False""".toHUCTLp(onlyFlagged = false)
         assertEquals(2, result.size)
-        assertEquals(True, result["foo"])
-        assertEquals(False, result["goo"])
+        assertEquals(Formula.True, result["foo"])
+        assertEquals(Formula.False, result["goo"])
     }
 
     @Test
     fun flaggedFormulas() {
-        val result = parser.parse("""
+        val result = """
             foo = True
-            :? goo = False
-        """, onlyFlagged = true)
+            :? goo = False""".toHUCTLp(onlyFlagged = true)
         assertEquals(1, result.size)
-        assertEquals(False, result["goo"])
+        assertEquals(Formula.False, result["goo"])
     }
 
     @Test
     fun dirFormulaParse() {
-        val r = parser.dirFormula("True && x+")
-        assertEquals(True.asDirectionFormula()!! and "x".increase(), r)
+        assertEquals(!!"d1" and "x".toIncreasing(), "'d1' && x+".toDirFormula())
     }
 
     @Test
     fun dirFormulaInvalidParse() {
         assertFailsWith<IllegalArgumentException> {
-            parser.dirFormula("True && EX False")
-        }
-    }
-
-    @Test
-    fun atomParse() {
-        assertEquals("x".positiveIn(), parser.atom("x:in+"))
-        assertEquals("x".asVariable() gt 3.4.asConstant(), parser.atom("x > 3.4"))
-        assertEquals(True, parser.atom("true"))
-    }
-
-    @Test
-    fun atomInvalidParse() {
-        assertFailsWith<IllegalArgumentException> {
-            parser.atom("EX x > 2.2")
-        }
-    }
-
-    @Test
-    fun dirAtomParse() {
-        assertEquals("x".increase(), parser.dirAtom("x+"))
-        assertEquals(True.asDirectionFormula()!!, parser.dirAtom("true"))
-    }
-
-    @Test
-    fun dirAtomInvalidParse() {
-        assertFailsWith<IllegalArgumentException> {
-            parser.dirAtom("x+ && y-")
+            "True && EX False".toDirFormula()
         }
     }
 
@@ -447,7 +252,7 @@ class Basic {
     @Test
     fun garbageParse() {
         assertFailsWith<IllegalArgumentException> {
-            parser.parse(" foo ")
+            " foo ".toHUCTLp()
         }
     }
 
