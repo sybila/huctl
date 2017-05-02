@@ -60,7 +60,7 @@ fun readExpression(string: String): Expression = string.toExpression()
  *
  * Use [onlyFlagged] to filter out formulas not marked with ":?".
  */
-fun parseHUCTLp(string: String, onlyFlagged: Boolean = true) = string.toHUCTLp(onlyFlagged)
+fun parseHUCTLp(string: String, onlyFlagged: Boolean = false) = string.toHUCTLp(onlyFlagged)
 
 /**
  * Read [file] as a HUCTLp specification file.
@@ -69,7 +69,7 @@ fun parseHUCTLp(string: String, onlyFlagged: Boolean = true) = string.toHUCTLp(o
  *
  * Use [onlyFlagged] to filter out formulas not marked with ":?".
  */
-fun parseHUCTLp(file: File, onlyFlagged: Boolean = true) = file.toHUCTLp(onlyFlagged)
+fun parseHUCTLp(file: File, onlyFlagged: Boolean = false) = file.toHUCTLp(onlyFlagged)
 
 // And extension alternatives
 
@@ -91,13 +91,13 @@ fun String.toExpression(): Expression = ("$this == 0".toFormula() as Formula.Num
 /**
  * @see [parseHUCTLp]
  */
-fun String.toHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
+fun String.toHUCTLp(onlyFlagged: Boolean = false): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()
 
 /**
  * @see [parseHUCTLp]
  */
-fun File.toHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
+fun File.toHUCTLp(onlyFlagged: Boolean = false): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()
 
 // Throw error when some formula contains unbounded names.
