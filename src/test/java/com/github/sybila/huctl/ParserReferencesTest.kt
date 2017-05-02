@@ -1,13 +1,14 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.huctl.dsl.*
+import com.github.sybila.huctl.parser.toHUCTLp
 import org.junit.Test
 import java.io.File
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class References {
 
-    val parser = HUCTLParser()
+class References {
 
     @Test
     fun cyclicReferenceThroughFiles() {
@@ -18,9 +19,9 @@ class References {
         }
 
         assertFailsWith(IllegalStateException::class) {
-            parser.parse("""
+            """
                 m = !k
-            """)
+            """.toHUCTLp()
         }
         file.delete()
     }
@@ -28,18 +29,18 @@ class References {
     @Test
     fun transitiveCyclicReference() {
         assertFailsWith(IllegalStateException::class) {
-            parser.parse("""
+            """
                 k = EX l
                 l = AX m
                 m = ! k
-            """)
+            """.toHUCTLp()
         }
         assertFailsWith(IllegalStateException::class) {
-            parser.parse("""
+            """
                 e = a + 2
                 a = b - 2
                 b = 2 * e
-            """)
+            """.toHUCTLp()
         }
     }
 
@@ -47,40 +48,40 @@ class References {
     fun simpleCyclicReference() {
         //formula
         assertFailsWith<IllegalStateException> {
-            parser.parse("k = !k")
+            "k = !k".toHUCTLp()
         }
         //expression
         assertFailsWith<IllegalStateException> {
-            parser.parse("a = a + a")
+            "a = a + a".toHUCTLp()
         }
         //flow formula
         assertFailsWith<IllegalStateException> {
-            parser.parse("a = b+ || a")
+            "a = b+ || a".toHUCTLp()
         }
         //alias
         assertFailsWith<IllegalStateException> {
-            parser.parse("a = a")
+            "a = a".toHUCTLp()
         }
     }
 
     @Test
     fun undefinedReference() {
         assertFailsWith(IllegalStateException::class) {
-            parser.parse("k = EF m")
+            "k = EF m".toHUCTLp()
         }
     }
 
     @Test
     fun declarationOrderIndependence() {
 
-        val result = parser.parse("""
+        val result = """
             k = ! m
             m = True
-        """)
+        """.toHUCTLp()
 
         assertEquals(2, result.size)
-        assertEquals(not(True), result["k"])
-        assertEquals(True, result["m"])
+        assertEquals(Not(Formula.True), result["k"])
+        assertEquals(Formula.True, result["m"])
 
     }
 
@@ -94,10 +95,10 @@ class References {
         }
 
         assertFailsWith(IllegalArgumentException::class) {
-            parser.parse(
+            (
                     ":include \"${ i1.absolutePath }\" \n" +
                     "k = False"
-            )
+            ).toHUCTLp()
         }
 
         i1.delete()
@@ -106,22 +107,22 @@ class References {
     @Test
     fun duplicateDeclarationInString() {
         assertFailsWith(IllegalArgumentException::class) {
-            parser.parse("""
+            """
                 k = True
                 l = False
                 k = False
-            """)
+            """.toHUCTLp()
         }
     }
 
     @Test
     fun duplicateDeclarationExpression() {
         assertFailsWith(IllegalArgumentException::class) {
-            parser.parse("""
+            """
                 k = 1
                 l = 2
                 k = 1.5
-            """)
+            """.toHUCTLp()
         }
     }
 
@@ -138,34 +139,34 @@ class References {
             it.write("l = EF k")
         }
 
-        val result = parser.parse(
+        val result = (
                 "m = !l \n" +
                 ":include \"${ i1.absolutePath }\" \n" +
                 ":include \"${ i2.absolutePath }\" \n"
-        )
+        ).toHUCTLp()
 
         assertEquals(3, result.size)
-        assertEquals(True, result["k"])
-        assertEquals(EF(True), result["l"])
-        assertEquals(not(EF(True)), result["m"])
+        assertEquals(Formula.True, result["k"])
+        assertEquals(EF(Formula.True), result["l"])
+        assertEquals(Not(EF(Formula.True)), result["m"])
 
     }
 
     @Test
     fun transitiveResolveInString() {
 
-        val result = parser.parse("""
+        val result = """
                 j = True
                 k = j
                 l = EF k
                 m = !l
-        """)
+        """.toHUCTLp()
 
         assertEquals(4, result.size)
-        assertEquals(True, result["j"])
-        assertEquals(True, result["k"])
-        assertEquals(EF(True), result["l"])
-        assertEquals(not(EF(True)), result["m"])
+        assertEquals(Formula.True, result["j"])
+        assertEquals(Formula.True, result["k"])
+        assertEquals(EF(Formula.True), result["l"])
+        assertEquals(Not(EF(Formula.True)), result["m"])
 
     }
 
@@ -178,14 +179,14 @@ class References {
             it.write("val = False")
         }
 
-        val result = parser.parse(
+        val result = (
                 "k = !val \n " +
                 ":include \"${ i.absolutePath }\" \n"
-        )
+        ).toHUCTLp()
 
         assertEquals(2, result.size)
-        assertEquals(False, result["val"])
-        assertEquals(not(False), result["k"])
+        assertEquals(Formula.False, result["val"])
+        assertEquals(Not(Formula.False), result["k"])
 
         i.delete()
 
@@ -193,35 +194,35 @@ class References {
 
     @Test
     fun simpleResolveInString() {
-        val result = parser.parse("""
+        val result = """
             k = True
             l = !k
-        """)
+        """.toHUCTLp()
         assertEquals(2, result.size)
-        assertEquals(True, result["k"])
-        assertEquals(not(True), result["l"])
+        assertEquals(Formula.True, result["k"])
+        assertEquals(Not(Formula.True), result["l"])
     }
 
     @Test
     fun simpleResolveExpression() {
-        val result = parser.parse("""
+        val result = """
             k = a + b
             l = k / 2 == 0
-        """)
+        """.toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals((("a".asVariable() plus "b".asVariable()) div 2.0.asConstant() eq 0.0.asConstant()),
-                result["l"])
+        assertEquals((("a".toVar() plus "b".toVar()) div !2.0 eq !0.0), result["l"])
     }
 
     @Test
     fun aliasInString() {
         try {
-            val result = parser.parse("""
+            val result = """
             k = True
             l = k
             m = l
             n = m
-        """)
+        """.toHUCTLp()
+            val True = Formula.True
             assertEquals(4, result.size)
             assertEquals(True, result["k"])
             assertEquals(True, result["l"])
@@ -232,35 +233,35 @@ class References {
 
     @Test
     fun expressionAlias() {
-        val result = parser.parse("""
+        val result = """
             k = name
             l = k
             m = l
             n = m > 0
-        """)
+        """.toHUCTLp()
         assertEquals(1, result.size)
-        assertEquals(("name".asVariable() gt 0.0.asConstant()), result["n"])
+        assertEquals(("name".toVar() gt !0.0), result["n"])
     }
 
     @Test
     fun unboundReference() {
         assertFailsWith<IllegalStateException> {
-            parser.parse("""
+            """
                 f = EX k
-            """)
+            """.toHUCTLp()
         }
         assertFailsWith<IllegalStateException> {
-            parser.parse("""
+            """
                 f = exists x in (x && True): False
-            """)
+            """.toHUCTLp()
         }
     }
 
     @Test
     fun firstOrderReferences() {
-        assertEquals(
-                forall("x", True, "x".asReference() and "x".positiveIn()),
-                parser.formula("forall x: x && x:in+")
+        formulaEquals(
+                ForAll("x", Formula.True, "x".toReference() and "x".toPositiveIn()),
+                "forall x: x && x:in+"
         )
     }
 

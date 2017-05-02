@@ -332,8 +332,8 @@ private fun Formula.unboundedNames(): Set<String> = this.fold(
         else -> it
     } },
     binary = { l, r -> when {
-        this is Formula.ForAll -> l + r - name
-        this is Formula.Exists -> l + r - name
+        this is Formula.ForAll -> l + (r - name)    // the parentesis are important!
+        this is Formula.Exists -> l + (r - name)
         else -> l + r
     } }
 )
