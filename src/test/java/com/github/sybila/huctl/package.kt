@@ -1,5 +1,6 @@
 package com.github.sybila.huctl
 
+import com.github.sybila.huctl.dsl.toConst
 import com.github.sybila.huctl.parser.toFormula
 
 /**
@@ -17,4 +18,4 @@ internal fun formulaEquals(expected: Formula, parse: String) {
 
 internal operator fun String.not(): Formula.Text = Formula.Text(this)
 internal operator fun Formula.Text.not(): DirFormula.Text = DirFormula.Text(this.value)
-internal operator fun Double.not(): Expression.Constant = Expression.Constant(this)
+internal operator fun Double.not(): Expression.Constant = this.toConst()
