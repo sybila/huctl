@@ -27,48 +27,77 @@ import java.util.*
  *
  */
 
+// Standard parsing functions
+
 /**
- * Read this String as a HUCTLp formula.
+ * Read [string] as a HUCTLp formula.
  *
  * Note that this does not support the full HUCTLp file format (references, includes, etc.).
  * Only one formula can be present in the string.
  */
-fun String.toFormula(): Formula = "val = $this".parseHUCTLp(onlyFlagged = false)["val"]!!
+fun readFormula(string: String): Formula = string.toFormula()
 
 /**
- * Read this String as a HUCTLp direction restriction.
+ * Read [string] as a HUCTLp direction restriction.
  *
  * Note that this does not support the full HUCTLp file format (references, includes, etc.).
  * Only one direction restriction can be present in the string.
  */
-fun String.toDirFormula(): DirFormula = ("{$this}EX true".toFormula() as Formula.Next).direction
+fun readDirFormula(string: String): DirFormula = string.toDirFormula()
 
 /**
- * Read this String as a HUCTLp expression.
+ * Read [string] as a HUCTLp expression.
  *
  * Note that this does not support the full HUCTLp file format (references, includes, etc.).
  * Only one expression can be present in the string.
  */
+fun readExpression(string: String): Expression = string.toExpression()
+
+/**
+ * Read [string] as a HUCTLp specification file.
+ *
+ * This assumes the string adheres to the HUCTLp file format (including references, includes, etc.).
+ *
+ * Use [onlyFlagged] to filter out formulas not marked with ":?".
+ */
+fun parseHUCTLp(string: String, onlyFlagged: Boolean = true) = string.toHUCTLp(onlyFlagged)
+
+/**
+ * Read [file] as a HUCTLp specification file.
+ *
+ * This assumes the string adheres to the HUCTLp file format (including references, includes, etc.).
+ *
+ * Use [onlyFlagged] to filter out formulas not marked with ":?".
+ */
+fun parseHUCTLp(file: File, onlyFlagged: Boolean = true) = file.toHUCTLp(onlyFlagged)
+
+// And extension alternatives
+
+/**
+ * @see [readFormula]
+ */
+fun String.toFormula(): Formula = "val = $this".toHUCTLp(onlyFlagged = false)["val"]!!
+
+/**
+ * @see [readDirFormula]
+ */
+fun String.toDirFormula(): DirFormula = ("{$this}EX true".toFormula() as Formula.Next).direction
+
+/**
+ * @see [readExpression]
+ */
 fun String.toExpression(): Expression = ("$this == 0".toFormula() as Formula.Numeric).left
 
 /**
- * Read this String as a HUCTLp specification file.
- *
- * This assumes the string adheres to the HUCTLp file format (including references, includes, etc.).
- *
- * Use [onlyFlagged] to filter out formulas not marked with ":?".
+ * @see [parseHUCTLp]
  */
-fun String.parseHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
+fun String.toHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()
 
 /**
- * Read this File as a HUCTLp specification file.
- *
- * This assumes the string adheres to the HUCTLp file format (including references, includes, etc.).
- *
- * Use [onlyFlagged] to filter out formulas not marked with ":?".
+ * @see [parseHUCTLp]
  */
-fun File.parseHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
+fun File.toHUCTLp(onlyFlagged: Boolean = true): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()
 
 // Throw error when some formula contains unbounded names.
