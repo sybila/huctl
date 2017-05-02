@@ -1,5 +1,6 @@
-package com.github.sybila.huctl
+package com.github.sybila.huctl.parser
 
+import com.github.sybila.huctl.*
 import com.github.sybila.huctl.antlr.HUCTLBaseListener
 import com.github.sybila.huctl.antlr.HUCTLParser
 import com.github.sybila.huctl.dsl.*

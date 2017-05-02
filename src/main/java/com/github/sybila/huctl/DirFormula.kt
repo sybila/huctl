@@ -10,7 +10,7 @@ package com.github.sybila.huctl
  */
 sealed class DirFormula(
         private val string: String
-) {
+) : TreeNode<DirFormula> {
 
     /**
      * Logical tautology - any path will match this restriction.
@@ -82,4 +82,11 @@ sealed class DirFormula(
      * Return string which uniquely represents this formula and can be parsed to create an equivalent object.
      */
     override fun toString(): String = string
+
+    /**
+     * DirFormula is also the node in the tree, so `node == this`
+     */
+    override val node: DirFormula
+        get() = this
+
 }

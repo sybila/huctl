@@ -1,4 +1,4 @@
-package com.github.sybila.huctl
+package com.github.sybila.huctl.parser
 
 /**
  * Abstraction over assignment expressions in the HUCTLp file.

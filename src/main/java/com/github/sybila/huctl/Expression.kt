@@ -11,7 +11,7 @@ package com.github.sybila.huctl
  */
 sealed class Expression(
         private val string: String
-) {
+) : TreeNode<Expression> {
 
     /**
      * A variable [name]. If there is an existing alias with this name, it will be substituted.
@@ -62,5 +62,11 @@ sealed class Expression(
      * Return string which uniquely represents this expression and can be parsed to create an equivalent object.
      */
     override fun toString(): String = string
+
+    /**
+     * Expression is also the node in the tree, so `node == this`
+     */
+    override val node: Expression
+        get() = this
 
 }

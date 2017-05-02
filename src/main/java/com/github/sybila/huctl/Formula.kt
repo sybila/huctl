@@ -18,26 +18,19 @@ package com.github.sybila.huctl
  */
 sealed class Formula(
         private val string: String
-) {
-
-    // Transform this formula into a direction formula if possible
-    internal open fun asDirFormula(): DirFormula? = null
+) : TreeNode<Formula> {
 
     /* ========== Atoms ========== */
 
     /**
      * Logical tautology. Any state satisfies this formula.
      */
-    object True : Formula("true") {
-        override fun asDirFormula(): DirFormula? = DirFormula.True
-    }
+    object True : Formula("true")
 
     /**
      * Logical contradiction. No state satisfies this formula.
      */
-    object False : Formula("false") {
-        override fun asDirFormula(): DirFormula? = DirFormula.False
-    }
+    object False : Formula("false")
 
     /**
      * The semantics of the reference formula are not defined. The parser will never
@@ -48,9 +41,7 @@ sealed class Formula(
     data class Reference(
             /** A unique name of the data referenced by this object */
             val name: String
-    ) : Formula(name) {
-        override fun asDirFormula(): DirFormula? = DirFormula.Reference(name)
-    }
+    ) : Formula(name)
 
     /**
      * Transition proposition. A state satisfies this proposition if there is a transition
@@ -167,35 +158,27 @@ sealed class Formula(
      * Logical conjunction. A state satisfies this formula if it satisfies both [left] and [right].
      */
     data class And(override val left: Formula, override val right: Formula)
-        : Formula("($left && $right)"), Binary<And, Formula> {
-        override fun asDirFormula(): DirFormula? = this.directionFold(DirFormula::And)
-    }
+        : Formula("($left && $right)"), Binary<And, Formula>
 
     /**
      * Logical disjunction. A state satisfies this formula if it satisfies any of the [left] and [right] formulas.
      */
     data class Or(override val left: Formula, override val right: Formula)
-        : Formula("($left && $right)"), Binary<Or, Formula> {
-        override fun asDirFormula(): DirFormula? = this.directionFold(DirFormula::Or)
-    }
+        : Formula("($left && $right)"), Binary<Or, Formula>
 
     /**
      * Logical implication. A state satisfies this formula if it does not satisfy [left] or if it
      * satisfies both [left] and [right].
      */
     data class Implies(override val left: Formula, override val right: Formula)
-        : Formula("($left -> $right)"), Binary<Implies, Formula> {
-        override fun asDirFormula(): DirFormula? = this.directionFold(DirFormula::Implies)
-    }
+        : Formula("($left -> $right)"), Binary<Implies, Formula>
 
     /**
      * Logical equivalence. A state satisfies this formula if it does not satisfy neither [left] nor [right] or
      * if it satisfies both.
      */
     data class Equals(override val left: Formula, override val right: Formula)
-        : Formula("($left <-> $right)"), Binary<Equals, Formula> {
-        override fun asDirFormula(): DirFormula? = this.directionFold(DirFormula::Equals)
-    }
+        : Formula("($left <-> $right)"), Binary<Equals, Formula>
 
     /* ========== Temporal, Simple ========== */
 
@@ -208,7 +191,7 @@ sealed class Formula(
      */
     data class Next(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}X $inner)"), Unary<Next, Formula>, Temporal {
+    ) : Formula("({$direction}${quantifier}X $inner)"), Temporal<Next> {
         override fun copy(inner: Formula): Next = this.copy(inner = inner)
     }
 
@@ -221,7 +204,7 @@ sealed class Formula(
      */
     data class Future(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}F $inner)"), Unary<Future, Formula>, Temporal {
+    ) : Formula("({$direction}${quantifier}F $inner)"), Temporal<Future> {
         override fun copy(inner: Formula): Future = this.copy(inner = inner)
     }
 
@@ -231,7 +214,7 @@ sealed class Formula(
      */
     data class Globally(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}G $inner)"), Unary<Globally, Formula>, Temporal {
+    ) : Formula("({$direction}${quantifier}G $inner)"), Temporal<Globally> {
         override fun copy(inner: Formula): Globally = this.copy(inner = inner)
     }
 
@@ -246,7 +229,7 @@ sealed class Formula(
      */
     data class WeakNext(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}wX $inner)"), Unary<WeakNext, Formula>, Temporal {
+    ) : Formula("({$direction}${quantifier}wX $inner)"), Temporal<WeakNext> {
         override fun copy(inner: Formula): WeakNext = this.copy(inner = inner)
     }
 
@@ -261,7 +244,7 @@ sealed class Formula(
      */
     data class WeakFuture(
             override val quantifier: PathQuantifier, override val inner: Formula, override val direction: DirFormula
-    ) : Formula("({$direction}${quantifier}wF $inner)"), Unary<WeakFuture, Formula>, Temporal {
+    ) : Formula("({$direction}${quantifier}wF $inner)"), Temporal<WeakFuture> {
         override fun copy(inner: Formula): WeakFuture = this.copy(inner = inner)
     }
 
@@ -273,13 +256,13 @@ sealed class Formula(
      * formula is satisfied.
      */
     data class Until(
-            override val quantifier: PathQuantifier,
+            val quantifier: PathQuantifier,
             /** The formula which needs to be valid along a path until reach is found. */
             val path: Formula,
             /** The formula which needs to be eventually found in the path. */
             val reach: Formula,
-            override val direction: DirFormula
-    ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula>, Temporal {
+            val direction: DirFormula
+    ) : Formula("($path {$direction}${quantifier}U $reach)"), Binary<Until, Formula> {
         override val left: Formula = path ; override val right: Formula = reach
         override fun copy(left: Formula, right: Formula): Until = this.copy(path = left, reach = right)
     }
@@ -288,5 +271,11 @@ sealed class Formula(
      * Return string which uniquely represents this formula and can be parsed to create an equivalent object.
      */
     override fun toString(): String = string
+
+    /**
+     * Formula is also the node in the tree, so `node == this`
+     */
+    override val node: Formula
+        get() = this
 
 }
