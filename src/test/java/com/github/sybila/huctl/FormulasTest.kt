@@ -4,7 +4,7 @@ import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
-
+/*
 class FoldTest {
 
     val formula = EX((True EU (
@@ -186,3 +186,4 @@ class Misc {
     }
 
 }
+        */
