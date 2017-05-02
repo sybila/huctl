@@ -140,7 +140,10 @@ DIV : '/';
 
 /* Literals */
 
-STRING : ["].+?["]; //non-greedy match till next quotation mark
+STRING : (QSTRING | SSTRING);
+
+QSTRING : ["].+?["]; //non-greedy match till next quotation mark
+SSTRING : ['].+?[']; //non-greedy match till next quotation mark
 VAR_NAME : [_a-zA-Z]+[_a-zA-Z0-9]*;
 FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
 
