@@ -81,6 +81,3 @@ interface Temporal<out This : Formula> : Unary<This, Formula> {
             direction: DirFormula = this.direction
     ) : This
 }
-
-// Small utility function
-internal operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)

@@ -5,6 +5,7 @@ import com.github.sybila.huctl.antlr.HUCTLBaseListener
 import com.github.sybila.huctl.antlr.HUCTLParser
 import com.github.sybila.huctl.dsl.*
 import org.antlr.v4.runtime.tree.ErrorNode
+import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeProperty
 import java.io.File
 import java.util.*
@@ -274,5 +275,9 @@ internal class FileContext(val location: String) : HUCTLBaseListener() {
     override fun exitExpSubtract(ctx: HUCTLParser.ExpSubtractContext) {
         expressionTree[ctx] = expressionTree[ctx.expression(0)] minus expressionTree[ctx.expression(1)]
     }
+
+
+    // Small utility function
+    private operator fun <T> ParseTreeProperty<T>.set(k: ParseTree, v: T) = this.put(k, v)
 
 }
