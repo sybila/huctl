@@ -21,6 +21,7 @@ formula : VAR_NAME                                                              
         | (TRUE | FALSE)                                                                #bool
         | VAR_NAME ':' (IN | OUT) (PLUS | MINUS)                                        #transition
         | expression compare expression                                                 #proposition
+        | STRING                                                                        #text
         | '(' formula ')'                                                               #parenthesis
         | NEG formula                                                                   #negation
         | dirModifier? TEMPORAL_UNARY formula                                           #unaryTemporal
@@ -46,6 +47,7 @@ dirModifierR : dirModifier;
 dirFormula : VAR_NAME                                       #dirId
            | (TRUE | FALSE | LOOP)                          #dirAtom
            | VAR_NAME (PLUS | MINUS)                        #dirProposition
+           | STRING                                         #dirText
            | '(' dirFormula ')'                             #dirParenthesis
            | NEG dirFormula                                 #dirNegation
            | dirFormula CON dirFormula                      #dirAnd
@@ -138,7 +140,10 @@ DIV : '/';
 
 /* Literals */
 
-STRING : ["].+?["]; //non-greedy match till next quotation mark
+STRING : (QSTRING | SSTRING);
+
+QSTRING : ["].+?["]; //non-greedy match till next quotation mark
+SSTRING : ['].+?[']; //non-greedy match till next quotation mark
 VAR_NAME : [_a-zA-Z]+[_a-zA-Z0-9]*;
 FLOAT_VAL : [-]?[0-9]*[.]?[0-9]+;
 
