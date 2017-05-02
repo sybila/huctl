@@ -1,24 +1,24 @@
 package com.github.sybila.huctl
 
-import com.github.sybila.huctl.False
-import com.github.sybila.huctl.True
+import com.github.sybila.huctl.parser.toHUCTLp
 import org.junit.Test
 import java.io.File
 import java.io.FileNotFoundException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+
 class Includes {
 
-    val parser = HUCTLParser()
-
-    @Test fun invalidInclude() {
+    @Test
+    fun invalidInclude() {
         assertFailsWith(FileNotFoundException::class) {
-            parser.parse(":include \"bogus.foo\" ")
+            ":include \"bogus.foo\" ".toHUCTLp()
         }
     }
 
-    @Test fun duplicateInclude() {
+    @Test
+    fun duplicateInclude() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
@@ -33,21 +33,22 @@ class Includes {
             it.write("val2 = False")
         }
 
-        val result = parser.parse(
+        val result = (
                 ":include \"${ i2.absolutePath }\" \n" +
                 ":include \"${ i1.absolutePath }\" "
-        )
+        ).toHUCTLp()
 
         assertEquals(2, result.size)
-        assertEquals(True, result["val"])
-        assertEquals(False, result["val2"])
+        assertEquals(Formula.True, result["val"])
+        assertEquals(Formula.False, result["val2"])
 
         i1.delete()
         i2.delete()
 
     }
 
-    @Test fun transitiveInclude() {
+    @Test
+    fun transitiveInclude() {
 
         val i1 = File.createTempFile("include1", ".ctl")
         val i2 = File.createTempFile("include2", ".ctl")
@@ -59,10 +60,10 @@ class Includes {
             it.write(":include \"${ i1.absolutePath }\"")
         }
 
-        val result = parser.parse(":include \"${ i2.absolutePath }\"")
+        val result = ":include \"${ i2.absolutePath }\"".toHUCTLp()
 
         assertEquals(1, result.size)
-        assertEquals(True, result["val"])
+        assertEquals(Formula.True, result["val"])
 
         i1.delete()
         i2.delete()
@@ -82,16 +83,17 @@ class Includes {
             it.write(":include \"${ include.absolutePath }\"")
         }
 
-        val result = parser.parse(file)
+        val result = file.toHUCTLp()
 
         assertEquals(1, result.size)
-        assertEquals(True, result["val"])
+        assertEquals(Formula.True, result["val"])
 
         file.delete()
         include.delete()
     }
 
-    @Test fun simpleIncludeFromString() {
+    @Test
+    fun simpleIncludeFromString() {
 
         val file = File.createTempFile("simpleInclude", ".ctl")
 
@@ -99,12 +101,10 @@ class Includes {
             it.write("val = True")
         }
 
-        val result = parser.parse(
-                ":include \"${ file.absolutePath }\""
-        )
+        val result = ":include \"${ file.absolutePath }\"".toHUCTLp()
 
         assertEquals(1, result.size)
-        assertEquals(True, result["val"])
+        assertEquals(Formula.True, result["val"])
 
         file.delete()
     }
