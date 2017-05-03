@@ -46,7 +46,7 @@ sealed class Formula(
      * useful to use objects of this type to reference some precomputed results or
      * properties not supported by the HUCTLp syntax directly.
      */
-    data class Reference(
+    internal data class Reference(
             /** A unique name of the data referenced by this object */
             val name: String
     ) : Formula(name) {
