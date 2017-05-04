@@ -21,7 +21,7 @@ import com.github.sybila.Unary
  * Note that each formula is either [Binary], [Unary] or an atomic proposition.
  */
 sealed class Formula(
-        protected val string: String
+        internal val string: String
 ) : TreeNode<Formula> {
 
     /* ========== Atoms ========== */

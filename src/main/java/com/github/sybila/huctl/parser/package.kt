@@ -89,13 +89,13 @@ fun String.toDirFormula(): DirFormula = ("{$this}EX true".toFormula() as Formula
 fun String.toExpression(): Expression = ("$this == 0".toFormula() as Formula.Numeric).left
 
 /**
- * @see [parseHUCTLp]
+ * @see [readHUCTLp]
  */
 fun String.toHUCTLp(onlyFlagged: Boolean = false): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()
 
 /**
- * @see [parseHUCTLp]
+ * @see [readHUCTLp]
  */
 fun File.toHUCTLp(onlyFlagged: Boolean = false): Map<String, Formula>
         = this.parse().resolveReferences(onlyFlagged).checkUnboundedNames()

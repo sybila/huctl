@@ -80,4 +80,10 @@ test {
 
 dokka {
     sourceDirs = files('src/main/java')     // excludes generated antlr classes
+    includes = [
+            'src/main/java/com/github/sybila/package.md',
+            'src/main/java/com/github/sybila/huctl/package.md',
+            'src/main/java/com/github/sybila/huctl/parser/package.md',
+            'src/main/java/com/github/sybila/huctl/dsl/package.md'
+    ]
 }

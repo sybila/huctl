@@ -1,7 +1,7 @@
 package com.github.sybila.huctl
 
 import com.github.sybila.huctl.dsl.*
-import com.github.sybila.huctl.parser.parseHUCTLp
+import com.github.sybila.huctl.parser.readHUCTLp
 import com.github.sybila.huctl.parser.readFormula
 import com.github.sybila.huctl.parser.toHUCTLp
 import org.junit.Test
@@ -62,8 +62,8 @@ class Complex {
         assertEquals(e, result["e"])
 
         assertEquals(a, readFormula("!p1 == 4"))
-        assertEquals(a, parseHUCTLp("a = !p1 == 4")["a"])
-        assertEquals(result, parseHUCTLp(f3))
+        assertEquals(a, readHUCTLp("a = !p1 == 4")["a"])
+        assertEquals(result, readHUCTLp(f3))
 
         f1.delete()
         f2.delete()

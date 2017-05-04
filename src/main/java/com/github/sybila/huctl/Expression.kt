@@ -13,7 +13,7 @@ import com.github.sybila.TreeNode
  * Note that each expressions is either [Binary] or a constant or a variable.
  */
 sealed class Expression(
-        protected val string: String
+        internal val string: String
 ) : TreeNode<Expression> {
 
     /**
