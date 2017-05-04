@@ -41,10 +41,9 @@ sealed class Formula(
     }
 
     /**
-     * The semantics of the reference formula are not defined. The parser will never
-     * generate a formula which contains an unresolved reference. However, it can be
-     * useful to use objects of this type to reference some precomputed results or
-     * properties not supported by the HUCTLp syntax directly.
+     * The Reference proposition represents a special predicate "current state is the
+     * state referenced by [name]" which can be (together with hybrid operators) used
+     * to define things like cycles (for example `bind x : EX EF x` describes a cycle).
      */
     data class Reference(
             /** A unique name of the data referenced by this object */

@@ -60,7 +60,7 @@ fun readExpression(string: String): Expression = string.toExpression()
  *
  * Use [onlyFlagged] to filter out formulas not marked with ":?".
  */
-fun parseHUCTLp(string: String, onlyFlagged: Boolean = false) = string.toHUCTLp(onlyFlagged)
+fun readHUCTLp(string: String, onlyFlagged: Boolean = false) = string.toHUCTLp(onlyFlagged)
 
 /**
  * Read [file] as a HUCTLp specification file.
@@ -69,7 +69,7 @@ fun parseHUCTLp(string: String, onlyFlagged: Boolean = false) = string.toHUCTLp(
  *
  * Use [onlyFlagged] to filter out formulas not marked with ":?".
  */
-fun parseHUCTLp(file: File, onlyFlagged: Boolean = false) = file.toHUCTLp(onlyFlagged)
+fun readHUCTLp(file: File, onlyFlagged: Boolean = false) = file.toHUCTLp(onlyFlagged)
 
 // And extension alternatives
 

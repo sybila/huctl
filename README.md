@@ -2,122 +2,134 @@
 [![Build Status](https://travis-ci.org/sybila/ctl-parser.svg?branch=master)](https://travis-ci.org/sybila/ctl-parser)
 [![codecov.io](https://codecov.io/github/sybila/ctl-parser/coverage.svg?branch=master)](https://codecov.io/github/sybila/ctl-parser?branch=master)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/ctl-parser/blob/master/LICENSE.txt)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.0.0-blue.svg)](http://kotlinlang.org)
+[![Kotlin](https://img.shields.io/badge/kotlin-1.1.0-blue.svg)](http://kotlinlang.org)
 
+## HUCTLp
 
-Simple parser, normalizer and optimizer for CTL temporal logic formulas.
+HUCTLp is a special temporal logic (based on CTL) designed for analysis of dynamical systems. This repository provides a format for representing HUCTLp formulas as text and as JVM objects. The project is written in Kotlin, but should be usable in any common JVM language.
 
-Since version 2.1.0, the parser also supports extended HUCTL syntax with first order, 
-hybrid and directional operators. Detailed documentation of this syntax will be provided soon.
+##### Include in project
 
-###How to use
-This repo is jitpack-compatible, so all you have to do is look up the latest version on 
-jitpack and then integrate it into your favorite build system: 
-[CTL Parser on Jitpack](https://jitpack.io/#sybila/ctl-parser)
+The code is currently published using [jitpack]() so you can use it as a standard maven dependency (you will have to explicitly add the maven repository - for more instructions see our [jitpack]() page).
 
-The main parser is implemented in the CTLParser class.
-Using this class you can parse strings, files or inlined formulas 
-(references and includes will be automatically resolved).
+##### Older versions
 
-Additional operations such as normalization and optimization are provided as 
-extension (static) functions. 
+This repository started as a pure CTL formula parser and normalizer. For anyone interested in the original CTL code, see version [2.2.3](https://github.com/sybila/ctl-parser/releases/tag/2.2.3) which contains both CTL and HUCTLp parsers. Also, some very old versions of BioDivine Model Checker use the version [0.1.0](https://github.com/sybila/ctl-parser/releases/tag/0.1) as a submodule.
 
-Project also defines a convenient syntax for writing formulas directly in code (See Extensions.kt file).
+### Format description
 
-For more complex usage example, see the
- [IntegrationTest](src/test/kotlin/com/github/sybila/ctl/IntegrationTest.kt)
+The formal logic syntax and semantics are described in the article [A Model Checking Approach to Discrete Bifurcation Analysis](https://link.springer.com/chapter/10.1007/978-3-319-48989-6_6). Therefore here we only focus on the technical details of the syntax and differences compared to the version of the logic presented in the original paper.
 
-###Features
-
- - File includes
- - References
- - Full range of boolean and temporal operators
- - Simple formula optimizer
- - Normalizer into until normal form (EU, AU, EX, &&, ||, !)
-
-###Syntax
-
-Each CTL file contains zero or more include statements and zero or more assignment statements. 
-Each statement is separated by a new line or a semicolon (;). You can also use C-like 
-(// and nested multiline /**/) or Python-like (#) comments. Multi-line formulas are not 
-supported, use references instead.
-
-Input statement has the following form: ```#include "string"``` where ```string``` is a 
-path to a file (can be absolute or relative) that should be included. For now, escaping 
-quotation marks is not allowed, so make sure your path does not contain any. Each file 
-is included at most once, so you don't have to worry about multiple includes.
-
-Assignment statement has the form of ```identifier = formula``` or ```identifier = expression```.
- ```identifier``` consists of numbers and upper/lowercase characters (has to start with a 
- character). Formula can be:
- - an identifier (reference to formula defined elsewhere) 
- - a boolean constant (True/False/tt/ff)
- - a float proposition: two expressions (or expression identifiers) compared using one of these 
- operators: <, >, <=, >=, !=, ==. 
- - a direction proposition: ```id:direction direction```(space is not mandatory)  where ```id``` is
-  a name of the model variable, direction is either in or our and direction can be positive(+) or
-   negative(-). Example: ```val:in+```
- - another formula in parentheses
- - a formula with unary operator applied. Unary operators: !, EX, AX, EF, AF, EG, AG
- - two formulas with binary operator applied (infix notation: ```f1 op f2```). Binary 
- operators: &&, ||, =>, <=>, EU, AU
+We start by briefly describing the API of the JVM objects which describe HUCTLp formulas in memory and then show the description of the grammar which is used to represent these formulas in text.
  
-Expression can be
- - identifier (reference to expression defined elsewhere or variable you want to reference 
- in the formula). Note that identifiers that can't be resolved are considered as variables 
- and produce no error or warning.
- - numeric constant - You can't use scientific notation (1e10), but everything else should 
- work fine.
- - expression in parenthesis
- - two expressions joined by +,-,*,/
+### Class API
+
+The library provides several tree-like data structures which directly translate to some part of HUCTLp formula. Namely [Expression](), used as an arithmetic expression in floating point propositions, [DirFormula]() used to restrict the type of allowed paths in temporal operators and [Formula]() which represents the HUCTLp operator tree.
+  
+##### Tree structures
+  
+To provide a common interface for working with the types of trees, we define three interfaces: [TreeNode](), [Unary]() and [Binary](). TreeNode must be implemented by each element in the tree and effectively declares the type of a tree you are dealing with (So if Foo : TreeNode\<Expression> you know Foo can be placed only in the Expression tree). Additionally, Unary (res. Binary) are implemented by nodes which have one (res. two) child nodes. Objects that implement TreeNode, but not Unary or Binary are the atomic propositions, since they can be present only in the tree leaves. Finally, to provide an easy way to transform and traverse trees, we define [fold]() and [map](). 
+
+##### Expression
+
+Expressions are very simple - they can represent basic arithmetic ([plus](), [minus](), [multiplication](), [division]()) and as propositions, they use either floating point [constants]() or variable [names]() (these are assumed to be part of the analysed model). Once the values for variable names are known, each Expression should be evaluable to an exact floating point number.
  
-Finally, you can use special flag  ```:?``` in front of an assignment to indicate formulas that
-are in some way interesting/important. You can then configure the parser to only include
-these formulas in the result. The exact semantics of this flag depend on what you
-plan to use the input for. 
+##### DirFormula
 
-Forward declaration, even across files is supported, so that you can define your formulas in 
-whatever order you choose. For obvious reasons, cyclic references are not allowed.
+Direction formulas (or DirFormulas for short) are restrictions which can be placed on paths considered by temporal operators (for example, you can force the future operator to only consider increasing paths). They support standard boolean logic ([not](), [and](), [or](), [implies](), [equals]()) and as propositions, they use either constants [true](), [false](), [loop]() (loop is a special predicate satisfied by the self-loop transitions) or the so called [direction propositions]() which specify a variable name (from the model) and a [direction]() (increase or decrease). Finally, you can also use special [text]() propositions, which don't have any defined semantics, but you can use them to extend the logic with your own functionality.
+  
+##### Formula
 
-Operator priority: In general, unary operators have higher priority than binary operators. 
-Binary operators have following priority: && >> || >> => >> <=> >> EU >> AU
+Formulas are the full HUCTLp formula trees. They support standard boolean logic ([not](), [and](), [or](), [implies](), [equals]()) as well as temporal ([next](), [weak next](), [future](), [weak future](), [globally](), [until]()) and hybrid ([forall](), [exists](), [bind](), [at]()) operators. Furthermore, each temporal formula has a [path quantifier]() (exists, all, past exists, past all) and an optional direction constraint (defaults to true). We don't implement until operators with two direction constraints, instead, the parser translates them to an equivalent combination of until and next. Finally, the proposition can be either a constant ([true](), [false]()), a [numeric comparison]() (a [comparison]() of two expressions), a [transition existence predicate]() (variable name, [direction]() and [flow type]()) or the special [text]() proposition. Finally, you can also use a special [reference]() proposition which is used together with the hybrid operators to create formulas that hold in state with specified name.
 
-Also note that =>, EU and AU are right associative, so that ```a EU b EU c``` is parsed as
- ```a EU (b EU c)```, as expected.
+##### DSL
 
-Example of usage:
+Finally, the package `com.sybila.github.huctl.dcl` contains a set of useful functions for creating HUCTLp properties directly in code. Using these functions, you can write code such as 
 
 ```
-  q = 2 - Var2
-  f = (AG ((q / Var1) EU 2 * Var2)) || (EG (p2 AU b))
-  p1 = val > 3.14
-  :? p2 = val2 < -44
-  p2 = var:in+ && var:in-
-  :? a = EF (p1 && p2)
-  b = AF foo
-  :include "other/foo.ctl"
+val f = Bind("x", in = Bind("z", AX("z".toReference())), target = AF("x".toReference()))
 ```
 
-###Normalization and Optimization
+(This specific formula is a very convoluted way of saying 'all paths from this state lead to a sink')
 
-Currently you can transform formulas into normal form that uses only operators 
-EX, EU, AU, &&, ||, !. Alternatively, you can provide our own normalization function map 
-that will implement your own normal form (or modify current one).
+### `.ctl` text format
 
-You can also automatically perform some simple formula optimizations (proposition negation, 
-double negation removal, boolean propagation and some simplifications). Note that these 
-optimizations expect the formula to be in until normal form. (Other formulas are also 
-supported, but possible optimizations are limited)
+You can also represent HUCTLp formulas as plain text and parse them directly into classes described above. In general, we call this the `.ctl` text format, because usually it is read from a file with the ctl extension, but you are free to provide it also as a String.
 
-These actions can be accessed using extension functions (static methods in Java) on the
- Formula object.
+The `.ctl` format currently supports:
+ 
+ - **Aliases** You can define an alias for any type (expression, direction formula or formula) simply by writing `my_alias = ...`. The order of declaration is irrelevant, but you can't use cyclic aliases and each alias usage has to follow the type rules (you can't use an expression where formula is expected, etc.). The only exception are formulas which are valid as both direction and full HUCTLp formulas (for example "True && False"). These are automatically cast to the appropriate type when used.
+ - **Includes** You can use an inlcude statement `:include 'path/to/file.ctl''` to import all declarations from the specified file. Each file is resolved only once (so you don't have to worry about cyclic or duplicate includes).
+ - **Flagged aliases** Using a special `:?` prefix, you can make any alias "flagged". This has no formal semantics, but this flag usually marks formulas which are in some way interesting for the user (for example which need to be printed in the result)
 
-###Building and using
+#### Parser API
 
-Whole repository is a gradle project, so you can include it into an existing gradle 
-workspace, if you don't want to use jitpack.
+The library defines several functions for parsing full HUCTLp files, single formulas, single direction formulas and single expressions. Each function has a standard and extension variant. Standard functions start with `read` and extension functions follow the `to` convention. Specifically, you can use [readHUCTLp](), [readFormula](), [readDirFormula](), [readExpression]() and their extension counterparts [toHUCTLp](), [toFormula](), [toDirFormula]() and [toExpression]().
 
-CTLParser and CTLLexer classes are auto-generated by Antlr and therefore not included in 
-this repository. They are automatically assembled during 'gradle build'. If you need them 
-prior to build operation, you can call 'gradle generateGrammarSource' to generate 
-them separately. 
+Note that all toString methods should produce output which can be correctly parsed back to an semantically equal object. So for example `f == f.toString().toFormula()` where `f` is a [Formula](). 
+
+#### Grammar
+
+We describe the text format using an Antlr-like grammar syntax. The full Antlr grammar is also [available in this repository]().
+
+ - `.ctl` supports standard `#` and `//` single line comments and nested (similar to Swift or Kotlin) `/*` `*/` multi line comments.
+ - Tokens used by our grammar definition are
+ 
+   - `NAME` Standard variable identifier (alphanumeric string with _ which has to start with a letter).
+   - `STRING` A string of text surrounded by either ' or ". Note that our strings don't support any escaping! 
+   - `FLOAT` A floating point number in the standard decimal notation. The scientific notation, i.e. `2.2e10`, is not supported.
+   - `TRUE` is either `true`, `True` or `tt`. Similar for `FALSE`.
+   - `PATH` is one of the `E`, `A`, `pE`, `pA`.
+    
+ - All operators follow standard priority and associativity rules (implication and until are right associative, add/sub has lower priority than mul/div, unary operators have higher priority than binary operators, etc.). 
+
+ - Each HUCTLp file contains a non-negative number of new line or semicolon separated statements, where each statement is either an include or an (optionally flagged) alias:
+ 
+```
+file : (statement (';'|'\r?\n'))*
+statement : ':include' STRING 
+          | ':?'? NAME '=' (NAME | formula | dirFormula | expression)
+```
+
+ - Each expression is either a name (alias or model variable name), constant, expression in parentheses, or some arithmetic combination of two expressions:
+   
+```
+expression : NAME | FLOAT | '(' expression ')' 
+           | expression ('+' | '-' | '*' | '/') expression
+```
+
+ - Each direction formula is either an alias name, one of the constants, a text proposition, a direction proposition, a direction formula in parentheses or a boolean combination of direction formulas:
+```
+dirFormula : NAME | TRUE | FALSE | LOOP | STRING | '(' dirFormula ')' | '!' dirFormula
+           | dirFormula ('&&' | '||' | '->' | '<->') dirFormula
+```
+
+ - Finally, each formula is either an alias name, true, false, a text proposition, numeric proposition, transition predicate, formula in parentheses, boolean combination of formulas or application of some temporal or hybrid operators:
+ 
+```
+formula : NAME | TRUE | FALSE | STRING
+        | expression ('>' | '>=' | '<' | '<=' | '==' | '!=') expression
+        | NAME ':' ('in' | 'out') ('+' | '-')
+        | '(' formula ')' | '!' formula
+        | formula ('&&' | '||' | '->' | '<->') formula
+        | (modifier)? PATH ( ('X' | 'F' | 'G' | 'wX' | 'wF')) formula
+        | formula modifier? PATH 'U' modifier? formula
+        | ('forall' | 'exists') NAME ('in' formula)? ':' formula
+        | ('bind' | 'at') NAME ':' formula
+
+```
+ - The `modifier` is the direction restriction imposed on the runs considered by the temporal operator. It is a standard `dirFormula` encosed in `{` `}`.
+ 
+Syntax usage example:
+
+```
+:include "propositions.ctl"
+
+:? reach_x_increasing = EX {v1+}EF prop // up is defined in propositions.ctl
+
+stable = bind x: AX AF x
+:? all_reach_stable = forall s in stable : AF s
+ 
+sum = v1 + v2 + v3
+prop = sum > 0 pEU sum == 0
+```
