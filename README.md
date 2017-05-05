@@ -17,6 +17,22 @@ The code is currently published using [jitpack](https://jitpack.io/#sybila/huctl
 
 This repository started as a pure CTL formula parser and normalizer. For anyone interested in the original CTL code, see version [2.2.3](https://github.com/sybila/huctl/releases/tag/2.2.3) which contains both CTL and HUCTLp parsers. Also, some very old versions of BioDivine Model Checker use the version [0.1.0](https://github.com/sybila/huctl/releases/tag/0.1) as a submodule.
 
+### Example
+
+Before you dive into HUCTLp, here is a small example of what the logic (and our text format) can do—includes, aliases, temporal and hybrid operators, all at your disposal: 
+
+```
+:include "propositions.ctl"
+
+:? reach_x_increasing = EX {v1+}EF prop // prop is defined in propositions.ctl
+
+stable = bind x: AX AF x
+:? all_reach_stable = forall s in stable : AF s
+ 
+sum = v1 + v2 + v3
+trace = sum > 0 pEU sum == 0
+```
+
 ### Format description
 
 The formal logic syntax and semantics are described in the article [A Model Checking Approach to Discrete Bifurcation Analysis](https://link.springer.com/chapter/10.1007/978-3-319-48989-6_6). Therefore here we only focus on the technical details of the syntax and differences compared to the version of the logic presented in the original paper.
