@@ -24,7 +24,7 @@ apply plugin: 'jacoco'
 apply plugin: 'org.jetbrains.dokka'
 
 
-group = "com.github.sybila.ctl"
+group = "com.github.sybila"
 version = '3.0.0'
 
 //antlr config
@@ -79,6 +79,7 @@ test {
 }
 
 dokka {
+    moduleName = "HUCTLp"
     sourceDirs = files('src/main/java')     // excludes generated antlr classes
     includes = [
             'src/main/java/com/github/sybila/package.md',
