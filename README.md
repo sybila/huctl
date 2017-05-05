@@ -1,11 +1,10 @@
-<!--
 [![Release](https://jitpack.io/v/sybila/huctl.svg)](https://jitpack.io/#sybila/huctl)
 [![Build Status](https://travis-ci.org/sybila/huctl.svg?branch=master)](https://travis-ci.org/sybila/huctl)
 [![codecov.io](https://codecov.io/github/sybila/huctl/coverage.svg?branch=master)](https://codecov.io/github/sybila/huctl?branch=master)
+[![javadoc](https://img.shields.io/badge/docs-javadoc-blue.svg)](http://biodivine.fi.muni.cz/docs/huctl/latest/)
 [![License](https://img.shields.io/badge/License-GPL%20v3-blue.svg?style=flat)](https://github.com/sybila/ctl-parser/blob/master/LICENSE.txt)
-[![Kotlin](https://img.shields.io/badge/kotlin-1.1.0-blue.svg)](http://kotlinlang.org)
 [![Biodivine](https://img.shields.io/badge/powered_by-biodivine-green.svg)](http://biodivine.fi.muni.cz)
--->
+
 ## HUCTLp
 
 HUCTLp is a temporal logic (based on CTL) designed for analysis of dynamical systems. This repository provides a format for representing HUCTLp formulas as text and as JVM objects. The project is written in Kotlin, but should be usable in any common JVM language.
